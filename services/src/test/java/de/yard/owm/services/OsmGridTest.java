@@ -1,6 +1,7 @@
 package de.yard.owm.services;
 
 
+import de.yard.owm.testutils.TestUtils;
 import de.yard.threed.core.geometry.SimpleGeometry;
 import de.yard.threed.core.loader.PortableModelDefinition;
 import de.yard.threed.core.loader.PortableModelList;
@@ -21,26 +22,62 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.log4j.Logger;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
 import java.util.HashMap;
 
+import static de.yard.owm.testutils.TestUtils.loadFileFromClasspath;
 import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.ROAD;
 import static de.yard.threed.osm2world.Config.MATERIAL_FLIGHT;
 import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
- * Die Tests hier sind alles HighLevel Tests über den Processor.
- * <p>
- * Created on 17.05.18.
+ *
  */
+@SpringBootTest
+@AutoConfigureMockMvc
+@ExtendWith(SpringExtension.class)
+@WebAppConfiguration
 @Slf4j
 public class OsmGridTest {
 
+    public static final String ENDPOINT_OSM = "/api/osm";
+
+    private MockMvc mockMvc;
+
+    @Autowired
+    private WebApplicationContext context;
+
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
     Logger logger = Logger.getLogger(de.yard.threed.OsmGridTest.class);
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+    }
+
+    @Test
+    public void testPostXML() throws Exception {
+
+        String xml = loadFileFromClasspath("K41-segment.osm.xml");
+        MvcResult result = TestUtils.doPostXml(mockMvc, ENDPOINT_OSM, xml);
+        assertEquals(HttpStatus.OK.value(), result.getResponse().getStatus());
+
+    }
 
     @Test
     public void testDesdorfK41SegmentGrid2D() throws IOException {

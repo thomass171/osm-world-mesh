@@ -57,7 +57,6 @@ import static de.yard.threed.javanative.ConfigurationHelper.loadSingleConfig;
 public class SceneryBuilder {
 
     static Logger logger = Logger.getLogger(SceneryBuilder.class.getName());
-    public static final String outdir = "/Users/thomas/Projekte/Granada/osmscenery";
     public static final String osmdatadir = "/Users/thomas/osmdata";
     public static final int BUILDMODE_2D = 0;// 0 = 2D projected without elevation. Relief durch z.B. Bruecken gibt es aber schon. Ansonsten ist Elevation aber 0.
     public static final int BUILDMODE_2DE = 1;   // 1 = 2D projected with elevation
@@ -181,17 +180,7 @@ public class SceneryBuilder {
         }
     }
 
-    public static void buildSamples() {
-        boolean emptyterrain = false;
-        try {
-            //SceneryBuilder.execute("/Users/thomass/Projekte/Granada/osmdata/Munster-K33.osm.xml", null, null, outdir,"Munster-K33",e);
-            //SceneryBuilder.execute("/Users/thomass/Projekte/Granada/osmdata/Desdorf.osm.xml", null, null, outdir,"Desdorf");
-            ProcessResults processResults = new SceneryBuilder().execute("/Users/thomas/Projekte/Granada/osmdata/B55-B477-small.osm.xml", null, null, /*outdir, "B55-B477-small",*/ true, null, Config.MATERIAL_FLIGHT);
-            writeOutput(processResults, outdir, "B55-B477-small");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+
 
     /**
      * 17.7.19:Nicht mehr static, um Features selektiv setzen zu koennen.

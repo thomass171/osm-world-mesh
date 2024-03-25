@@ -28,6 +28,14 @@ public class TestUtils {
         return result;
     }
 
+    public static MvcResult doPostXml(MockMvc mockMvc, String url, String body) throws Exception {
+        MvcResult result = mockMvc.perform(post(url)
+                        .contentType(MediaType.APPLICATION_XML_VALUE)
+                        .content(body))
+                .andDo(print()).andReturn();
+        return result;
+    }
+
     public static MvcResult doPatch(MockMvc mockMvc, String url, String body) throws Exception {
         MvcResult result = mockMvc.perform(patch(url)
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)

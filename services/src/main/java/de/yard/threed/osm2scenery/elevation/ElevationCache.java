@@ -20,7 +20,7 @@ public class ElevationCache implements ElevationProvider {
     private static ElevationCache instance = null;
     private ElevationProvider baseelevationProvider;
     private Map<String, Double> cache = new HashMap<>();
-    private static String cachefile = "/Users/thomas/Projekte/Granada/osmdata/elevationcache.txt";
+    private static String cachefile = "/Users/thomas/Projekte/XXX/osmdata/elevationcache.txt";
 
     private ElevationCache(ElevationProvider baseelevationProvider) throws IOException {
         this.baseelevationProvider = baseelevationProvider;

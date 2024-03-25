@@ -222,7 +222,7 @@ public class AerowayModule extends SceneryModule {
 
     private void loadGroundnet(SceneryProjection projection) {
         //TODO config??
-        String src = "/Users/thomas/Projekte/Granada/data/resources/flusi/EDDK.groundnet.xml";
+        String src = "/Users/thomas/Projekte/XXX/data/resources/flusi/EDDK.groundnet.xml";
         try {
             String groundnetdefinition = FileUtils.readFileToString(new File(src));
             XmlDocument groundnetxml = XmlDocument.buildXmlDocument(groundnetdefinition);

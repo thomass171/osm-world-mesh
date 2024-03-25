@@ -710,7 +710,7 @@ public class OsmGridTest {
 
     @Test
     public void testWayland() throws IOException, InvalidDataException {
-        String zieverichsued = /*SceneryBuilder.osmdatadir*/"/Users/thomas/Projekte/Granada/scenery/src/main/resources/Wayland.osm.xml";
+        String zieverichsued = /*SceneryBuilder.osmdatadir*/"src/main/resources/Wayland.osm.xml";
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider68");
         //26.9.18: Nur mit superdetailed tritt eine TopologyException: found non-noded intersection between LINESTRING auf

@@ -248,7 +248,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
         String gridfilename = SceneryBuilder.osmdatadir + "/" + s + ".grid.txt";
 
         if (s.equals("Wayland")) {
-            gridfilename = "/Users/thomas/Projekte/Granada/scenery/src/main/resources/Wayland.grid.txt";
+            gridfilename = "src/main/resources/Wayland.grid.txt";
         }
         try {
             return buildGridFromFile(new File(gridfilename));//buildDesdorf();
