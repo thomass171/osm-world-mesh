@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="CGImap 0.6.0 (2600 thorn-03.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <bounds minlat="50.9455" minlon="6.59" maxlat="50.950" maxlon="6.596"/>
+
+ <node id="54286220" visible="true" version="10" changeset="16563389" timestamp="2013-06-15T14:03:59Z" user="Sharlin" uid="141931" lat="50.9468001" lon="6.5952813"/>
+ <node id="59664093" visible="true" version="5" changeset="16563389" timestamp="2013-06-15T14:03:59Z" user="Sharlin" uid="141931" lat="50.9474325" lon="6.5942713"/>
+ <node id="1829065191" visible="true" version="2" changeset="16563389" timestamp="2013-06-15T14:03:57Z" user="Sharlin" uid="141931" lat="50.9479214" lon="6.5936041"/>
+ <node id="251517905" visible="true" version="2" changeset="41191" timestamp="2008-04-04T10:05:00Z" user="Attila" uid="9582" lat="50.9485855" lon="6.5928186">
+  <tag k="created_by" v="JOSM"/>
+ </node>
+ <node id="255563538" visible="true" version="3" changeset="16563389" timestamp="2013-06-15T14:03:57Z" user="Sharlin" uid="141931" lat="50.9493288" lon="6.5921100"/>
+
+ <way id="24927839" visible="true" version="8" changeset="17257672" timestamp="2013-08-07T18:43:01Z" user="R4dm0r" uid="390589">
+  <nd ref="54286220"/>
+  <nd ref="59664093"/>
+  <nd ref="1829065191"/>
+  <nd ref="251517905"/>
+  <nd ref="255563538"/>
+  <tag k="highway" v="secondary"/>
+  <tag k="maxspeed" v="70"/>
+  <tag k="ref" v="K 41"/>
+ </way>
+</osm>
