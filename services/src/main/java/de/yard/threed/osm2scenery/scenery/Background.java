@@ -28,7 +28,7 @@ public class Background {
 
     public List<BackgroundElement> background = null;
     public Material material = Materials.TERRAIN_DEFAULT;
-    public List<Area> bgfiller = new ArrayList<>();
+    private List<Area> bgfiller = new ArrayList<>();
 
     public Background(Polygon polygon) {
         background = new ArrayList<>();
@@ -71,7 +71,7 @@ public class Background {
         }
 
         for (Polygon p : polygonToUse) {
-            if (p!=null) {
+            if (p != null) {
                 if (!p.isValid()) {
                     logger.warn("invalid polygon. Skipping! creatortag=" + area.creatortag);
                 } else {
@@ -113,7 +113,7 @@ public class Background {
             Polygon pePolygon = be.polygon;
             if (pePolygon.intersects(uncutarea)) {
                 List<PolygonSubtractResult> diff = JtsUtil.subtractPolygons(pePolygon, uncutarea);
-                if (diff==null||diff.size() == 0) {
+                if (diff == null || diff.size() == 0) {
                     //4.9.19:nicht loggenmswert
                     //logger.error("no diff found");
                 } else {
@@ -230,5 +230,13 @@ public class Background {
 
     public void addFiller(Area bgfiller) {
         this.bgfiller.add(bgfiller);
+    }
+
+    public int bgfillersize() {
+        return bgfiller.size();
+    }
+
+    public List<Area> getBgfiller() {
+        return bgfiller;
     }
 }

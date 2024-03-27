@@ -24,6 +24,13 @@ and the introduction of GridBoundaries combined with a polygon based
 approach, which finally led to separation
 from the initial fork.
 
+The steps for scenery building are
+* Create polygons for all OSM areas and supplements
+* Create background to fill all gaps not covered by OSM (Phase.BACKGROUND with FTR_SMARTBG enabled)
+* Create decorations
+* Handle overlaps of decorations(?)
+
+
 However, even GridBoundaries couldn't provide a useful solution for
 the "gapless mesh" requirement.
 

@@ -114,10 +114,10 @@ public class OsmGridTest {
         //nur die K41 und einen Background.
         assertEquals(1, sceneryMesh.sceneryObjects.objects.size(), "scenery.areas");
         if (SceneryBuilder.FTR_SMARTBG) {
-            assertEquals(1, sceneryMesh.getBackground().bgfiller.size(), "scenery.backgrounds");
+            assertEquals(1, sceneryMesh.getBackground().bgfillersize(), "scenery.backgrounds");
             assertEquals(0, sceneryMesh.getBackground().background.size(), "scenery.backgrounds");
         } else {
-            assertEquals(0, sceneryMesh.getBackground().bgfiller.size(), "scenery.backgrounds");
+            assertEquals(0, sceneryMesh.getBackground().bgfillersize(), "scenery.backgrounds");
             assertEquals( /*13.8.19 ??? 1*/2, sceneryMesh.getBackground().background.size(), "scenery.backgrounds");
         }
 

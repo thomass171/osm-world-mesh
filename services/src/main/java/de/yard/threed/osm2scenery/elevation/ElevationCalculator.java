@@ -165,7 +165,7 @@ public class ElevationCalculator {
 
             calculateElevationsForPolygon(be.polygon, polygonMetadata, be.vertexData, null);
         }
-        for (AbstractArea be : background.bgfiller) {
+        for (AbstractArea be : background.getBgfiller()) {
             if (be.isEmpty()) {
                 logger.warn("empty BG filler?");
             } else {

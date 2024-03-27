@@ -158,7 +158,7 @@ public class SceneryMesh {
                     be.trifailed = true;
                 }
             }
-            for (Area be : background.bgfiller) {
+            for (Area be : background.getBgfiller()) {
                 if (be.isEmpty()) {
                     logger.warn("empty BG filler?");
                 } else {
@@ -181,6 +181,9 @@ public class SceneryMesh {
     }
 
     /**
+     * Render everything:
+     * 1) The background (incl bgfiller) for having overlays like buildings visible.
+     * 2) The objects over the background
      * @param sceneryRenderer
      * @return
      */
@@ -194,7 +197,7 @@ public class SceneryMesh {
         // verbreiterten Ways.
         if (background != null) {
             int i = 0;
-            if (background.background.size() != 0 && background.bgfiller.size() != 0) {
+            if (background.background.size() != 0 && background.bgfillersize() != 0) {
                 throw new RuntimeException("entweder oder");
             }
             for (BackgroundElement be : background.background) {
@@ -207,7 +210,7 @@ public class SceneryMesh {
                 i++;
             }
             i = 0;
-            for (Area be : background.bgfiller) {
+            for (Area be : background.getBgfiller()) {
                 Polygon p = be.getPolygon();
                 // 2.8.18: TODO hier kann es doch auch eine trifailed geben, oder?
                 OsmOrigin osmOrigin = new OsmOrigin("Background Area");

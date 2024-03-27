@@ -234,7 +234,7 @@ public class SceneryTestUtil {
         assertEquals(0, ScenerySupplementAreaObject.deprecatedusage, "deprecatedusage");
         assertEquals(0, TerrainMesh.getInstance().errorCounter, "TerrainMesh.errorCounter");
         assertEquals(0, SceneryContext.getInstance().errorCounter, "SceneryContext.errorCounter");
-        assertEquals(expectedBgFiller, sceneryMesh.getBackground().bgfiller.size(), "scenery.background.bgfiller");
+        assertEquals(expectedBgFiller, sceneryMesh.getBackground().bgfillersize(), "scenery.background.bgfiller");
 
     }
 
