@@ -3,6 +3,7 @@ package de.yard.threed.osm2graph.osm;
 import com.vividsolutions.jts.geom.*;
 
 import de.yard.threed.core.LatLon;
+import de.yard.threed.core.Util;
 import de.yard.threed.osm2world.*;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2scenery.SceneryObjectList;
@@ -13,7 +14,7 @@ import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-
+import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 
 
 import java.io.File;
@@ -70,6 +71,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
     double degsize;
     int texturesize = 512;
     LatLon origin;
+    // in degrees
     double bottom, top, left, right;
     VectorXZ bottomleft, topright;
     double maxextension;
@@ -80,6 +82,10 @@ public class GridCellBounds /*implements TargetBounds*/ {
     private boolean locked = false;
     private Map<Integer, List<LazyCutObject>> mapOfCuts;
 
+    /**
+     * 26.3.24: Deprecated because of new gridless DB approach.
+     */
+    @Deprecated
     public GridCellBounds(List<LatLon> coords) {
         instance = this;
         this.coords = coords;
@@ -95,17 +101,58 @@ public class GridCellBounds /*implements TargetBounds*/ {
 
         origin = LatLon.fromDegrees(
                 (top + bottom) / 2,
-                        (left + right) / 2);
+                (left + right) / 2);
         projection = new MetricSceneryProjection(this);
         /*projection.setOrigin();
          */
         bottomleft = projection.project(LatLon.fromDegrees(bottom, left));
-        topright = projection.project( LatLon.fromDegrees(top, right));
+        topright = projection.project(LatLon.fromDegrees(top, right));
         maxextension = topright.x - bottomleft.x;
         if (topright.z - bottomleft.z > maxextension) {
             maxextension = topright.z - bottomleft.z;
         }
         // logger.debug("maxextension=" + maxextension);
+    }
+
+    /**
+     * 26.3.24: New gridless DB constructor
+     */
+    public GridCellBounds(double top, double bottom, double left, double right) {
+        instance = this;
+        this.top = top;
+        this.bottom = bottom;
+        this.left = left;
+        this.right = right;
+
+        double degwidth = right - left;
+        double degheight = top - bottom;
+        // der groessere Wert bestimmt den factor, in die andere Richtung wird Verschnitt entstehen.
+        degsize = Math.max(degheight, degwidth);
+
+        origin = LatLon.fromDegrees(
+                (top + bottom) / 2,
+                (left + right) / 2);
+        projection = new MetricSceneryProjection(this);
+
+        bottomleft = projection.project(LatLon.fromDegrees(bottom, left));
+        topright = projection.project(LatLon.fromDegrees(top, right));
+        maxextension = topright.x - bottomleft.x;
+        if (topright.z - bottomleft.z > maxextension) {
+            maxextension = topright.z - bottomleft.z;
+        }
+
+        // copied from init
+        CoordinateList vl = new CoordinateList();
+        vl.add(JTSConversionUtil.vectorXZToJTSCoordinate(OsmUtil.project(projection, LatLon.fromDegrees(top, left))));
+        vl.add(JTSConversionUtil.vectorXZToJTSCoordinate(OsmUtil.project(projection, LatLon.fromDegrees(top, right))));
+        vl.add(JTSConversionUtil.vectorXZToJTSCoordinate(OsmUtil.project(projection, LatLon.fromDegrees(bottom, right))));
+        vl.add(JTSConversionUtil.vectorXZToJTSCoordinate(OsmUtil.project(projection, LatLon.fromDegrees(bottom, left))));
+        //close polygon
+        vl.add(vl.get(0));
+        polygon = JtsUtil.createPolygonFromCoordinateList(vl, false);
+        if (!polygon.isValid()) {
+            throw new RuntimeException("invalid polygon");
+        }
     }
 
     //@Override
@@ -244,6 +291,10 @@ public class GridCellBounds /*implements TargetBounds*/ {
         return targetBounds;
     }
 
+    /**
+     * 26.3.24: Deprecated because of new gridless DB approach.
+     */
+    @Deprecated
     public static GridCellBounds buildGrid(String s, MapData mapData) {
         String gridfilename = SceneryBuilder.osmdatadir + "/" + s + ".grid.txt";
 
@@ -257,6 +308,34 @@ public class GridCellBounds /*implements TargetBounds*/ {
             logger.warn("Could not read grid file " + gridfilename + ":" + e.getMessage() + ". Ignoring");
         }
         return null;
+    }
+
+    public static GridCellBounds buildFromOsmData(OSMData osmData) {
+        if (osmData.getBounds() != null && !osmData.getBounds().isEmpty()) {
+
+            Bound firstBound = osmData.getBounds().iterator().next();
+
+            // Surrounding is needed for ...??
+            double offset = 0.01;
+            return new GridCellBounds(
+                    firstBound.getTop() + offset,
+                    firstBound.getBottom() - offset,
+                    firstBound.getLeft() - offset,
+                    firstBound.getRight() + offset
+            );
+
+        } else {
+
+            if (osmData.getNodes().isEmpty()) {
+                throw new IllegalArgumentException(
+                        "OSM data must contain bounds or nodes");
+            }
+
+            OSMNode firstNode = osmData.getNodes().iterator().next();
+            Util.notyet();
+            return null;
+        }
+
     }
 
     /**
@@ -505,6 +584,10 @@ public class GridCellBounds /*implements TargetBounds*/ {
         return JtsUtil.onBoundary(coor, polygon);
     }
 
+    public boolean isPreDbStyle() {
+        return coords != null;
+    }
+
     /**
      * 29.7.19:gleich deprecated wegen Stilbruch. Für mapnode->coordinates gibts doch einen map/registry?
      */
@@ -579,7 +662,7 @@ class MetricSceneryProjection implements SceneryProjection {
     //@Override
     public LatLon/*SGGeod*/ getOrigin() {
         //22.12.21 return SGGeod.fromDeg(gridCellBounds.origin.getLonDeg().getDegree(), gridCellBounds.origin.getLatDeg().getDegree());
-        return new LatLon( gridCellBounds.origin.getLatDeg().getDegree(),gridCellBounds.origin.getLonDeg().getDegree());
+        return new LatLon(gridCellBounds.origin.getLatDeg().getDegree(), gridCellBounds.origin.getLonDeg().getDegree());
     }
 
 }

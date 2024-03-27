@@ -391,19 +391,21 @@ public class OSMToSceneryDataConverter {
             } else {
                 MapNode mapNode = nodeMap.get(node);
                 MapNode prevMapNode = nodeMap.get(previousNode);
-                if (wayCrossesGridBoundary(targetBounds, prevMapNode, mapNode)) {
-                    // dann am Schnittpunkt eine Dummy Mapnode einbauen.
-                    Geometry gridnodepos = targetBounds.getPolygon().getExteriorRing().intersection(
-                            JtsUtil.createLine(JTSConversionUtil.vectorXZToJTSCoordinate(prevMapNode.getPos()),
-                                    JTSConversionUtil.vectorXZToJTSCoordinate(mapNode.getPos())));
-                    VectorXZ xz = JTSConversionUtil.vectorXZFromJTSCoordinate(gridnodepos.getCoordinates()[0]);
-                    OSMNode gridosmnode = OsmUtil.buildDummyNode(mapProjection, xz);
-                    MapNode gridnode = new MapNode(xz, gridosmnode, MapNode.Location.GRIDNODE);
-                    addSegment(way, prevMapNode, gridnode, mapWaySegs, mapWay);
-                    previousNode = gridosmnode;
-                    prevMapNode = gridnode;
-                    //noch nicht, weil noch gar nicht klar ist ob der way gebraucht wird
-                    //targetBounds.gridnodes.add(gridnode);
+                if (targetBounds.isPreDbStyle()) {
+                    if (wayCrossesGridBoundary(targetBounds, prevMapNode, mapNode)) {
+                        // dann am Schnittpunkt eine Dummy Mapnode einbauen.
+                        Geometry gridnodepos = targetBounds.getPolygon().getExteriorRing().intersection(
+                                JtsUtil.createLine(JTSConversionUtil.vectorXZToJTSCoordinate(prevMapNode.getPos()),
+                                        JTSConversionUtil.vectorXZToJTSCoordinate(mapNode.getPos())));
+                        VectorXZ xz = JTSConversionUtil.vectorXZFromJTSCoordinate(gridnodepos.getCoordinates()[0]);
+                        OSMNode gridosmnode = OsmUtil.buildDummyNode(mapProjection, xz);
+                        MapNode gridnode = new MapNode(xz, gridosmnode, MapNode.Location.GRIDNODE);
+                        addSegment(way, prevMapNode, gridnode, mapWaySegs, mapWay);
+                        previousNode = gridosmnode;
+                        prevMapNode = gridnode;
+                        //noch nicht, weil noch gar nicht klar ist ob der way gebraucht wird
+                        //targetBounds.gridnodes.add(gridnode);
+                    }
                 }
                 addSegment(way, prevMapNode, mapNode, mapWaySegs, mapWay);
             }
@@ -829,11 +831,13 @@ public class OSMToSceneryDataConverter {
 
     private void createMapNode(OSMNode node, Collection<MapNode> mapNodes) {
         VectorXZ nodePos = OsmUtil.calcPos(mapProjection, node.lat, node.lon);
-        MapNode.Location location;
-        if (targetBounds.isBoundaryNode(nodePos)) {
-            location = MapNode.Location.GRIDNODE;
-        } else {
-            location = (targetBounds.isInside(nodePos)) ? MapNode.Location.INSIDEGRID : MapNode.Location.OUTSIDEGRID;
+        MapNode.Location location = null;
+        if (targetBounds.isPreDbStyle()) {
+            if (targetBounds.isBoundaryNode(nodePos)) {
+                location = MapNode.Location.GRIDNODE;
+            } else {
+                location = (targetBounds.isInside(nodePos)) ? MapNode.Location.INSIDEGRID : MapNode.Location.OUTSIDEGRID;
+            }
         }
         MapNode mapNode = new MapNode(nodePos, node, location);
         mapNodes.add(mapNode);

@@ -8,6 +8,7 @@ import de.yard.threed.osm2scenery.util.TagFilter;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.MapData;
+import de.yard.threed.osm2world.MapWay;
 
 import java.util.List;
 
@@ -15,7 +16,18 @@ import java.util.List;
  * Created on 11.07.18.
  */
 public abstract class SceneryModule {
+    public static List<SceneryModule> getRelevant(List<SceneryModule> worldModules, MapWay mapWay) {
+        return worldModules;
+    }
+
     public abstract SceneryObjectList applyTo(MapData mapData);
+
+    /**
+     * Default implementation
+     */
+    public SceneryObjectList applyTo(MapWay mapWay){
+        return new SceneryObjectList();
+    }
 
     protected String getSubConfig(String subproperty) {
         String classname = getClass().getSimpleName();

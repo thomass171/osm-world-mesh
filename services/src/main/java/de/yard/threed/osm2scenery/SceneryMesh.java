@@ -61,7 +61,7 @@ public class SceneryMesh {
     /*Polygon*/ GridCellBounds gridbounds;
 
 
-    SceneryMesh() {
+    public SceneryMesh() {
         //mal so'ne kleine Sandbox
         //areas.add(new SceneryArea(buildSample1()));
         //areas.get(0).merge(new SceneryArea(buildSample2()));

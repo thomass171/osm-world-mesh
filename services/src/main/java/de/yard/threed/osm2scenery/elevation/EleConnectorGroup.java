@@ -118,20 +118,21 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
             return;
         }
 
-        // Aus dem Grid Fixings herleiten. Solange die nicht im Grid selber stehen, über den Provider.
-        for (int i = 0; i < gridCellBounds.coords.size(); i++) {
-            GridCellBounds.BoundaryNode mapNode = gridCellBounds.basicnodes.get(i);
-            // LatLon loc = gridCellBounds.coords.get(i);
-            List<EleCoordinate> el = new ArrayList<>();
-            el.add(new EleCoordinate(JTSConversionUtil.vectorXZToJTSCoordinate(mapNode.mapNode.getPos())));
-            EleConnectorGroup eleConnectorGroup = new EleConnectorGroup(mapNode.mapNode, el);
-            //eleConnectorGroup.setElevation(elevationProvider.getElevation((float) loc.lat, (float) loc.lon));//instance.getElevation(coor));
-            //instance.fixings.add(eleConnectorGroup);
-            elegroups.put(mapNode.mapNode.getOsmId(), eleConnectorGroup);
-            //und die auch gleich registrieren. Nein, erst nach Triangulation. In der Group.cmap ist es schon drin.
-            //instance.registerElevation(coor, eleConnectorGroup.getElevation(), eleConnectorGroup);
-            gridCellBounds.elegroups.add(eleConnectorGroup);
-
+        if (gridCellBounds.isPreDbStyle()) {
+            // Aus dem Grid Fixings herleiten. Solange die nicht im Grid selber stehen, über den Provider.
+            for (int i = 0; i < gridCellBounds.coords.size(); i++) {
+                GridCellBounds.BoundaryNode mapNode = gridCellBounds.basicnodes.get(i);
+                // LatLon loc = gridCellBounds.coords.get(i);
+                List<EleCoordinate> el = new ArrayList<>();
+                el.add(new EleCoordinate(JTSConversionUtil.vectorXZToJTSCoordinate(mapNode.mapNode.getPos())));
+                EleConnectorGroup eleConnectorGroup = new EleConnectorGroup(mapNode.mapNode, el);
+                //eleConnectorGroup.setElevation(elevationProvider.getElevation((float) loc.lat, (float) loc.lon));//instance.getElevation(coor));
+                //instance.fixings.add(eleConnectorGroup);
+                elegroups.put(mapNode.mapNode.getOsmId(), eleConnectorGroup);
+                //und die auch gleich registrieren. Nein, erst nach Triangulation. In der Group.cmap ist es schon drin.
+                //instance.registerElevation(coor, eleConnectorGroup.getElevation(), eleConnectorGroup);
+                gridCellBounds.elegroups.add(eleConnectorGroup);
+            }
         }
         EleConnectorGroup.initCompleted = true;
     }
@@ -180,12 +181,12 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
         if (id == 344) {
             int h = 9;
         }
-        if (newConnector.coordinate.distance(new Coordinate(29.7,-92.4))<0.5){
-            int h=9;
+        if (newConnector.coordinate.distance(new Coordinate(29.7, -92.4)) < 0.5) {
+            int h = 9;
         }
         //14.8.19: Mal auf duplicate pruefen. Das dürfte dann nicht mehr konsistent sein, weils dann mehrere Groups für eine Coordinate gibt.
         if (getGroup(newConnector.coordinate) != null) {
-            logger.warn("duplicate EleCoordinate "+newConnector.coordinate);
+            logger.warn("duplicate EleCoordinate " + newConnector.coordinate);
             SceneryContext.getInstance().warnings.add("duplicate");
         }
         eleConnectors.add(newConnector);
@@ -241,7 +242,7 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
     public void fixElevation(Double elevation) {
         if (gridlocation == null) {
             //might happen for bridge gap
-            logger.warn("unknown grid location of ele group. possible bridge base? mapNode="+mapNode);
+            logger.warn("unknown grid location of ele group. possible bridge base? mapNode=" + mapNode);
             SceneryContext.getInstance().warnings.add("unknown grid location of ele group");
         }
         if (mapNode != null && mapNode.getOsmId() == 256588788) {
@@ -396,9 +397,9 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
         EleConnectorGroup e = getGroup(coor);
         if (e == null) {
             // Der Sache auf den Grund gehen
-            boolean containskey=cmap.containsKey(coor);
-            List<MeshLine> meshLines = TerrainMesh.getInstance().findLines(null,coor) ;
-            MeshLine meshLine = (meshLines.size()>0)?meshLines.get(0):null;
+            boolean containskey = cmap.containsKey(coor);
+            List<MeshLine> meshLines = TerrainMesh.getInstance().findLines(null, coor);
+            MeshLine meshLine = (meshLines.size() > 0) ? meshLines.get(0) : null;
             //Der cut ist dafuer die häufigste Ursache. Erstmal nicht mehr loggen, weil es zu oft vorkommt.
             //5.9.18: Der cut wird jetzt gehandelt. Darum wieder log. Und mal checken, ob ein Rundungsfehler die Ursache sein kann.
             //28.9.18: Ansonsten ist ja noch Triangulation ein klare moegliche Ursache. Dann zwar auch Rundungsfehler checken,
@@ -415,7 +416,7 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
             // Es kann wohl zumindest beim BG roundings problem geben
             if (!isPossibleUnknownVertex && !possibleroundingproblem) {
                 if (!silently) {
-                    logger.warn("no ele group found (" + label + ") for coordinate " + coor + ",possibleroundingproblem=" + possibleroundingproblem+",containskey="+containskey+",meshLine="+meshLine);
+                    logger.warn("no ele group found (" + label + ") for coordinate " + coor + ",possibleroundingproblem=" + possibleroundingproblem + ",containskey=" + containskey + ",meshLine=" + meshLine);
 
                     SceneryContext.getInstance().warnings.add("no eleconnector found for coordinate " + coor + ",possibleroundingproblem=" + possibleroundingproblem);
                     SceneryContext.getInstance().unknowncoordinates.add(coor);

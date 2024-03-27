@@ -27,6 +27,8 @@ from the initial fork.
 However, even GridBoundaries couldn't provide a useful solution for
 the "gapless mesh" requirement.
 
+26.3.24 new gridless DB approach
+
 # Refactorings
 components that need a platform like 
 * PortableModelList for GLTF building will
@@ -42,11 +44,14 @@ tcp dependencies for a while.
 * osm(xml)
 * airport()
 
-## GET
+## GET (might be cached)
 * trafficgraph(area,cluster)
 * groundnet(icaos)?
-* terrain(area)
+* terrain(area, materials={basic,osm2world,wood}): 
 * objects(area)
+* terrasync(area): compatible with TerraSync 
+  object/model/terrain/STG
+  and ready to be used from tcp-flightgear:TravelScene[Bluebird]
 
 # Provider
 
