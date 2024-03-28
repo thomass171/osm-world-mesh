@@ -14,7 +14,7 @@ import de.yard.threed.osm2scenery.elevation.ElevationCalculator;
 import de.yard.threed.osm2scenery.elevation.SimpleEleConnectorGroupFinder;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshFillCandidate;
-import de.yard.threed.osm2scenery.polygon20.MeshLine;
+import de.yard.owm.services.persistence.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.Background;
 import de.yard.threed.osm2scenery.scenery.BackgroundElement;

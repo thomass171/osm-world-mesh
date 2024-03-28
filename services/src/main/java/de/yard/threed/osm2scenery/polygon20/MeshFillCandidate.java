@@ -1,6 +1,7 @@
 package de.yard.threed.osm2scenery.polygon20;
 
 import com.vividsolutions.jts.geom.Polygon;
+import de.yard.owm.services.persistence.MeshLine;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import org.apache.log4j.Logger;

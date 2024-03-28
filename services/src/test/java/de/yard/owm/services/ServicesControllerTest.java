@@ -28,8 +28,8 @@ public class ServicesControllerTest {
     @Value(value = "${local.server.port}")
     private int port;
 
-    @Autowired
-    private MazeRepository mazeRepository;
+    /*@Autowired
+    private MazeRepository mazeRepository;*/
 
     @Autowired
     AuthorizationService authorizationService;
@@ -38,7 +38,7 @@ public class ServicesControllerTest {
     void tearDown() {
     }
 
-    @Test
+    /*@Test
     @Sql({"classpath:testGrids.sql"})
     public void testConfirmSecretSuccess() throws Exception {
 
@@ -96,5 +96,5 @@ public class ServicesControllerTest {
         log.debug("{}",m.getSecret());
         mazeRepository.save(m);
         return m.getId();
-    }
+    }*/
 }

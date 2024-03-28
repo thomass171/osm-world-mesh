@@ -13,7 +13,7 @@ import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.modules.common.BridgeOrTunnel;
-import de.yard.threed.osm2scenery.polygon20.MeshLine;
+import de.yard.owm.services.persistence.MeshLine;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;

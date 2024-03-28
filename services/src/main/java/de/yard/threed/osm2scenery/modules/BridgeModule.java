@@ -8,7 +8,7 @@ import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.common.BridgeOrTunnel;
-import de.yard.threed.osm2scenery.polygon20.MeshLine;
+import de.yard.owm.services.persistence.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.BridgeGap;
 import de.yard.threed.osm2scenery.scenery.BridgeSideRamp;

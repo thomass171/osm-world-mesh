@@ -9,7 +9,7 @@ import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.SurfaceAreaModule;
-import de.yard.threed.osm2scenery.polygon20.MeshLine;
+import de.yard.owm.services.persistence.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;

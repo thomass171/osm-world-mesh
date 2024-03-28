@@ -2,7 +2,7 @@ package de.yard.threed.osm2scenery.scenery.components;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2scenery.polygon20.MeshLine;
+import de.yard.owm.services.persistence.MeshLine;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;

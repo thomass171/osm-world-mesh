@@ -1,20 +1,53 @@
-package de.yard.threed.osm2scenery.polygon20;
+package de.yard.owm.services.persistence;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.log4j.Logger;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 
+@Entity
+@Getter
+@Setter
+@Table(name="meshpoint")
 public class MeshPoint {
-    public int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshpoint_id_generator")
+    @SequenceGenerator(name = "meshpoint_id_generator", sequenceName = "meshpoint_seq", allocationSize = 1)
+    private Long id;
+
+    @Column(name = "lat")
+    private double lat;
+
+    @Column(name = "lon")
+    private double lon;
+
+    @Transient
     private List<MeshLine> linesOfPoint = new ArrayList();
+    @Transient
     public Coordinate coordinate;
+    @Transient
     public EleConnectorGroup group;
+    @Transient
     Logger logger = Logger.getLogger(MeshPoint.class);
+
+    public MeshPoint() {
+
+    }
 
     public MeshPoint(Coordinate coordinate) {
         this.coordinate = coordinate;

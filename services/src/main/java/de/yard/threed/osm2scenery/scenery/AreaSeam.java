@@ -1,7 +1,7 @@
 package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.LineString;
-import de.yard.threed.osm2scenery.polygon20.MeshLine;
+import de.yard.owm.services.persistence.MeshLine;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 
 public class AreaSeam {

@@ -1,6 +1,7 @@
 package de.yard.threed.osm2scenery.polygon20;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import de.yard.owm.services.persistence.MeshLine;
 
 import java.util.ArrayList;
 import java.util.List;

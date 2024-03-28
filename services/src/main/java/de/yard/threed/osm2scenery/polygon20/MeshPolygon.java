@@ -2,6 +2,8 @@ package de.yard.threed.osm2scenery.polygon20;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
+import de.yard.owm.services.persistence.MeshLine;
+import de.yard.owm.services.persistence.MeshPoint;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;

@@ -1,4 +1,4 @@
-package de.yard.threed.osm2scenery.polygon20;
+package de.yard.owm.services.persistence;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineSegment;
@@ -6,18 +6,41 @@ import com.vividsolutions.jts.geom.LineString;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
+import lombok.Data;
+import lombok.Getter;
 import org.apache.log4j.Logger;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.*;
 
+@Entity
+@Getter
+@Table(name="meshline")
 public class MeshLine {
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshline_id_generator")
+    @SequenceGenerator(name = "meshline_id_generator", sequenceName = "meshline_seq", allocationSize = 1)
+    private Long id;
+
+    @Transient
     Logger logger = Logger.getLogger(MeshLine.class);
+    @Transient
     private Coordinate[] coordinates;
+    @Transient
     private MeshPoint from, to;
+    @Transient
     public boolean isBoundary = false;
     //Bei Boundary always "left" isType set, because gridbounds are CCW.
+    @Transient
     private AbstractArea left, right;
     //zur Visualisierung und Validierung
+    @Transient
     public LineString line;
 
     private MeshLine(Coordinate[] coordinates, LineString line) {
