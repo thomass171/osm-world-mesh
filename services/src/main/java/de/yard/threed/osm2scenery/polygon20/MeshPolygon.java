@@ -3,7 +3,7 @@ package de.yard.threed.osm2scenery.polygon20;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.owm.services.persistence.MeshLine;
-import de.yard.owm.services.persistence.MeshPoint;
+import de.yard.owm.services.persistence.MeshNode;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
@@ -59,7 +59,7 @@ public class MeshPolygon {
             return null;
         }
         coors.addAll(JtsUtil.toList(lines.get(0).getCoordinates()));
-        MeshPoint point = lines.get(0).getTo();
+        MeshNode point = lines.get(0).getTo();
         //immer den letzten Punkt eine line noch mitnehmen und bei der naechsten 1 dahinter beginnen.
         for (int i = 1; i < lines.size(); i++) {
             MeshLine line = lines.get(i);

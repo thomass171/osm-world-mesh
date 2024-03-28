@@ -17,7 +17,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroupFinder;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.owm.services.persistence.MeshLine;
-import de.yard.owm.services.persistence.MeshPoint;
+import de.yard.owm.services.persistence.MeshNode;
 import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
@@ -607,7 +607,7 @@ public class WayArea extends AbstractArea {
      *
      * @return
      */
-    private Object[] getPairsOfSegment(int segment, boolean meshpoints, TerrainMesh tm) {
+    private Object[] getPairsOfSegment(int segment, boolean meshnodes, TerrainMesh tm) {
         int start = getSegmentIndex(segment, true);
         int end = getSegmentIndex(segment, false);
         if (start == -1 || end == -1) {
@@ -1044,7 +1044,7 @@ public class WayArea extends AbstractArea {
  */
 class MeshLineData {
     MeshLine meshLine;
-    MeshPoint from, to;
+    MeshNode from, to;
     WayArea wayArea;
     boolean left;
 

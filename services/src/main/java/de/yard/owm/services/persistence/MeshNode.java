@@ -2,7 +2,6 @@ package de.yard.owm.services.persistence;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.log4j.Logger;
@@ -23,11 +22,11 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Table(name="meshpoint")
-public class MeshPoint {
+@Table(name="meshnode")
+public class MeshNode {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshpoint_id_generator")
-    @SequenceGenerator(name = "meshpoint_id_generator", sequenceName = "meshpoint_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshnode_id_generator")
+    @SequenceGenerator(name = "meshnode_id_generator", sequenceName = "meshnode_seq", allocationSize = 1)
     private Long id;
 
     @Column(name = "lat")
@@ -43,13 +42,13 @@ public class MeshPoint {
     @Transient
     public EleConnectorGroup group;
     @Transient
-    Logger logger = Logger.getLogger(MeshPoint.class);
+    Logger logger = Logger.getLogger(MeshNode.class);
 
-    public MeshPoint() {
+    public MeshNode() {
 
     }
 
-    public MeshPoint(Coordinate coordinate) {
+    public MeshNode(Coordinate coordinate) {
         this.coordinate = coordinate;
         //  pool.add(this);
         //  this.id=pool.size();

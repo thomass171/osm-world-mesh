@@ -16,7 +16,7 @@ create table osmnode (
 
 create sequence osmnode_seq start with 1;
 
-create table meshpoint (
+create table meshnode (
     id bigint not null,
     lat double precision not null,
     lon double precision not null,
@@ -25,15 +25,15 @@ create table meshpoint (
     primary key(id)
 );
 
-create sequence meshpoint_seq start with 1;
+create sequence meshnode_seq start with 1;
 
 create table meshline (
     id bigint not null,
-    frompoint bigint not null,
-    topoint bigint not null,
+    fromnode bigint not null,
+    tonode bigint not null,
 
-    foreign key (frompoint) references meshpoint,
-    foreign key (topoint) references meshpoint,
+    foreign key (fromnode) references meshnode,
+    foreign key (tonode) references meshnode,
     primary key(id)
 );
 

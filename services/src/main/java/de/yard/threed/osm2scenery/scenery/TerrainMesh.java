@@ -12,7 +12,7 @@ import de.yard.threed.osm2scenery.elevation.ElevationCalculator;
 import de.yard.threed.osm2scenery.modules.AerowayModule;
 import de.yard.owm.services.persistence.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshLineSplitCandidate;
-import de.yard.owm.services.persistence.MeshPoint;
+import de.yard.owm.services.persistence.MeshNode;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
@@ -32,7 +32,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * THE mesh of {@link MeshPoint}s and {@link MeshLine}s.
+ * A mesh of {@link MeshNode}s and {@link MeshLine}s. Usually its just a submesh of the full world mesh.
  * 28.3.24:
  *
  * Wird in drei Stufen aufgebaut:
@@ -46,7 +46,7 @@ public class TerrainMesh {
     static Logger logger = Logger.getLogger(TerrainMesh.class);
     public int errorCounter = 0;
     GridCellBounds gridCellBounds;
-    public List<MeshPoint> points = new ArrayList();
+    public List<MeshNode> points = new ArrayList();
     public List<MeshLine> lines = new ArrayList();
     //public Map<Integer, List<Integer>> linesOfPoint = new HashMap();
     List<Integer> knowntwoedger = new ArrayList<>();
@@ -55,6 +55,9 @@ public class TerrainMesh {
     //so einer kann nicht mehr valid sein
     private boolean hasDuplicates = false;
 
+    /**
+     * gridCellBounds are the outer boundaries of the (sub)mesh.
+     */
     private TerrainMesh(GridCellBounds gridCellBounds) {
         this.gridCellBounds = gridCellBounds;
         Polygon boundary = gridCellBounds.getPolygon();
@@ -92,7 +95,7 @@ public class TerrainMesh {
        /* if (!instance.isValid(true)) {
             logger.error("not valid");
         }*/
-        for (MeshPoint p : instance.points) {
+        for (MeshNode p : instance.points) {
             if (p.getLineCount() != 2) {
                 logger.error("not valid");
             }
@@ -111,7 +114,7 @@ public class TerrainMesh {
         }
         MeshLine line = lines.get(0);
         newlines.add(line);
-        MeshPoint point = line.getTo();
+        MeshNode point = line.getTo();
         for (int i = 1; i < lines.size(); i++) {
             line = getSuccessorInPolygon(point, lines, newlines);
             newlines.add(line);
@@ -120,7 +123,7 @@ public class TerrainMesh {
         return newlines;
     }
 
-    private static MeshLine getSuccessorInPolygon(MeshPoint point, List<MeshLine> lines, List<MeshLine> except) {
+    private static MeshLine getSuccessorInPolygon(MeshNode point, List<MeshLine> lines, List<MeshLine> except) {
         for (int i = 0; i < lines.size(); i++) {
             MeshLine line = lines.get(i);
             if (point == line.getTo() || point == line.getFrom()) {
@@ -191,7 +194,7 @@ public class TerrainMesh {
     public MeshPolygon traversePolygon(MeshLine startline, AbstractArea/*SceneryFlatObject*/ area, boolean left) {
         int abortcounter = 0;
         MeshLine line = startline;
-        MeshPoint next = line.getTo();
+        MeshNode next = line.getTo();
         List<MeshLine> result = new ArrayList<>();
 
         do {
@@ -229,14 +232,14 @@ public class TerrainMesh {
      * Mit origin laesst sich ein moeglicher Origin ausschliessen um nicht im Kreis zu laufen.
      * 9.9.19: Das ist doch bei Ways so nicht eindeutig wegen innerer Querverbindungen? Oder gibt es sowas nicht?
      */
-    public MeshLine getSuccessor(MeshPoint meshPoint, AbstractArea area, boolean left, MeshLine origin) {
+    public MeshLine getSuccessor(MeshNode meshNode, AbstractArea area, boolean left, MeshLine origin) {
         List<MeshLine> candidates = new ArrayList();
 
-        for (MeshLine line : meshPoint.getLines()) {
+        for (MeshLine line : meshNode.getLines()) {
             if (line != origin) {
                 boolean skipLine = false;
                 AbstractArea areaToCheck = null;
-                if (line.getFrom() == meshPoint) {
+                if (line.getFrom() == meshNode) {
                     if (left) {
                         areaToCheck = line.getLeft();
                     } else {
@@ -269,7 +272,7 @@ public class TerrainMesh {
         }
         LineString originline = (origin == null) ? null : origin.line;
         if (candidates.size() == 0) {
-            logger.error("no successor at point " + meshPoint + " for origin " + originline);
+            logger.error("no successor at point " + meshNode + " for origin " + originline);
             errorCounter++;
             return null;
         }
@@ -285,15 +288,15 @@ public class TerrainMesh {
                     return candidates.get(0);
                 }
             }
-            logger.warn("multiple successor at point " + meshPoint + " for origin " + originline);
-            SceneryContext.getInstance().warnings.add("multiple successor at point " + meshPoint + " for origin " + originline);
+            logger.warn("multiple successor at point " + meshNode + " for origin " + originline);
+            SceneryContext.getInstance().warnings.add("multiple successor at point " + meshNode + " for origin " + originline);
             //5.9.19 lieber null um Fehlerkaschierung zu vermeiden
             return null;
         }
         return candidates.get(0);
     }
 
-    private static MeshPoint getOpposite(MeshLine line, MeshPoint coordinate) {
+    private static MeshNode getOpposite(MeshLine line, MeshNode coordinate) {
         if (line.getFrom() == coordinate) {
             return line.getTo();//coordinates[line.coordinates.length - 1];
         }
@@ -409,10 +412,10 @@ public class TerrainMesh {
         MeshLine meshLine = buildMeshLineFromList(line);
         int startPoint, endPoint;
         if (startOnGrid) {
-            MeshPoint p = getMeshPoint(line.get(0));
+            MeshNode p = getMeshNode(line.get(0));
         }
         if (endOnGrid) {
-            MeshPoint p = getMeshPoint(line.get(line.size() - 1));
+            MeshNode p = getMeshNode(line.get(line.size() - 1));
         }
         meshLine.setLeft(left);
         meshLine.setRight(right);
@@ -421,7 +424,7 @@ public class TerrainMesh {
         return meshLine;
     }
 
-    public MeshLine registerLine(MeshPoint p0, MeshPoint p1, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right) {
+    public MeshLine registerLine(MeshNode p0, MeshNode p1, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right) {
         MeshLine meshLine = MeshLine.buildMeshLine(new Coordinate[]{p0.coordinate, p1.coordinate});
         if (meshLine == null) {
             return null;
@@ -447,7 +450,7 @@ public class TerrainMesh {
     public boolean isValid(boolean ignoretwoliner) {
         boolean valid = true;
         for (int i = 0; i < points.size(); i++) {
-            MeshPoint point = points.get(i);
+            MeshNode point = points.get(i);
 
             if (point.getLineCount() == 0) {
                 logger.warn("no line at point " + points.get(i).coordinate + "(" + i + "): ");
@@ -518,27 +521,27 @@ public class TerrainMesh {
         if (meshLine == null) {
             return null;
         }
-        MeshPoint p;
-        if ((p = getMeshPoint(line.get(0))) == null) {
+        MeshNode p;
+        if ((p = getMeshNode(line.get(0))) == null) {
             p = registerPoint(line.get(0));
         }
         meshLine.setFrom(p);
-        if ((p = getMeshPoint(line.get(line.size() - 1))) == null) {
+        if ((p = getMeshNode(line.get(line.size() - 1))) == null) {
             p = registerPoint(line.get(line.size() - 1));
         }
         meshLine.setTo(p);
         return meshLine;
     }
 
-    private MeshPoint registerPoint(Coordinate coordinate) {
+    private MeshNode registerPoint(Coordinate coordinate) {
         int index;
         // check for consistency with large tolerance. 4.9.19: 1->0.2 weil z.B. 161036756 am circle sehr schmal wird.
         if ((index = getPoint(coordinate, 0.2)) != -1) {
-            MeshPoint existingFound = points.get(index);
+            MeshNode existingFound = points.get(index);
             logger.error("duplicate point registration for " + coordinate + ". Nearby existing isType " + existingFound.coordinate);
             hasDuplicates = true;
         }
-        points.add(new MeshPoint(coordinate));
+        points.add(new MeshNode(coordinate));
         return points.get(points.size() - 1);
     }
 
@@ -554,8 +557,8 @@ public class TerrainMesh {
     }*/
 
 
-    public MeshPoint getMeshPoint(Coordinate coordinate) {
-        for (MeshPoint p : points) {
+    public MeshNode getMeshNode(Coordinate coordinate) {
+        for (MeshNode p : points) {
             if (p.coordinate.equals2D(coordinate, 0.00001)) {
                 return p;
             }
@@ -666,7 +669,7 @@ public class TerrainMesh {
                         //Auch das aber nicht immer, sonst bleibt man beim zweiten Aufruf immer wieder am ersten Point haengen.
                         //dann ersten durch zweiten ersetzen.
                    /*nicht mehr relevant  if (split.meshLineToSplit != pointPosition.meshLine) {
-                        /*MeshPoint vertex=null;
+                        /*MeshNode vertex=null;
                         if (split.meshLineToSplit.getFrom().getLines().contains(meshLine.meshLine)){
                             vertex=split.meshLineToSplit.getFrom();
                         }
@@ -806,14 +809,14 @@ public class TerrainMesh {
             boolean ignoreSplit = false;
             // nicht immer wieder an einem einzelnen common point haengenbleiben (z.B. Desdorf Farmland Sonderfall)
             // oder generell: Ein Split an known coordinates ist kein Candidate mehr. Den entferne ich.
-            if (split.fromIsCoordinate && getMeshPoint(split.meshLineToSplit.get(split.from)) != null) {
+            if (split.fromIsCoordinate && getMeshNode(split.meshLineToSplit.get(split.from)) != null) {
                 if (split.to == -1) {
                     if (SceneryBuilder.TerrainMeshDebugLog) {
                         logger.debug("Ignoring single point split candiate at known coordinate");
                     }
                     ignoreSplit = true;
                 } else {
-                    if (split.toIsCoordinate && getMeshPoint(split.meshLineToSplit.get(split.to)) != null) {
+                    if (split.toIsCoordinate && getMeshNode(split.meshLineToSplit.get(split.to)) != null) {
                         if (SceneryBuilder.TerrainMeshDebugLog) {
                             logger.debug("Ignoring split candidate at known coordinates");
                         }
@@ -897,7 +900,7 @@ public class TerrainMesh {
             logger.error("already invalid");
         }*/
         MeshLine line = meshLineSplit.meshLineToSplit;
-        MeshPoint p0 = buildPoint(meshLineSplit, meshLineSplit.from, meshLineSplit.fromIsCoordinate, meshLineSplit.newcoors.get(0));
+        MeshNode p0 = buildPoint(meshLineSplit, meshLineSplit.from, meshLineSplit.fromIsCoordinate, meshLineSplit.newcoors.get(0));
         // also consider special case when "to" isType the end. Then there will be no mid line.
         if (meshLineSplit.isPointSplit()) {
             if (meshLineSplit.newcoors.size() != 1) {
@@ -932,7 +935,7 @@ public class TerrainMesh {
         }
         boolean toWasFrom = line.getFrom() == line.getTo();
         // start with last line
-        MeshPoint p1 = buildPoint(meshLineSplit, meshLineSplit.to, meshLineSplit.toIsCoordinate, meshLineSplit.newcoors.get(1));
+        MeshNode p1 = buildPoint(meshLineSplit, meshLineSplit.to, meshLineSplit.toIsCoordinate, meshLineSplit.newcoors.get(1));
 
         List<Coordinate> linenewcoors = new ArrayList<>();
         linenewcoors.add(p1.coordinate);
@@ -1003,7 +1006,7 @@ public class TerrainMesh {
         return -1;
     }
 
-    private MeshPoint buildPoint(MeshLineSplitCandidate meshLineSplit, int index, boolean isCoordinate, Coordinate c) {
+    private MeshNode buildPoint(MeshLineSplitCandidate meshLineSplit, int index, boolean isCoordinate, Coordinate c) {
         if (isCoordinate) {
             int i = getPoint(meshLineSplit.meshLineToSplit.getCoordinates()[index]);
             if (i == -1) {
@@ -1116,7 +1119,7 @@ public class TerrainMesh {
     }
 
     public boolean hasUnFixedElevation() {
-        for (MeshPoint meshPoint : points) {
+        for (MeshNode meshNode : points) {
             /*if (meshPoint.group==null){
                 logger.error("no group");
                 return false;
@@ -1142,7 +1145,7 @@ public class TerrainMesh {
      * Nicht Covering, sondern exakt eine Coordinate.
      * <p>
      * 4.9.19: Das ist ja nun nicht eindeutig. Otpional mit area und mehrdeutig loggen.
-     * 5.9.19: Tortzdem ist das bei coor==meshpoint nie eindeutig. Da wird es immer mehr als eine geben. Darum kommt die
+     * 5.9.19: Tortzdem ist das bei coor==meshnode nie eindeutig. Da wird es immer mehr als eine geben. Darum kommt die
      * ganze Liste zurueck. Soll der Aufrufer doch sehen.
      *
      * @param coor
@@ -1170,12 +1173,12 @@ public class TerrainMesh {
      * @return
      */
     public MeshLine findLineBetweenExistingPoints(CoordinatePair pair) {
-        MeshPoint p0 = getMeshPoint(pair.getFirst());
+        MeshNode p0 = getMeshNode(pair.getFirst());
         if (p0 == null) {
             logger.error("no point");
             return null;
         }
-        MeshPoint p1 = getMeshPoint(pair.getSecond());
+        MeshNode p1 = getMeshNode(pair.getSecond());
         if (p1 == null) {
             logger.error("no point");
             return null;
@@ -1238,14 +1241,14 @@ public class TerrainMesh {
      * Was will denn der Aufrufer?
      * Das ist zum Fuellen der durch split entstandenen Fortläufigkeit. Naja, das muss sich noch bewähren, weil es nicht zwingend eindeutig ist (z.B. Querverbindungen).
      */
-    public List<MeshLine> findLineOfWay(MeshLine from, MeshPoint to, WayArea wayArea, boolean left) {
+    public List<MeshLine> findLineOfWay(MeshLine from, MeshNode to, WayArea wayArea, boolean left) {
         List<MeshLine> lines = new ArrayList();
         if (from == null) {
             logger.error("invalid usage");
             return lines;
         }
 
-        MeshPoint point = from.getTo();
+        MeshNode point = from.getTo();
         lines.add(from);
         int cntr = 0;
         MeshLine line = null;

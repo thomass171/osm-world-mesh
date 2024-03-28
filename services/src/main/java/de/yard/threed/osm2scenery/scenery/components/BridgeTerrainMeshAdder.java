@@ -6,7 +6,7 @@ import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.BridgeModule;
 import de.yard.owm.services.persistence.MeshLine;
-import de.yard.owm.services.persistence.MeshPoint;
+import de.yard.owm.services.persistence.MeshNode;
 import de.yard.threed.osm2scenery.scenery.BridgeGap;
 import de.yard.threed.osm2scenery.scenery.BridgeSideRamp;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -127,13 +127,13 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
 
         MeshLine share;
 
-        MeshPoint roadpoint = tm.getMeshPoint(ramp.roadpoint);
+        MeshNode roadpoint = tm.getMeshNode(ramp.roadpoint);
         MeshLine[] splitresult = splitLineAtRamp(ramp, connectWayLines, tm);
         if (splitresult == null) {
             logger.warn("ignoring ramp for terrain mesh");
             return null;
         }
-        MeshPoint backpoint = tm.getMeshPoint(ramp.backpoint);
+        MeshNode backpoint = tm.getMeshNode(ramp.backpoint);
 
         //das split Resultat ist wegen der Richtungen nicht eindeutig. Besser am road/backpoint weitermachen
         //und dann die Line des split suchen. Daran dann die beiden anderen Lines der Ramp haengen.

@@ -6,7 +6,6 @@ import com.vividsolutions.jts.geom.LineString;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import lombok.Data;
 import lombok.Getter;
 import org.apache.log4j.Logger;
 
@@ -33,7 +32,7 @@ public class MeshLine {
     @Transient
     private Coordinate[] coordinates;
     @Transient
-    private MeshPoint from, to;
+    private MeshNode from, to;
     @Transient
     public boolean isBoundary = false;
     //Bei Boundary always "left" isType set, because gridbounds are CCW.
@@ -75,11 +74,11 @@ public class MeshLine {
         return "" + from.coordinate + "->" + to.coordinate;
     }
 
-    public MeshPoint getFrom() {
+    public MeshNode getFrom() {
         return from;
     }
 
-    public MeshPoint getTo() {
+    public MeshNode getTo() {
         return to;
     }
 
@@ -133,12 +132,12 @@ public class MeshLine {
         validate();
     }
 
-    public void setFrom(MeshPoint p) {
+    public void setFrom(MeshNode p) {
         from = p;
         validate();
     }
 
-    public void setTo(MeshPoint p) {
+    public void setTo(MeshNode p) {
         to = p;
         validate();
     }
@@ -168,7 +167,7 @@ public class MeshLine {
         }
     }
 
-    public void setCoordinatesAndTo(Coordinate[] toArray, MeshPoint p) {
+    public void setCoordinatesAndTo(Coordinate[] toArray, MeshNode p) {
         this.coordinates = toArray;
         to = p;
         validate();

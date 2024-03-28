@@ -280,7 +280,7 @@ public class HighwayModuleTest {
         assertNotNull( line4.getLeft(),"33817501.lazycut.left");
 
         Coordinate cleft = w33817500.getWayArea().getStartPair(tm)[0].left();
-        List<MeshLine> linesatcleft = tm.getMeshPoint(cleft).getLines();
+        List<MeshLine> linesatcleft = tm.getMeshNode(cleft).getLines();
         assertEquals(3, linesatcleft.size(), "linesatcleft.size");
         MeshPolygon meshPolygon = tm.traversePolygon(gutdesdorfnorth.getWayArea().getLeftLines(tm).get(0), gutdesdorfnorth.getArea()[0], false);
         assertNotNull( meshPolygon,"gutdesdorfnorth.meshPolygon");

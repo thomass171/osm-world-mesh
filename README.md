@@ -48,9 +48,10 @@ tcp dependencies for a while.
 osmNode is unique and unambiguous always. The location (LatLon) is
 that of OSM and thus a fix reference.
 
-meshPoint is the result of some mesh creation and the location is
+MeshNode is the result of some mesh creation and the location is
 a vague result including projection. The location isn't suited
 for lookup. Lookup needs to be done by the semantics of the point.
+Most meshNodes should be related to an osmNode.
 
 # Services
 
