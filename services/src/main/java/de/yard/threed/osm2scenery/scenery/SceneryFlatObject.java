@@ -141,7 +141,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * 25.4.19: Mal eine Defaultimplementierung.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
         //Nothing to do. Wahrscheinlich, area/poly kam schon als Parameter.
         return null;
     }
@@ -213,7 +213,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * 11.4.19: Das ist ziemlich generisch für alle möglichen Polygone. Das könnten Ways z.B. anders machen.
      */
     @Override
-    public void triangulateAndTexturize() {
+    public void triangulateAndTexturize(TerrainMesh tm) {
         if (creatortag.equals("RunwaySegment")) {
             int h = 9;
         }
@@ -222,7 +222,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
         }
         if (flatComponent != null) {
             for (AbstractArea abstractArea : flatComponent) {
-                if (!abstractArea.isEmpty()) {
+                if (!abstractArea.isEmpty(tm)) {
                     SimpleEleConnectorGroupFinder simpleEleConnectorGroupFinder = null;
                     if (getEleConnectorGroups() != null && getEleConnectorGroups().size() > 0) {
 
@@ -231,7 +231,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
                         //17.8.19: strange? Z.B. bei WayToAreaFiller.
                         //logger.warn("strange: no ele groups?");
                     }
-                    if (!abstractArea.triangulateAndTexturize(simpleEleConnectorGroupFinder)) {
+                    if (!abstractArea.triangulateAndTexturize(simpleEleConnectorGroupFinder, tm)) {
                         logger.error("Triangulation failed for area " + getOsmOrigin());
                         //TODO evtl. umstellen Area statt WayArea?
                     }
@@ -240,10 +240,10 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
             }
         }
         if (volumeProvider != null) {
-            volumeProvider.triangulateAndTexturize();
+            volumeProvider.triangulateAndTexturize(tm);
         }
         for (AbstractArea deco : decorations) {
-            deco.triangulateAndTexturize(null);
+            deco.triangulateAndTexturize(null, tm);
         }
     }
 
@@ -289,12 +289,12 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
         return flatComponent.poly;
     }*/
 
-    public boolean isEmpty() {
+    public boolean isEmpty(TerrainMesh tm) {
         if (flatComponent == null /*|| flatComponent.poly == null*/) {
             return true;
         }
         for (AbstractArea p : flatComponent) {
-            if (!p.isEmpty()) {
+            if (!p.isEmpty(tm)) {
                 return false;
             }
         }
@@ -321,7 +321,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * 2.8.18: Wobei das doch aus dem {@link EleConnectorGroup} hervorgeht? Aber cut Polygone sind doof.
      */
     @Override
-    public void calculateElevations() {
+    public void calculateElevations(TerrainMesh tm) {
         if (creatortag.equals("RunwaySegment")) {
             int h = 9;
         }
@@ -332,7 +332,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
             /*for (Polygon p : flatComponent.poly.polygon) {
                 ElevationCalculator.calculateElevationsForPolygon(p, flatComponent.poly.polygonMetadata, flatComponent.vertexData, this);
             }*/
-                abstractArea.calculateElevations(this,false);
+                abstractArea.calculateElevations(this,false, tm);
                 if (getEleConnectorGroups().size() > 0) {
                     //for now just from getFirst
                     baseelevation = getEleConnectorGroups().get(0).getElevation();
@@ -350,7 +350,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
 
         for (AbstractArea deco : decorations) {
             //ob embedded oder als Overlay. Die Decoartion hat keine eigene EleGroup (und damit keine rehistrierten Coordinates) und muss die Group/elevation dieses Objects verwenden.
-            deco.calculateElevations(this,true);
+            deco.calculateElevations(this,true, tm);
         }
     }
 
@@ -358,13 +358,13 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * Das muessen die ableitenden Klassen schon selber machen. Das hier ist zum Check.
      * Jetzt mal per Component.
      */
-    public void addToTerrainMesh() {
+    public void addToTerrainMesh(TerrainMesh tm) {
         if (!isCut || !isClipped) {
             throw new RuntimeException("neither cut or clipped:" + getOsmIdsAsString());
         }
         // hier das Flag isterrainprovider zu prufen ist riskant, denn Bridges z.B. sind als Way keine TerrainProvider, als Container für Ramps und Gap aber schon.
         if (terrainMeshAdder!=null) {
-            terrainMeshAdder.addToTerrainMesh(getArea());
+            terrainMeshAdder.addToTerrainMesh(getArea(), tm);
         }
     }
 
@@ -374,7 +374,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * NeeNee, lieber abstract
      */
     @Override
-    protected abstract void registerCoordinatesToElegroups() ;
+    protected abstract void registerCoordinatesToElegroups(TerrainMesh tm) ;
 
 
 
@@ -405,7 +405,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * @return
      */
     @Override
-    public RenderedObject render(SceneryRenderer sceneryRenderer) {
+    public RenderedObject render(SceneryRenderer sceneryRenderer, TerrainMesh tm) {
         OsmOrigin osmOrigin = getOsmOrigin();
         AbstractArea[] ars = getArea();
         RenderedObject ro = new RenderedObject();
@@ -417,13 +417,13 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
             for (AbstractArea ar : ars) {
                 //leere kann es schon mal geben, z.B. Connector
                 //SmartPolygon p = ar.poly;
-                Polygon p = ar.getPolygon();
+                Polygon p = ar.getPolygon(tm);
                 if (p != null) {
                     osmOrigin.polygon = p;
                     osmOrigin.texturizer = this.texturizer;
                     osmOrigin.wascut = /*flatComponent.poly.*/isCut;
 
-                    RenderedArea r = ar.render(sceneryRenderer, creatortag, osmOrigin, getEleConnectorGroups());
+                    RenderedArea r = ar.render(sceneryRenderer, creatortag, osmOrigin, getEleConnectorGroups(), tm);
             /*Polygon[] polies = ar.poly.polygon;
             //ro.pinfo = new PolygonInformation[getPolygon().polygon.length];
             for (int i = 0; i < polies.length; i++) {
@@ -444,7 +444,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
                     for (AbstractArea decoration : decorations) {
                         //OsmOrigin decoOsmOrigin = new OsmOrigin();
                         //kein OsmOrigin, weil es nicht aus OSM kommt.
-                        r = decoration.render(sceneryRenderer, "Decoration", null, getEleConnectorGroups());
+                        r = decoration.render(sceneryRenderer, "Decoration", null, getEleConnectorGroups(), tm);
                         if (r != null && r.pinfo != null) {
                             ro.decorationinfo.addAll(r.pinfo);
                         }
@@ -546,19 +546,19 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
     }
 
     @Override
-    public boolean covers(Coordinate coordinate) {
+    public boolean covers(Coordinate coordinate, TerrainMesh tm) {
         if (flatComponent == null) {
             return false;
         }
         for (AbstractArea abstractArea : flatComponent) {
-            if (!abstractArea.isEmpty() && JtsUtil.isPartOfPolygon(coordinate, abstractArea.poly.polygon)) {
+            if (!abstractArea.isEmpty(tm) && JtsUtil.isPartOfPolygon(coordinate, abstractArea.poly.polygon)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean isPartOfMesh() {
+    public boolean isPartOfMesh(TerrainMesh tm) {
         //TODO und die anderen? Nicht eindeutig
         return ((Area) flatComponent[0]).isPartOfMesh;
     }

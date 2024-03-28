@@ -173,7 +173,7 @@ public class Area extends AbstractArea {
      * 11.4.19: Das ist ziemlich generisch für alle möglichen Polygone. Das könnten Ways z.B. anders machen.
      */
     @Override
-    public boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder) {
+    public boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder, TerrainMesh tm) {
         if (material == null) {
             //Sonderlocke, texutils brauchen material
             return false;
@@ -187,7 +187,7 @@ public class Area extends AbstractArea {
         MeshPolygon meshPolygon;
         Polygon p;
         if (isPartOfMesh) {
-            meshPolygon = getMeshPolygon();
+            meshPolygon = getMeshPolygon(tm);
             if (meshPolygon == null) {
                 logger.error("no mesh polygon found");
                 return false;
@@ -227,7 +227,7 @@ public class Area extends AbstractArea {
                             Coordinate c = vd.vertices.get(i);
                             int index = JtsUtil.findVertexIndex(c, p.getCoordinates());
                             if (index == -1) {
-                                meshPolygon = getMeshPolygon();
+                                meshPolygon = getMeshPolygon(tm);
                                 if (meshPolygon == null) {
                                     logger.error("no mesh polygon");
                                 } else {
@@ -245,7 +245,7 @@ public class Area extends AbstractArea {
                                 }
                             }
                         }
-                        p = getMeshPolygon().getPolygon();
+                        p = getMeshPolygon(tm).getPolygon();
                         vd = null;
                     }
                 }
@@ -269,31 +269,31 @@ public class Area extends AbstractArea {
      * @param elevations
      */
     @Override
-    public void registerCoordinatesToElegroups(EleConnectorGroupSet elevations) {
+    public void registerCoordinatesToElegroups(EleConnectorGroupSet elevations, TerrainMesh tm) {
         //for (EleConnectorGroup egr : elevations.eleconnectorgroups) {
         //List<EleConnector> eleconns = md.getEleConnectors(egr.mapNode);
         //egr.addAll(eleconns);
         //}
         EleConnectorGroup egr = elevations.eleconnectorgroups.get(0);
-        Polygon p = getPolygon();
+        Polygon p = getPolygon(tm);
         if (p != null) {
             Coordinate[] coors = p.getCoordinates();
             //last Coordinate isType duplicate to getFirst
             for (int i = 0; i < coors.length - 1; i++) {
-                registerCoordinateToElegroup(coors[i], egr);
+                registerCoordinateToElegroup(coors[i], egr, tm);
             }
         }
     }
 
     @Override
-    public Polygon getPolygon() {
+    public Polygon getPolygon(TerrainMesh tm) {
         if (parentInfo != null && parentInfo.contains("WayTo")) {
             int h = 9;
         }
         if (isPartOfMesh) {
             //logger.error("should no longer we called. mesh should be used. Naja, viellcith doch, z.B. wegen Overlaps.");
             // Polygon[] p = new Polygon[meshpolygon.length];
-            MeshPolygon meshPolygon = getMeshPolygon();
+            MeshPolygon meshPolygon = getMeshPolygon(tm);
             if (meshPolygon != null) {
                 return meshPolygon.getPolygon();
             }
@@ -308,15 +308,15 @@ public class Area extends AbstractArea {
             }
             return p;*/
         }
-        return super.getPolygon();
+        return super.getPolygon(tm);
     }
 
     @Override
-    public MeshLine findMeshLineWithCoordinates(Coordinate c0, Coordinate c1) {
+    public MeshLine findMeshLineWithCoordinates(Coordinate c0, Coordinate c1, TerrainMesh tm) {
         if (!isPartOfMesh) {
             throw new RuntimeException("invalid usage");
         }
-        MeshPolygon meshPolygon = getMeshPolygon();
+        MeshPolygon meshPolygon = getMeshPolygon(tm);
         //for (int i = 0; i < meshpolygon.length; i++) {
         for (MeshLine result : meshPolygon/*[i]*/.lines) {
             if (result.contains(c0) && result.contains(c1)) {
@@ -344,9 +344,9 @@ public class Area extends AbstractArea {
      * Hier ermitteln ist zwar schick, aber auch anfällig für Fehler (z.B. Rundungsfehler?) und nicht bedachte Konstellationen. Reinstecken ist zuverlaessiger.
      * Man denke nur an Bridges. Aber die verwenden das hier gar nicht!
      */
-    public static void addAreaToTerrainMesh(Area abstractArea, SceneryFlatObject parent, List<AreaSeam> areaSeams) {
-        TerrainMesh tm = TerrainMesh.getInstance();
-        Polygon polygonOfArea = abstractArea.getPolygon();
+    public static void addAreaToTerrainMesh(Area abstractArea, SceneryFlatObject parent, List<AreaSeam> areaSeams, TerrainMesh tm) {
+
+        Polygon polygonOfArea = abstractArea.getPolygon(tm);
         List<MeshLine> existingShares = new ArrayList();
         MeshLineSplitCandidate boundaryintersections;
 

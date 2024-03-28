@@ -13,6 +13,7 @@ import de.yard.threed.osm2scenery.scenery.BackgroundElement;
 import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.util.PolygonMetadata;
 import de.yard.threed.traffic.geodesy.ElevationProvider;
@@ -73,13 +74,13 @@ public class ElevationCalculator {
         }
     }
 
-    public static void calculateElevations(SceneryObjectList sceneryObjects, ElevationProvider elevationProvider) {
+    public static void calculateElevations(SceneryObjectList sceneryObjects, ElevationProvider elevationProvider, TerrainMesh tm) {
         validateEleGroups(sceneryObjects);
         // 10 erst die Objekte, dann das Grid um auch auessere Polygonpunkte zu registrieren. Die Reihenfolge ist hier aber egal.
         // wegen besseren Intuition aber erst grid
         ElevationMap.getInstance().registerGridElevations();
         for (SceneryObject obj : sceneryObjects.objects) {
-            obj.calculateElevations();
+            obj.calculateElevations(tm);
         }
         //TODO Background auch hier machen
     }
@@ -128,7 +129,7 @@ public class ElevationCalculator {
      * @param background
      * @param sceneryObjects
      */
-    public static void registerBackgroundElevations(List<BackgroundElement> background, SceneryObjectList sceneryObjects) {
+    public static void registerBackgroundElevations(List<BackgroundElement> background, SceneryObjectList sceneryObjects, TerrainMesh tm) {
         for (BackgroundElement be : background) {
             //be.eleConnectorGroupSet = new EleConnectorGroupSet();
             PolygonMetadata polygonMetadata = new PolygonMetadata(be);
@@ -138,7 +139,7 @@ public class ElevationCalculator {
                 //EleConnectorGroup egr = new EleConnectorGroup(null, Util.toList(e));
                 //be.eleConnectorGroupSet.add(egr);
                 Double elevation = null;
-                EleConnectorGroup egr = EleConnectorGroup.getGroup(coord[i], false, " for background", !SceneryBuilder.FTR_TRACKEDBPCOORS);
+                EleConnectorGroup egr = EleConnectorGroup.getGroup(coord[i], false, " for background", !SceneryBuilder.FTR_TRACKEDBPCOORS, tm);
                 if (egr == null) {
                     // Wie kann das sein? 28.9.18: Solange es keine richtigen RoadConnector gibt, fehlen die intersections der Ways ja als Coordinate!
                     // 12.6.19: Kann aber auch durch Triangulation passieren, oder? Und Lazycut. Darum erst später loggen.
@@ -159,18 +160,18 @@ public class ElevationCalculator {
         }
     }
 
-    public static void calculateBackgroundElevations(Background background) {
+    public static void calculateBackgroundElevations(Background background, TerrainMesh tm) {
         for (BackgroundElement be : background.background) {
             PolygonMetadata polygonMetadata = new PolygonMetadata(be);
 
-            calculateElevationsForPolygon(be.polygon, polygonMetadata, be.vertexData, null);
+            calculateElevationsForPolygon(be.polygon, polygonMetadata, be.vertexData, null, tm);
         }
         for (AbstractArea be : background.getBgfiller()) {
-            if (be.isEmpty()) {
+            if (be.isEmpty(tm)) {
                 logger.warn("empty BG filler?");
             } else {
-                calculateElevationsForCoordinates(be.getPolygon().getCoordinates(), null);
-                calculateElevationsForVertexCoordinates(be.getVertexData().vertices, null);
+                calculateElevationsForCoordinates(be.getPolygon(tm).getCoordinates(), null, tm);
+                calculateElevationsForVertexCoordinates(be.getVertexData().vertices, null, tm);
             }
         }
     }
@@ -266,11 +267,11 @@ public class ElevationCalculator {
      * @param poly
      * @param polygonMetadata
      */
-    public static void calculateElevationsForPolygon(Polygon poly, PolygonMetadata polygonMetadata, VertexData vertexData, String debuglabel) {
+    public static void calculateElevationsForPolygon(Polygon poly, PolygonMetadata polygonMetadata, VertexData vertexData, String debuglabel, TerrainMesh tm) {
 
         Coordinate[] coor = poly.getCoordinates();
         //Teil nach unten ausgelagert
-        calculateElevationsForCoordinates(coor, debuglabel);
+        calculateElevationsForCoordinates(coor, debuglabel, tm);
 
         // 4.8.18: Auch in der vertexdata eintragen.
         Double efound = null;
@@ -279,7 +280,7 @@ public class ElevationCalculator {
             logger.warn("calculateElevationsForPolygon: poly has no vertex data. Skipping elevation");
             return;
         }
-        calculateElevationsForVertexCoordinates(vertexData.vertices, debuglabel);
+        calculateElevationsForVertexCoordinates(vertexData.vertices, debuglabel, tm);
 
         /*if (efound!=null){
             for (Coordinate c:vertexData.vertices){
@@ -296,36 +297,36 @@ public class ElevationCalculator {
      * @param coor
      * @param debuglabel
      */
-    public static void calculateElevationsForCoordinates(Coordinate[] coor, String debuglabel) {
+    public static void calculateElevationsForCoordinates(Coordinate[] coor, String debuglabel, TerrainMesh tm) {
         for (Coordinate c : coor) {
             //EleConnector eleConnector = polygonMetadata.getEleConnector(c);
             // null isType never returned
             //elevationProvider.getElevation((float) mapNode.getOsmNode().lat, (float) mapNode.getOsmNode().lon);
             //Float elevation = eleConnector.getGroup().getElevation();
-            EleConnectorGroup eleConnectorGroup = EleConnectorGroup.getGroup(c, false, "for polygon " + debuglabel, false);
-            Double elevation = new Double(0);
+            EleConnectorGroup eleConnectorGroup = EleConnectorGroup.getGroup(c, false, "for polygon " + debuglabel, false, tm);
+            Double elevation = Double.valueOf(0);
             if (eleConnectorGroup == null) {
                 logger.warn("group for coordinate " + c + " not found (using 0) in " + debuglabel);
             } else {
                 elevation = eleConnectorGroup.getElevation();
                 if (elevation == null) {
                     logger.warn("no elevation set in group. ussng 0.");
-                    elevation = new Double(0);
+                    elevation = Double.valueOf(0);
                 }
             }
             c.setOrdinate(Coordinate.Z, elevation);
         }
     }
 
-    public static void calculateElevationsForVertexCoordinates(List<Coordinate> coor, String debuglabel) {
+    public static void calculateElevationsForVertexCoordinates(List<Coordinate> coor, String debuglabel, TerrainMesh tm) {
         for (Coordinate c : coor) {
             /*if (!Double.isNaN(c.z)){
                 efound= c.z;
             }*/
             //EleConnector eleConnector = polygonMetadata.getEleConnector(c);
-            EleConnectorGroup eleConnectorGroup = EleConnectorGroup.getGroup(c, true, "for vertex", false);
+            EleConnectorGroup eleConnectorGroup = EleConnectorGroup.getGroup(c, true, "for vertex", false, tm);
             //5.9.18: 68, bis alle Ungereimtheiten weg sind, damit Tests nicht scheitern. TODO
-            Double elevation = new Double(68);
+            Double elevation = Double.valueOf(68);
             if (eleConnectorGroup == null) {
                 // durch cut oder Triangulation. Obwohl, beim cut werden sie doch neu zugeordnet. Aber Triangulation halt.
                 // siehe Kopf. eigentlich muesste gewichtet gemittelt werden, vor allem am Grid. TODO
@@ -342,13 +343,13 @@ public class ElevationCalculator {
                 if (onBoundary) {
                     LineSegment[] s = null;//JtsUtil.getBoundaryLine(c, poly);
                     // Die z Werte muessten ja schon in der Group drin stehen.
-                    EleConnectorGroup g0 = EleConnectorGroup.getGroup(s[0].p0, false, "for boundary", false);
-                    EleConnectorGroup g1 = EleConnectorGroup.getGroup(s[0].p1, false, "for boundary", false);
+                    EleConnectorGroup g0 = EleConnectorGroup.getGroup(s[0].p0, false, "for boundary", false, tm);
+                    EleConnectorGroup g1 = EleConnectorGroup.getGroup(s[0].p1, false, "for boundary", false, tm);
                     if (g0 == null || g1 == null || g0.getElevation() == null || g1.getElevation() == null) {
                         //wie kommt das denn schon wieder?
                         logger.error("g0 or g1 isType null");
                     } else {
-                        elevation = new Double((g0.getElevation() + g1.getElevation()) / 2f);
+                        elevation = Double.valueOf((g0.getElevation() + g1.getElevation()) / 2f);
                     }
                 } else {
                     // die schlehctere Lösung. 23.7.19: Metadata gibt es nicht mehr immer
@@ -372,7 +373,7 @@ public class ElevationCalculator {
             // durch possible interpolation there isType no group here.
             if (elevation == null) {
                 logger.warn("no elevation foundp. eleConnectorGroup=" + eleConnectorGroup);
-                elevation = new Double(0);
+                elevation = Double.valueOf(0);
             }
 
             c.setOrdinate(Coordinate.Z, elevation);

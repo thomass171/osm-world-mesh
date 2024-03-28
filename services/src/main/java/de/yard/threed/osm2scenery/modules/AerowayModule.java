@@ -24,6 +24,7 @@ import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObjectFactory;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
@@ -254,12 +255,15 @@ public class AerowayModule extends SceneryModule {
         AbstractArea ta = WayArea.buildOutlinePolygonFromCenterLine(taxiway.getGraphComponent().getCenterLine(), taxiway.effectiveNodes/*mapway.getMapNodes()*/, width, this, Materials.ASPHALT);
         if (ta != null) {
             //26.8.19: Das ist hier wohl nicht mehr ganz koscher.
+            //27.3.24 TerrainMesh isn't yet available here!
+            TerrainMesh tm = null;
+            logger.warn("no TerrainMesh");
             if (taxiwayarea == null) {
-                if (!ta.isEmpty()) {
+                if (!ta.isEmpty(tm)) {
                     taxiwayarea = ta.poly.uncutPolygon;
                 }
             } else {
-                if (!ta.isEmpty()) {
+                if (!ta.isEmpty(tm)) {
                     taxiwayarea = taxiwayarea.union(ta.poly.uncutPolygon);
                 }
             }
@@ -390,11 +394,11 @@ public class AerowayModule extends SceneryModule {
         }*/
 
         @Override
-        protected void registerCoordinatesToElegroups() {
+        protected void registerCoordinatesToElegroups(TerrainMesh tm) {
             if (flatComponent != null) {
 
                 for (AbstractArea area : flatComponent) {
-                    area.registerCoordinatesToElegroups(elevations);
+                    area.registerCoordinatesToElegroups(elevations, tm);
                 }
 
             }
@@ -423,7 +427,7 @@ public class AerowayModule extends SceneryModule {
          * @return
          */
         @Override
-        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds) {
+        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
             double width = 60;
             String s = tags.getValue("width");
             if (s != null) {
@@ -563,7 +567,7 @@ public class AerowayModule extends SceneryModule {
          * TODO in super bzw. nicht erforderlich?
          */
         @Override
-        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds) {
+        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
             return null;
         }
     }
@@ -595,10 +599,10 @@ class RunwayArea extends Area {
      * @return
      */
     @Override
-    public boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder) {
-        if (getPolygon().getCoordinates().length == 5) {
+    public boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder, TerrainMesh tm) {
+        if (getPolygon(tm).getCoordinates().length == 5) {
             //Standardsegment
-            vertexData = JtsUtil.createTriangleStripForPolygon(getPolygon().getCoordinates(),null,null);
+            vertexData = JtsUtil.createTriangleStripForPolygon(getPolygon(tm).getCoordinates(),null,null);
             if (vertexData == null) {
                 //already logged.
                 poly.trifailed = true;
@@ -610,7 +614,7 @@ class RunwayArea extends Area {
         }
         // duerften die cut Segment bleiben. Ueber die Superklasse wird falsch sein TODO und das mit coordfunction
         material.getTextureDataList().get(0).coordFunction = NamedTexCoordFunction.GLOBAL_X_Y;
-        return super.triangulateAndTexturize(eleConnectorGroupFinder);
+        return super.triangulateAndTexturize(eleConnectorGroupFinder, tm);
     }
 }
 

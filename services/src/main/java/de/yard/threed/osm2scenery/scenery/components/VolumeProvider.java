@@ -2,6 +2,7 @@ package de.yard.threed.osm2scenery.scenery.components;
 
 
 
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.WorldElement;
 
 import java.util.List;
@@ -21,5 +22,5 @@ public interface VolumeProvider extends SceneryObjectComponent{
      */
     String getName();
 
-    void triangulateAndTexturize();
+    void triangulateAndTexturize(TerrainMesh tm);
 }

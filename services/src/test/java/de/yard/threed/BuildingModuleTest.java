@@ -106,7 +106,7 @@ public class BuildingModuleTest {
         //Index 9 durch probieren. alles ungar.
         Material material = buildingparts.get(9).getMaterial();
         assertEquals("OSM218058763", material.getName(), "starC.material.name");
-        starC.triangulateAndTexturize();
+        starC.triangulateAndTexturize(null);
         PrimitiveBuffer primitiveBuffer = starC.primitiveBuffer;
         //Warum 4
         assertEquals(4, primitiveBuffer.getMaterials().size());
@@ -134,7 +134,7 @@ public class BuildingModuleTest {
         BuildingModule.Building building = buildingco.building;
         assertFalse(building.isGarage(), "garage");
 
-        buildingco.triangulateAndTexturize();
+        buildingco.triangulateAndTexturize(null);
         PrimitiveBuffer primitiveBuffer = buildingco.primitiveBuffer;
         //Wall und Roof.
         assertEquals(2, primitiveBuffer.getMaterials().size(), "materials");

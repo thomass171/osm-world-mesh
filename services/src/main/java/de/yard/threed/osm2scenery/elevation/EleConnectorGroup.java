@@ -393,12 +393,12 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
      * @param coor
      * @return
      */
-    static public EleConnectorGroup getGroup(Coordinate coor, boolean isPossibleUnknownVertex, String label, boolean silently) {
+    static public EleConnectorGroup getGroup(Coordinate coor, boolean isPossibleUnknownVertex, String label, boolean silently, TerrainMesh tm) {
         EleConnectorGroup e = getGroup(coor);
         if (e == null) {
             // Der Sache auf den Grund gehen
             boolean containskey = cmap.containsKey(coor);
-            List<MeshLine> meshLines = TerrainMesh.getInstance().findLines(null, coor);
+            List<MeshLine> meshLines = tm.findLines(null, coor);
             MeshLine meshLine = (meshLines.size() > 0) ? meshLines.get(0) : null;
             //Der cut ist dafuer die häufigste Ursache. Erstmal nicht mehr loggen, weil es zu oft vorkommt.
             //5.9.18: Der cut wird jetzt gehandelt. Darum wieder log. Und mal checken, ob ein Rundungsfehler die Ursache sein kann.

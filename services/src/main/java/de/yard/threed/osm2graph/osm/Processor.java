@@ -115,7 +115,7 @@ public class Processor {
     }
 
     public TerrainMesh getTerrainMesh() {
-        return TerrainMesh.getInstance();
+        return sresults.sceneryMesh.terrainMesh;
     }
 
     public File getFileUsed(){

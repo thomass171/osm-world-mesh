@@ -321,7 +321,7 @@ public boolean isCrossing;
     }
 
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
         if (node.getOsmId() == 2345486254L || node.getOsmId() == 295055704) {
             int h = 9;
         }
@@ -349,11 +349,11 @@ public boolean isCrossing;
                 //a minor way hitting a main way on an inner node.
                 //Uses an additional coordinate added to main.
                 //Connector bleibt empty, weil der main way die Darstellung macht. Braucht aber clip in junction.
-                buildMinorAttachAtInnerMain(minorway);
+                buildMinorAttachAtInnerMain(minorway, tm);
                 break;
             case SIMPLE_INNER_DOUBLE_JUNCTION:
-                buildMinorAttachAtInnerMain(minorway);
-                buildMinorAttachAtInnerMain(secondminor);
+                buildMinorAttachAtInnerMain(minorway, tm);
+                buildMinorAttachAtInnerMain(secondminor, tm);
                 break;
             case STANDARD_TRI_JUNCTION:
                 createPolygonSTANDARD_TRI_JUNCTION();
@@ -374,7 +374,7 @@ public boolean isCrossing;
                 //schwieriger als gedacht. Es muessen ja zwei Coordinates für den attach her. Darum
                 //bekommt einer der beiden main ways noch ein Zusatzpair.
                 CoordinatePair c = buildSimpleMainConnection();
-                buildSimpleMinorAttach(c);
+                buildSimpleMinorAttach(c, tm);
                 break;
             case GENERIC:
                 // just n ways, no major or minor.
@@ -422,12 +422,12 @@ public boolean isCrossing;
      *
      * @param mainConnection (in main0perspective)
      */
-    private void buildSimpleMinorAttach(CoordinatePair mainConnection) {
+    private void buildSimpleMinorAttach(CoordinatePair mainConnection, TerrainMesh tm) {
         SceneryWayObject main0 = ways.get(majorway0), minor = ways.get(minorway);
 
         additionalmain0pair = main0.shiftStartOrEnd(node, 8.5);
         CoordinatePair p = additionalmain0pair;//main0.toNodeOrientation(node,additionalmain0pair);
-        if (minorHitsLeft(minorway)) {
+        if (minorHitsLeft(minorway, tm)) {
             if (main0.isStartNode(node)) {
                 //OK
                 buildAttachPair(p.left(), mainConnection.left(), minorway);
@@ -536,7 +536,7 @@ public boolean isCrossing;
      *
      * @return
      */
-    public boolean minorHitsLeft(int mi) {
+    public boolean minorHitsLeft(int mi, TerrainMesh tm) {
         SceneryWayObject minor = ways.get(mi);
         if (minor == null) {
             throw new RuntimeException("no way " + mi);
@@ -638,7 +638,7 @@ public boolean isCrossing;
     /**
      *
      */
-    private void buildMinorAttachAtInnerMain(int mi) {
+    private void buildMinorAttachAtInnerMain(int mi, TerrainMesh tm) {
         SceneryWayObject main = getMajor0();
         Integer position = main.getWayArea().getPosition(node);
         CoordinatePair[] connectorpair = main.getWayArea().getMultiplePair(position);
@@ -648,7 +648,7 @@ public boolean isCrossing;
             if (connectorpair.length == 2) {
                 // Was heisst denn das? An der Node gibt es schon ein zweites Paar? Wo kommt denn das her? Das wurde schon im Way für die inner node angelegt.
                 // links oder rechts?
-                if (minorHitsLeft(mi)) {
+                if (minorHitsLeft(mi, tm)) {
                     buildAttachPair(connectorpair[1].getSecond(), connectorpair[0].getSecond(), mi);
                             /*if (minor.isEndNode(node)) {
                                 attachpair.put(minor.mapWay, new CoordinatePair(connectorpair[0].getSecond(), connectorpair[1].getSecond()));
@@ -684,8 +684,8 @@ public boolean isCrossing;
     }
 
     @Override
-    public void clip() {
-        super.clip();
+    public void clip(TerrainMesh tm) {
+        super.clip(tm);
     }
 
     /**
@@ -694,8 +694,8 @@ public boolean isCrossing;
      * Vom Connector kommen die inner lines ins Mesh. Obwohl die eigentlich nicht gebraucht werden, nur für die Konsistenz.
      */
     @Override
-    public void addToTerrainMesh() {
-        super.addToTerrainMesh();
+    public void addToTerrainMesh(TerrainMesh tm) {
+        super.addToTerrainMesh(tm);
         // flatcomponent might be null
         if (node.getOsmId() == 2345485946L) {
             int h = 9;
@@ -705,7 +705,7 @@ public boolean isCrossing;
             logger.error("unclassified connector " + node.getOsmId());
             return;
         }
-        TerrainMesh tm = TerrainMesh.getInstance();
+
         switch (type) {
             case SIMPLE_CONNECTOR:
                 //has two (identical) attach pairs
@@ -715,7 +715,7 @@ public boolean isCrossing;
                 }
                 // aber nicht bei closed ways
                 if (!getMajor0().isClosed()) {
-                    addAttachPairToTerrainMesh(majorway0, ways.get(majorway1));
+                    addAttachPairToTerrainMesh(majorway0, ways.get(majorway1), tm);
                 }
                 break;
             case SIMPLE_SINGLE_JUNCTION:
@@ -751,7 +751,7 @@ public boolean isCrossing;
                     return;
                 }
                 lineToMinor = splitresult[splitresultindex];
-                TerrainMesh.getInstance().completeLine(lineToMinor, ways.get(minorway).getArea()[0]);
+                tm.completeLine(lineToMinor, ways.get(minorway).getArea()[0]);
                  /*attachpair = getAttachCoordinates(ways.get(minorway).mapWay);
                 if (minorStartsHere()) {
                     TerrainMesh.getInstance().registerLine(JtsUtil.toList(attachpair.left(), attachpair.right()), ways.get(minorway).getArea()[0], null, false, false);
@@ -767,24 +767,24 @@ public boolean isCrossing;
                     logger.error("inconsistent");
                     return;
                 }
-                addAttachPairToTerrainMesh(minorway, ways.get(majorway0));
+                addAttachPairToTerrainMesh(minorway, ways.get(majorway0), tm);
                 break;
             case STANDARD_TRI_JUNCTION:
-                addAttachPairToTerrainMesh(majorway0, this);
-                addAttachPairToTerrainMesh(majorway1, this);
-                addAttachPairToTerrainMesh(minorway, this);
-                TerrainMesh.getInstance().registerLine(JtsUtil.createLine(closingpair.left(), closingpair.right()), this.getArea()[0], null);
+                addAttachPairToTerrainMesh(majorway0, this, tm);
+                addAttachPairToTerrainMesh(majorway1, this, tm);
+                addAttachPairToTerrainMesh(minorway, this, tm);
+                tm.registerLine(JtsUtil.createLine(closingpair.left(), closingpair.right()), this.getArea()[0], null);
                 break;
             case MOTORWAY_ENTRY_JUNCTION:
-                addAttachPairToTerrainMesh(majorway0, this);
-                addAttachPairToTerrainMesh(majorway1, this);
-                addAttachPairToTerrainMesh(minorway, this);
-                addAttachPairToTerrainMesh(secondminor, this);
-                TerrainMesh.getInstance().registerLine(JtsUtil.createLine(closingpair.left(), closingpair.right()), this.getArea()[0], null);
+                addAttachPairToTerrainMesh(majorway0, this, tm);
+                addAttachPairToTerrainMesh(majorway1, this, tm);
+                addAttachPairToTerrainMesh(minorway, this, tm);
+                addAttachPairToTerrainMesh(secondminor, this, tm);
+                tm.registerLine(JtsUtil.createLine(closingpair.left(), closingpair.right()), this.getArea()[0], null);
                 //und noch die Verbindung zwischen den beiden minors
                 CoordinatePair p0 = getAttachPairInNodeOrientation(minorway);
                 CoordinatePair p1 = getAttachPairInNodeOrientation(secondminor);
-                TerrainMesh.getInstance().registerLine(JtsUtil.createLine(p0.right(), p1.left()), null, this.getArea()[0]);
+                tm.registerLine(JtsUtil.createLine(p0.right(), p1.left()), null, this.getArea()[0]);
                 break;
             default:
                 logger.warn("unknown connector type " + type);
@@ -805,12 +805,12 @@ public boolean isCrossing;
     }
 
     @Override
-    public boolean isPartOfMesh() {
+    public boolean isPartOfMesh(TerrainMesh tm) {
         //TODO irgendwie erkennen
         return false;
     }
 
-    private void addAttachPairToTerrainMesh(int waya, SceneryFlatObject otherarea) {
+    private void addAttachPairToTerrainMesh(int waya, SceneryFlatObject otherarea, TerrainMesh tm) {
         CoordinatePair pair = attachpair.get(ways.get(waya).mapWay);
         if (pair == null) {
             logger.error("not found");
@@ -821,7 +821,7 @@ public boolean isCrossing;
         }
         SceneryWayObject way = ways.get(waya);
         // avoid registering eg. bridges
-        TerrainMesh.getInstance().registerLine(JtsUtil.toList(pair.left(), pair.right()), (way.isTerrainProvider) ? way.getArea()[0] : null, (otherarea.isTerrainProvider) ? otherarea.getArea()[0] : null, false, false);
+        tm.registerLine(JtsUtil.toList(pair.left(), pair.right()), (way.isTerrainProvider) ? way.getArea()[0] : null, (otherarea.isTerrainProvider) ? otherarea.getArea()[0] : null, false, false);
 
     }
 
@@ -894,7 +894,7 @@ public boolean isCrossing;
      * Das ganze aber besser vom Way aus resolven? Besser nicht, denn es gibt z.B. die Fälle, wo der minor explizit betroffen ist und eine Änderung des main unangemessen wäre.
      */
     //@Override
-    public void resolveOverlaps() {
+    public void resolveOverlaps(TerrainMesh tm) {
         if (hasMinor()) {
 
             SceneryWayObject minor = ways.get(minorway);
@@ -903,7 +903,7 @@ public boolean isCrossing;
                 WayArea majorway = getMajor0().getWayArea();
 
                 logger.debug("adjusting overlapping minor " + minor.getOsmIdsAsString() + " at connector " + node.getOsmId());
-                OverlapResolver.resolveInnerWayOverlaps(minor, majorway);
+                OverlapResolver.resolveInnerWayOverlaps(minor, majorway, tm);
             }
         }
     }
@@ -913,15 +913,15 @@ public boolean isCrossing;
      *
      * @param overlap
      */
-    public void resolveOverlaps(AbstractArea overlap) {
+    public void resolveOverlaps(AbstractArea overlap, TerrainMesh tm) {
 
         if (type == WayConnectorType.SIMPLE_CONNECTOR && getMajor0() != null) {
             WayArea wayArea = getMajor0().getWayArea();
             CoordinatePair reduced;
             if (major0StartsHere()) {
-                reduced = OverlapResolver.resolveSingleWayOverlap(wayArea, 0, overlap);
+                reduced = OverlapResolver.resolveSingleWayOverlap(wayArea, 0, overlap, tm);
             } else {
-                reduced = OverlapResolver.resolveSingleWayOverlap(wayArea, wayArea.getLength() - 1, overlap);
+                reduced = OverlapResolver.resolveSingleWayOverlap(wayArea, wayArea.getLength() - 1, overlap, tm);
             }
             if (reduced != null) {
                 if (major0StartsHere()) {
@@ -953,19 +953,19 @@ public boolean isCrossing;
         return attachpair.get(way.mapWay).swap();
     }
 
-    public CoordinatePair getWayStartEndPairInNodeOrientation(int index) {
+    public CoordinatePair getWayStartEndPairInNodeOrientation(int index, TerrainMesh tm) {
         SceneryWayObject way = ways.get(index);
         if (way.getStartNode() == this.node) {
-            return way.getWayArea().getStartPair()[0];
+            return way.getWayArea().getStartPair(tm)[0];
         }
         //TODO index 0 durefte nicht immer stimmen
         return way.getWayArea().getEndPair()[0].swap();
     }
 
-    public CoordinatePair getWayStartEndPair(int index) {
+    public CoordinatePair getWayStartEndPair(int index, TerrainMesh tm) {
         SceneryWayObject way = ways.get(index);
         if (way.getStartNode() == this.node) {
-            return way.getWayArea().getStartPair()[0];
+            return way.getWayArea().getStartPair(tm)[0];
         }
         //TODO index 0 durefte nicht immer stimmen
         return way.getWayArea().getEndPair()[0];

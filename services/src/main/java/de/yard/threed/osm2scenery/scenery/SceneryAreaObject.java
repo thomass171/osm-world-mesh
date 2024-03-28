@@ -78,7 +78,7 @@ public class SceneryAreaObject extends SceneryFlatObject {
      * flatcomponent existiert wahrscheinlich schon.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
         if (maparea != null) {
             SimplePolygonXZ pXZ = maparea.getOuterPolygon();
 
@@ -139,7 +139,7 @@ public class SceneryAreaObject extends SceneryFlatObject {
             flatComponent[0].parentInfo = this.toString();
 
             if (isTerrainProvider() && objects != null) {
-                OverlapResolver.resolveOverlaps(this,objects,maparea.getOsmId());
+                OverlapResolver.resolveOverlaps(this,objects,maparea.getOsmId(), tm);
             }
             //6.8.19: Stimmt das wohl so im Context? Ja.
             isClipped = true;
@@ -180,14 +180,14 @@ public class SceneryAreaObject extends SceneryFlatObject {
      * das doch machen.
      */
     @Override
-    protected void registerCoordinatesToElegroups() {
+    protected void registerCoordinatesToElegroups(TerrainMesh tm) {
 
         if (flatComponent != null) {
             if (maparea.getOsmId() == 87822834) {
                 int h = 9;
             }
             for (AbstractArea area : flatComponent) {
-                area.registerCoordinatesToElegroups(elevations);
+                area.registerCoordinatesToElegroups(elevations, tm);
             }
 
             if (SceneryBuilder.FTR_TRACKEDBPCOORS) {

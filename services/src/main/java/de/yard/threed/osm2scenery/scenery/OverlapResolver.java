@@ -29,7 +29,7 @@ public class OverlapResolver {
      * Resolves the potential overlap of an area with other areas.
      * Not intended for ways. Zumindest nicht in erster Linie als Hauptobjekt. Overlapping ways sollten schon vorher resolved sein.
      */
-    public static void resolveOverlaps(SceneryFlatObject sceneryAreaObject, List<SceneryObject> objects, long osmid) {
+    public static void resolveOverlaps(SceneryFlatObject sceneryAreaObject, List<SceneryObject> objects, long osmid, TerrainMesh tm) {
         if (sceneryAreaObject instanceof SceneryWayObject) {
             throw new RuntimeException("invalid usage");
         }
@@ -40,26 +40,26 @@ public class OverlapResolver {
                 for (AbstractArea aa : sceneryAreaObject.getArea()) {
                     areas.add((Area) aa);
                 }
-                resolveTerrainOverlaps(sceneryAreaObject, overlaps, osmid);
+                resolveTerrainOverlaps(sceneryAreaObject, overlaps, osmid, tm);
                 //check again
-                reCheck(sceneryAreaObject, objects);
+                reCheck(sceneryAreaObject, objects, tm);
             }
         }
     }
 
-    public static void reCheck(SceneryFlatObject sceneryAreaObject, List<SceneryObject> objects) {
+    public static void reCheck(SceneryFlatObject sceneryAreaObject, List<SceneryObject> objects, TerrainMesh tm) {
         List<SceneryFlatObject> overlaps = SceneryObjectList.getTerrainOverlaps(sceneryAreaObject, objects);
         if (overlaps.size() > 0) {
             logger.warn(overlaps.size() + " unresolved overlaps remaining for " + sceneryAreaObject.toString());
             for (AbstractArea aa : sceneryAreaObject.getArea()) {
-                logger.warn(" overlapping isType " + aa.getPolygon());
+                logger.warn(" overlapping isType " + aa.getPolygon(tm));
             }
 
             for (SceneryFlatObject overlap : overlaps) {
                 if (overlap.getArea().length > 1) {
                     logger.error("unexpected multiple area");
                 }
-                logger.warn("overlapped isType " + overlap.getArea()[0].getPolygon());
+                logger.warn("overlapped isType " + overlap.getArea()[0].getPolygon(tm));
             }
             SceneryContext.getInstance().unresolvedoverlaps += overlaps.size();
         }
@@ -70,12 +70,12 @@ public class OverlapResolver {
      * Resolve der inner overlaps ohne jeden Connector.
      * Keine Connector anpacken. Das ist knifflig und wird woanders gemacht.
      */
-    public static void resolveInnerWayOverlaps(SceneryWayObject wayToReduce, AbstractArea overlappedarea) {
+    public static void resolveInnerWayOverlaps(SceneryWayObject wayToReduce, AbstractArea overlappedarea, TerrainMesh tm) {
         WayArea wayArea = wayToReduce.getWayArea();
 
         for (int i = 1; i < wayArea.getLength() - 1; i++) {
             if (wayToReduce.innerConnectorMap.get(i) == null) {
-                resolveSingleWayOverlap(wayArea, i, overlappedarea);
+                resolveSingleWayOverlap(wayArea, i, overlappedarea, tm);
             }
         }
     }
@@ -84,7 +84,7 @@ public class OverlapResolver {
      * resolve way overlap by reducing the way at some specific location if required.
      * Returns new CoordinatePair if way was reduced, otherwise null.
      */
-    public static CoordinatePair resolveSingleWayOverlap(WayArea wayToReduce, int position, AbstractArea overlappedarea) {
+    public static CoordinatePair resolveSingleWayOverlap(WayArea wayToReduce, int position, AbstractArea overlappedarea, TerrainMesh tm) {
         //double check to avoid unnecessary operations
         /*lass ich mal if (!wayToReduce.overlaps(overlappedarea)) {
             return;
@@ -99,7 +99,7 @@ public class OverlapResolver {
             logger.error("resolve:not yet");
             return reduced;
         }
-        Polygon polygon = overlappedarea.getPolygon();
+        Polygon polygon = overlappedarea.getPolygon(tm);
         //TODO zu gross?iterativ
         double offset = 1;
         //nur wirklich coordinates innerhalb bearbeiten
@@ -108,7 +108,7 @@ public class OverlapResolver {
             /*if (node.getOsmId() == 1353883859) {
                     int h = 9;
                 }*/
-            reduced = wayToReduce.reduce(position, offset);
+            reduced = wayToReduce.reduce(position, offset, tm);
             if (!wayToReduce.replace(new int[]{position}, reduced)) {
                 logger.error("replace for adjust failed at way " + wayToReduce.parentInfo);
                 reduced = null;
@@ -126,7 +126,7 @@ public class OverlapResolver {
      * Resolve an area overlap by reducing the areas polygon. Not intended for ways.
      * Das geht immer nur mit einer Area, die dann iterativ immer weiter verwendet wird!
      */
-    public static void resolveTerrainOverlaps(SceneryFlatObject sceneryAreaObject, List<SceneryFlatObject> overlaps, long osmid) {
+    public static void resolveTerrainOverlaps(SceneryFlatObject sceneryAreaObject, List<SceneryFlatObject> overlaps, long osmid, TerrainMesh tm) {
         String s = "";
         for (SceneryFlatObject overlap : overlaps) {
             s += overlap.toString() + ",";
@@ -143,7 +143,7 @@ public class OverlapResolver {
             resolved = false;
             List<AbstractArea> totalresult = new ArrayList<>();
             for (AbstractArea area : sceneryAreaObject.getArea()) {
-                List<AbstractArea> result = resolveSingleTerrainOverlap((Area) area, overlaps, osmid, sceneryAreaObject.material, sceneryAreaObject.polydiffs);
+                List<AbstractArea> result = resolveSingleTerrainOverlap((Area) area, overlaps, osmid, sceneryAreaObject.material, sceneryAreaObject.polydiffs, tm);
                 if (result == null) {
                     //no resolve, keep area.
                     totalresult.add(area);
@@ -163,7 +163,8 @@ public class OverlapResolver {
      * Resolve nur fuer einen einzigen Overlap.
      */
     static private List<AbstractArea> resolveSingleTerrainOverlap(Area area, List<SceneryFlatObject> overlaps,
-                                                                  long osmid, Material material, List<PolygonSubtractResult> polydiffs) {
+                                                                  long osmid, Material material, List<PolygonSubtractResult> polydiffs,
+                                                                  TerrainMesh tm) {
 
         //Ob das handling mehrerer Overlaps in einer Schleife wirklich geht, muss sich noch zeigen.
         //wihtig ist, dass immer das vorherige result weiterverwendet wird.
@@ -172,7 +173,7 @@ public class OverlapResolver {
             // die Area wurde durch einen Way(?) in zwei Areas geteilt oder overlaps nur leicht.
             // Weil ja noch areas dazukommen, muss der Overlap nicht unbedingt mit einem Way sein.
             for (AbstractArea overlaparea : overlapobject.getArea()) {
-                List<PolygonSubtractResult> poliesWithoutOverlap = JtsUtil.subtractPolygons(area.poly.polygon, overlaparea.getPolygon());
+                List<PolygonSubtractResult> poliesWithoutOverlap = JtsUtil.subtractPolygons(area.poly.polygon, overlaparea.getPolygon(tm));
                 if (poliesWithoutOverlap == null) {
                     //logger.debug("no overlap for current area to resolve");
                 } else {
@@ -192,7 +193,7 @@ public class OverlapResolver {
                                     if (polygon == null) {
                                         //result = new AbstractArea[]{AbstractArea.EMPTYAREA};
                                     } else {
-                                        if (!JtsUtil.overlaps(polygon, overlaparea.getPolygon())) {
+                                        if (!JtsUtil.overlaps(polygon, overlaparea.getPolygon(tm))) {
                                             result = new Area(polygon, material);
                                         }
                                     }

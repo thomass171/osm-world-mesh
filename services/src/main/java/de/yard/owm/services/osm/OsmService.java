@@ -104,6 +104,8 @@ public class OsmService {
             sceneryMesh.setBackgroundMesh(targetBounds);
         }
 
+        TerrainMesh terrainMesh = TerrainMesh.init(targetBounds);
+
         //handle posible old instances.
 
         // Das braucht schon eine besondere Reihenfolge:
@@ -112,7 +114,7 @@ public class OsmService {
             module.extendMapData(osmData.source, mapData, converter);
         }
         // step by step approach istead of previous "all-in-one".
-        for (MapWay mapWay: mapData.getMapWays()) {
+        for (MapWay mapWay : mapData.getMapWays()) {
             // 1 Scenery Objekte erstellen. WayConnector werden hier auch schon erstellt.
             for (SceneryModule module : SceneryModule.getRelevant(worldModules, mapWay)) {
                 SceneryObjectList areas = module.applyTo(mapWay);
@@ -141,7 +143,7 @@ public class OsmService {
 
             //erst dann, wenn alle Objekte und Verbindungen bekannt sind, die Polygone dazu erstellen
             Phase.updatePhase(Phase.WAYS);
-            processCycle(sceneryMesh, WAY);
+            processCycle(sceneryMesh, WAY, terrainMesh);
 
             log.info("Resolving way overlaps");
             sceneryMesh.resolveWaysAndConnectorOverlaps();
@@ -162,7 +164,7 @@ public class OsmService {
             //die Areas brauchen für den Cut das finale Grid mit LazyCuts
             Phase.updatePhase(Phase.BUILDINGSANDAREAS);
             for (SceneryObject.Cycle cycle : new SceneryObject.Cycle[]{SceneryObject.Cycle.BUILDING, GENERICAREA, UNKNOWN}) {
-                processCycle(sceneryMesh, cycle);
+                processCycle(sceneryMesh, cycle, terrainMesh);
             }
             SceneryContext.getInstance().overlappingterrain = sceneryMesh.checkForOverlappingAreas(true);
             log.debug(SceneryContext.getInstance().overlappingterrain + " overlapping terrain areas");
@@ -367,7 +369,7 @@ public class OsmService {
 
     }
 
-    private void processCycle(SceneryMesh sceneryMesh, SceneryObject.Cycle cycle) {
+    private void processCycle(SceneryMesh sceneryMesh, SceneryObject.Cycle cycle, TerrainMesh tm) {
         //Phase.updatePhase(Phase.POLYGONS);
         //sceneryMesh.createNonWaysPolygons();
         List<ScenerySupplementAreaObject> supplements = sceneryMesh.createPolygons(cycle);
@@ -382,7 +384,7 @@ public class OsmService {
 
         // und aus dem Background ausschneiden und selber zuschneiden.
         //Phase.updatePhase(Phase.CUT);
-        sceneryMesh.insertSceneryObjectsIntoBackgroundAndCut(cycle);
+        sceneryMesh.insertSceneryObjectsIntoBackgroundAndCut(cycle, tm);
     }
 
     /**
@@ -393,7 +395,7 @@ public class OsmService {
     private void calculateElevations(MapData mapData,
                                      TerrainElevationData eleData, Configuration config) {
 
-        final TerrainInterpolator interpolator =null;
+        final TerrainInterpolator interpolator = null;
                 /*26.3.24 (eleData != null)
                         ? terrainEleInterpolatorFactory.make()
                         : new ZeroInterpolator();*/

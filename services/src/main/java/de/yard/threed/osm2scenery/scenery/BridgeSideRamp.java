@@ -48,7 +48,7 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
      * Noch keine Overlaperkennung.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
 
         if (bridgeHead == null || bridgeHead.backline == null) {
             logger.error("incomplete bridge head");
@@ -101,7 +101,7 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
      *
      */
     @Override
-    public void resolveSupplementOverlaps(List<SceneryFlatObject> overlaps){
+    public void resolveSupplementOverlaps(List<SceneryFlatObject> overlaps, TerrainMesh tm){
         int h=9;
         // das kann man bestimmt auch eleganter lösen.
         logger.debug("setting overlapping bridge ramp to empty for bridge"+bridgeHead.bridge.mapWay.getOsmId());
@@ -112,12 +112,12 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
      * Geht ueber den BridgeTerrainMeshAdder in SceneryFlatObject. Methode ist hier nur zur Doku dass das so ist.
      */
     @Override
-    public void addToTerrainMesh() {
-        super.addToTerrainMesh();
+    public void addToTerrainMesh(TerrainMesh tm) {
+        super.addToTerrainMesh(tm);
     }
 
     @Override
-    public void registerCoordinatesToElegroups() {
+    public void registerCoordinatesToElegroups(TerrainMesh tm) {
         if (additional == null) {
             //dann ist nichts weiter zu registrieren. Ansonsten aber wohl auch nicht(??)
             return;

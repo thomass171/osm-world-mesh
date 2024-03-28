@@ -30,20 +30,21 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
         this.bridgeGap = bridgeGap;
     }
 
-    public void addToTerrainMesh(AbstractArea[] areas) {
+    @Override
+    public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) {
         if (!SceneryBuilder.FTR_SMARTBG) {
             // return;
         }
         if (bridgeGap.bridge.mapWay.getOsmId() == 2345485946L) {
             int h = 9;
         }
-        TerrainMesh tm = TerrainMesh.getInstance();
+
         if (SceneryBuilder.TerrainMeshDebugLog) {
             logger.debug("Adding bridge to mesh: " + bridgeGap.bridge.getOsmIdsAsString());
         }
-        addRamps(bridgeGap.bridge.startHead);
-        addRamps(bridgeGap.bridge.endHead);
-        if (!bridgeGap.isEmpty()) {
+        addRamps(bridgeGap.bridge.startHead, tm);
+        addRamps(bridgeGap.bridge.endHead, tm);
+        if (!bridgeGap.isEmpty(tm)) {
             //might be empty due to overlap resolving.
             if (bridgeGap.getArea().length != 2) {
                 logger.error("ignoring bridge gap filler with size " + bridgeGap.getArea().length);
@@ -51,7 +52,7 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
             }
             for (int i = 0; i < 2; i++) {
                 AbstractArea gapArea = bridgeGap.getArea()[i];
-                LineString gapLine = gapArea.getPolygon().getExteriorRing();
+                LineString gapLine = gapArea.getPolygon(tm).getExteriorRing();
                 BridgeModule.BridgeHead head = bridgeGap.bridge.startHead;
                 int[] fromto = JtsUtil.findCommon(gapLine, JtsUtil.createLine(head.bridgebaseline.p0, head.bridgebaseline.p1));
                 if (fromto == null) {
@@ -63,27 +64,26 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
                     return;
                 }
                 LineString[] result = JtsUtil.removeCoordinatesFromLine(gapLine, fromto);
-                tm.createMeshPolygon(new ArrayList(Arrays.asList(result)), head.sharesForGap, gapArea.getPolygon(), gapArea);
+                tm.createMeshPolygon(new ArrayList(Arrays.asList(result)), head.sharesForGap, gapArea.getPolygon(tm), gapArea);
             }
         }
     }
 
-    private void addRamps(BridgeModule.BridgeHead head) {
+    private void addRamps(BridgeModule.BridgeHead head, TerrainMesh tm) {
         head.sharesForGap = new ArrayList<>();
         // die left und right line des Ways an diesem Head.
-        MeshLine[] lines = head.getConnectedWayLines();
+        MeshLine[] lines = head.getConnectedWayLines(tm);
         if (lines == null || lines.length != 2) {
             logger.error("inconsistent bridgehead");
             return;
         }
         MeshLine lineToGap = null;
-        if ((lineToGap = addRamp(head.ramp0, lines)) != null) {
+        if ((lineToGap = addRamp(head.ramp0, lines, tm)) != null) {
             head.sharesForGap.add(lineToGap);
         }
-        if ((lineToGap = addRamp(head.ramp1, lines)) != null) {
+        if ((lineToGap = addRamp(head.ramp1, lines, tm)) != null) {
             head.sharesForGap.add(lineToGap);
         }
-        TerrainMesh tm = TerrainMesh.getInstance();
         //die roadline ist ja an der selben Stelle "above". Uih.
         MeshLine roadlineOnGround = tm.findLineBetweenExistingPoints(new CoordinatePair(head.ramp0.roadpoint, head.ramp1.roadpoint));
         head.sharesForGap.add(roadlineOnGround);
@@ -97,8 +97,8 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
      * @param connectWayLines
      * @return
      */
-    private MeshLine[] splitLineAtRamp(BridgeSideRamp ramp, MeshLine[] connectWayLines) {
-        TerrainMesh tm = TerrainMesh.getInstance();
+    private MeshLine[] splitLineAtRamp(BridgeSideRamp ramp, MeshLine[] connectWayLines, TerrainMesh tm) {
+
         MeshLine[] result;
         int index = connectWayLines[0].findCoordinate(ramp.backpoint);
         if (index == -1) {
@@ -119,16 +119,16 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
     /**
      * Returns share with gap.
      */
-    private MeshLine addRamp(BridgeSideRamp ramp, MeshLine[] connectWayLines) {
-        if (ramp.isEmpty()) {
+    private MeshLine addRamp(BridgeSideRamp ramp, MeshLine[] connectWayLines, TerrainMesh tm) {
+        if (ramp.isEmpty(tm)) {
             return null;
         }
 
-        TerrainMesh tm = TerrainMesh.getInstance();
+
         MeshLine share;
 
         MeshPoint roadpoint = tm.getMeshPoint(ramp.roadpoint);
-        MeshLine[] splitresult = splitLineAtRamp(ramp, connectWayLines);
+        MeshLine[] splitresult = splitLineAtRamp(ramp, connectWayLines, tm);
         if (splitresult == null) {
             logger.warn("ignoring ramp for terrain mesh");
             return null;

@@ -14,19 +14,20 @@ public class DefaultTerrainMeshAdder implements TerrainMeshAdder {
         this.sceneryFlatObject = sceneryFlatObject;
     }
 
-    public void addToTerrainMesh(AbstractArea[] areas) {
+    @Override
+    public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) {
         // es ist wichtig, null fuer die Seams zu uebergeben, wenn es keine gibt bzw. keine hier hinterlegt sind.
         List<AreaSeam> adjacentareas = (sceneryFlatObject.adjacentareas.size() == 0) ? null : new ArrayList<AreaSeam>(sceneryFlatObject.adjacentareas.values());
-        TerrainMesh tm = TerrainMesh.getInstance();
+
         // es kann ja mehrere Polygone geben
         for (AbstractArea abstractArea : areas) {
             //keine leeren und nicht doppelt. Die Doppelgefahr besteht z.B. bei Supplements, die direkt aus dem Mesh erstellt wurden. Wird aber gelogged, weil
             //es nicht ganz koscher ist, hier hin zu kommen.
-            if (!abstractArea.isEmpty()) {
+            if (!abstractArea.isEmpty(tm)) {
                 if (abstractArea.isPartOfMesh) {
                     logger.warn("area already part of mesh");
                 } else {
-                    Area.addAreaToTerrainMesh((Area) abstractArea, sceneryFlatObject, adjacentareas);
+                    Area.addAreaToTerrainMesh((Area) abstractArea, sceneryFlatObject, adjacentareas, tm);
                 }
             }
         }

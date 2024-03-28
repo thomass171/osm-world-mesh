@@ -379,7 +379,7 @@ public class BridgeModule extends SceneryModule {
          *
          * @return
          */
-        public MeshLine[] getConnectedWayLines() {
+        public MeshLine[] getConnectedWayLines(TerrainMesh tm) {
             if (connectedWayAtNode == null || connectedWayAtNode.getWayArea() == null) {
                 logger.error("huch");
                 return null;
@@ -388,12 +388,12 @@ public class BridgeModule extends SceneryModule {
                 int h = 9;
             }
             //mal eine Konsistenzpruefung eingestreut.
-            MeshPolygon mp = TerrainMesh.getInstance().getPolygon(connectedWayAtNode.getWayArea());
+            MeshPolygon mp = tm.getPolygon(connectedWayAtNode.getWayArea());
             if (mp == null) {
                 logger.error("inconsistent way?");
             }
-            List<MeshLine> rl = connectedWayAtNode.getWayArea().getRightLines();
-            List<MeshLine> ll = connectedWayAtNode.getWayArea().getLeftLines();
+            List<MeshLine> rl = connectedWayAtNode.getWayArea().getRightLines(tm);
+            List<MeshLine> ll = connectedWayAtNode.getWayArea().getLeftLines(tm);
             if (rl == null || ll == null) {
                 logger.error("huch");
                 return null;

@@ -300,7 +300,7 @@ public class SceneryConversionFacade {
         logger.info("Resolving way overlaps");
         sceneryMesh.resolveWaysAndConnectorOverlaps();
         SceneryContext.getInstance().overlappingways = sceneryMesh.checkForOverlappingAreas(true);
-        logger.debug("After resolving still "+SceneryContext.getInstance().overlappingways + " overlapping terrain provider way areas");
+        logger.debug("After resolving still " + SceneryContext.getInstance().overlappingways + " overlapping terrain provider way areas");
 
         //Ermitteln, was unter den Bridges ist und die Approaches der Bridges. Dazu werden die Polygone gebraucht.
         //13.7.19 nicht mehr sceneryMesh.completeBridgeRelations();
@@ -310,7 +310,7 @@ public class SceneryConversionFacade {
         if (SceneryBuilder.FTR_SMARTGRID) {
             Phase.updatePhase(Phase.GRIDREARRANGE);
 
-            targetBounds.rearrangeForWayCut(sceneryMesh.sceneryObjects.objects);
+            targetBounds.rearrangeForWayCut(sceneryMesh.sceneryObjects.objects, sceneryMesh.terrainMesh);
             //jetzt noch pruefe, ob es aus dem Grid ragende Wayteile gibt (z.B. bei TestData) TODO
         }
 
@@ -334,21 +334,21 @@ public class SceneryConversionFacade {
         // Vor den Supplements das Mesh erstellen. Die Supplements koennen dann daran anschliessen, muessen aber nicht (oder auch teilweise).
         // Ohne Smartgrid kann das nicht konsistent werden.
         Phase.updatePhase(Phase.TERRAINMESH);
-        logger.info("Initializing terrain mesh with "+sceneryMesh.sceneryObjects.size()+" scenery objects (ways and areas).");
+        logger.info("Initializing terrain mesh with " + sceneryMesh.sceneryObjects.size() + " scenery objects (ways and areas).");
         if (SceneryBuilder.FTR_SMARTGRID) {
-            TerrainMesh.init(targetBounds);
+            sceneryMesh.terrainMesh = TerrainMesh.init(targetBounds);
             //sonst geht waytoarea filler nicht if (SceneryBuilder.FTR_SMARTBG) {
             //erst die Ways, danach areas, um Komplkationen zu vermeiden.
             logger.info("adding ways to terrain mesh");
-            TerrainMesh.getInstance().addWays(sceneryMesh.sceneryObjects);
+            sceneryMesh.terrainMesh.addWays(sceneryMesh.sceneryObjects);
             logger.info("adding areas to terrain mesh");
-            TerrainMesh.getInstance().addAreas(sceneryMesh.sceneryObjects);
+            sceneryMesh.terrainMesh.addAreas(sceneryMesh.sceneryObjects);
             //}
         }
 
         //Supplements anlegen und verarbeiten
         Phase.updatePhase(Phase.SUPPLEMENTS);
-        logger.info("Creating supplements for "+sceneryMesh.sceneryObjects.size()+" scenery objects.");
+        logger.info("Creating supplements for " + sceneryMesh.sceneryObjects.size() + " scenery objects.");
 
         for (SceneryModule module : worldModules) {
             //Das durefen definitionsgemaess nur Supplements mit Cycle SUPPLEMENT sein.
@@ -363,25 +363,25 @@ public class SceneryConversionFacade {
         }
         processCycle(sceneryMesh, SUPPLEMENT);
         logger.info("Resolving supplement overlaps");
-        sceneryMesh.resolveSupplementOverlaps();
+        sceneryMesh.resolveSupplementOverlaps(sceneryMesh.terrainMesh);
         // wenn durch Supplements overlaps entstanden sind, wird das mit Sicherheit zu Problemen im TerrainMesh führen.
         // SceneryContext.getInstance().unresolvedoverlaps ist aber nur der Zaehler fuer versuchte und gescheiterte!
         // Darum neu zählen.
         String comment = "no terrain overlaps";
         SceneryContext.getInstance().overlappingTerrainWithSupplements = sceneryMesh.checkForOverlappingAreas(true);
-        if (SceneryContext.getInstance().overlappingTerrainWithSupplements>0){
-            comment = ""+SceneryContext.getInstance().overlappingTerrainWithSupplements+" terrain overlaps";
+        if (SceneryContext.getInstance().overlappingTerrainWithSupplements > 0) {
+            comment = "" + SceneryContext.getInstance().overlappingTerrainWithSupplements + " terrain overlaps";
         }
-        logger.info("Created "+sceneryMesh.sceneryObjects.findObjectsByCycle(SUPPLEMENT).size()+" supplements. Now "+sceneryMesh.sceneryObjects.size()+" scenery objects ("+
-                comment+").Start adding to mesh.");
+        logger.info("Created " + sceneryMesh.sceneryObjects.findObjectsByCycle(SUPPLEMENT).size() + " supplements. Now " + sceneryMesh.sceneryObjects.size() + " scenery objects (" +
+                comment + ").Start adding to mesh.");
 
         // Supplements muessen auch ins TerrainMesh
-        TerrainMesh.getInstance().addSupplements(sceneryMesh.sceneryObjects.findObjectsByCycle(SUPPLEMENT));
-        boolean meshValid = TerrainMesh.getInstance().isValid(true);
+        sceneryMesh.terrainMesh.addSupplements(sceneryMesh.sceneryObjects.findObjectsByCycle(SUPPLEMENT));
+        boolean meshValid = sceneryMesh.terrainMesh.isValid(true);
         //gap filler sind zwar auch supplements. Aber die haengen sich schon selber ins mesh.
-        logger.info("Supplements added to terrain mesh (mesh "+((meshValid)?"valid":"invalid")+"). Creating gap filler");
+        logger.info("Supplements added to terrain mesh (mesh " + ((meshValid) ? "valid" : "invalid") + "). Creating gap filler");
         int cnt = sceneryMesh.createWayToAreaFiller();
-        logger.info("Created "+cnt+" gap filler");
+        logger.info("Created " + cnt + " gap filler");
 
         Phase.updatePhase(Phase.BACKGROUND);
         sceneryMesh.createBackground();
@@ -489,7 +489,7 @@ public class SceneryConversionFacade {
 
         // und aus dem Background ausschneiden und selber zuschneiden.
         //Phase.updatePhase(Phase.CUT);
-        sceneryMesh.insertSceneryObjectsIntoBackgroundAndCut(cycle);
+        sceneryMesh.insertSceneryObjectsIntoBackgroundAndCut(cycle, sceneryMesh.terrainMesh);
     }
 
     /**

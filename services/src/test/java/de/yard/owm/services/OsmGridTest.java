@@ -125,7 +125,7 @@ public class OsmGridTest {
 
         SceneryFlatObject road = (SceneryFlatObject) sceneryMesh.sceneryObjects.objects.get(0);
         // durch den cut wohl nur noch 8. 12.4.19 8->7
-        assertEquals(7/*8/*11*/, road.getArea()[0].getPolygon().getCoordinates().length, "road.coordinates");
+        assertEquals(7/*8/*11*/, road.getArea()[0].getPolygon(sceneryMesh.terrainMesh).getCoordinates().length, "road.coordinates");
         assertEquals(3, road.getEleConnectorGroups().size(), "road.elegroups");
         //eigentlich sind es nur 4+4, aber unten rechts hatg ein Lazycut eine Gridnode "ersetzt", oder auch nicht, auf jeden Fall ist das nicht sauber.Klärt sich vielleicht noch mal.
         // und dann noch 5(?) durch BG Triangulation. 19.8.19: Durch earclipping wider 5 weniger?
@@ -175,7 +175,7 @@ public class OsmGridTest {
             de.yard.threed.OsmGridTest.assertBasicGraph(roadgraph, expectedelevation);
 
         }
-        assertTrue(TerrainMesh.getInstance().isValid(true), "TerrainMesh.valid");
+        assertTrue(sceneryMesh.terrainMesh.isValid(true), "TerrainMesh.valid");
 
     }
 }

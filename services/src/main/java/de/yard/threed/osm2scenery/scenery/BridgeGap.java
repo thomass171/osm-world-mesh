@@ -74,7 +74,7 @@ public class BridgeGap extends ScenerySupplementAreaObject {
      * 27.8.19: der overlaps aber mit den anderen Ways. Stattdessen lieber die baselines verbinden.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
         //Gap Filler
         //jeweils ein Meter weiter auseinander, weil die SideRamp daran kommt.
         //double width = bridge.getWidth() + 2;
@@ -116,10 +116,10 @@ public class BridgeGap extends ScenerySupplementAreaObject {
      * Das muesste innerhalb der Bridge abgestimmt werden.
      */
     @Override
-    public void resolveSupplementOverlaps(List<SceneryFlatObject> overlaps) {
+    public void resolveSupplementOverlaps(List<SceneryFlatObject> overlaps, TerrainMesh tm) {
         if (overlaps.size() == 1) {
             //mal annehmen, dass das der Overlap mit einem Way unter der Brücke ist. Da hilt dann ein Split.
-            OverlapResolver.resolveTerrainOverlaps(this, overlaps, bridge.mapWay.getOsmId());
+            OverlapResolver.resolveTerrainOverlaps(this, overlaps, bridge.mapWay.getOsmId(), tm);
             logger.debug("resolveOverlaps returned " + getArea().length + " areas.");
         } else {
             // das kann man bestimmt auch eleganter lösen.
@@ -133,7 +133,7 @@ public class BridgeGap extends ScenerySupplementAreaObject {
      * verteilt werden, auch an überbrückte Objekt.
      */
     @Override
-    public void registerCoordinatesToElegroups() {
+    public void registerCoordinatesToElegroups(TerrainMesh tm) {
         /*      if (flatComponent[0] != null && flatComponent[0].poly != null && flatComponent[0].poly.polygonMetadata != null) {
             List<EleCoordinate> els = flatComponent[0].poly.polygonMetadata.getEleConnectors(null);
             // der Einfachheit halber nur eine Group. Und die ist ohne mapnode Zuordnung, um Shadownodes zu vermeiden. Zumindest vorerst.
@@ -146,10 +146,10 @@ public class BridgeGap extends ScenerySupplementAreaObject {
         //dann geht das doch ueber den Default. Den gibts hier aber nicht.
         //TODO: gibt es das nicht als OOTB Default?
 
-        if (!isEmpty()) {
+        if (!isEmpty(tm)) {
             EleConnectorGroup egr = getEleConnectorGroups().get(0);
             for (AbstractArea aa : getArea()) {
-                for (Coordinate c : aa.getPolygon().getCoordinates()) {
+                for (Coordinate c : aa.getPolygon(tm).getCoordinates()) {
                     //manche wird es schon gebe, also eigentlich genau 4.
                     if (EleConnectorGroup.getGroup(c) == null) {
                         egr.add(new EleCoordinate(c));

@@ -44,7 +44,7 @@ public class SceneryDecoration extends SceneryFlatObject {
      *
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
 
 
         flatComponent[0].poly = new SmartPolygon((Polygon) decoratorComponent.getDecoration().getGeometry(), new PolygonMetadata(this));
@@ -53,12 +53,12 @@ public class SceneryDecoration extends SceneryFlatObject {
 
 
     @Override
-    protected void registerCoordinatesToElegroups() {
+    protected void registerCoordinatesToElegroups(TerrainMesh tm) {
 
     }
 
     @Override
-    public boolean isPartOfMesh() {
+    public boolean isPartOfMesh(TerrainMesh tm) {
         //TODO irgendwie erkennen
         return false;
     }

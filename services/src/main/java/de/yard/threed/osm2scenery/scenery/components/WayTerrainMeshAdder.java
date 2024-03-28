@@ -25,9 +25,10 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
         this.sceneryWayObject = sceneryWayObject;
     }
 
-    public void addToTerrainMesh(AbstractArea[] areas) {
-        TerrainMesh tm = TerrainMesh.getInstance();
-        if (areas[0].isEmpty()) {
+    @Override
+    public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) {
+
+        if (areas[0].isEmpty(tm)) {
             return;
         }
 
@@ -68,7 +69,7 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
                 if (segment < sceneryWayObject.innerConnector.size()) {
                     SceneryWayConnector con =sceneryWayObject.innerConnector.get(segment);
                     if (con.hasMinor()) {
-                        if (con.minorHitsLeft(con.minorway)) {
+                        if (con.minorHitsLeft(con.minorway, tm)) {
                             conn = 1;
                         } else {
                             conn = 2;
@@ -78,14 +79,14 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
                 boolean endOnGrid = conn == 0 && sceneryWayObject.endMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
 
                 if (conn == 0 || conn == 1) {
-                    boolean startOnGrid = wayArea.getLeftLines().size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
-                    MeshLine line = TerrainMesh.getInstance().registerLine(leftline, null, areas[0], startOnGrid, endOnGrid);
+                    boolean startOnGrid = wayArea.getLeftLines(tm).size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
+                    MeshLine line = tm.registerLine(leftline, null, areas[0], startOnGrid, endOnGrid);
                     wayArea.addLeftline(line);
                     leftline = new ArrayList<>();
                 }
                 if (conn == 0 || conn == 2) {
-                    boolean startOnGrid = wayArea.getRightLines().size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
-                    wayArea.addRightline(TerrainMesh.getInstance().registerLine(rightline, areas[0], null, startOnGrid, endOnGrid));
+                    boolean startOnGrid = wayArea.getRightLines(tm).size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
+                    wayArea.addRightline(tm.registerLine(rightline, areas[0], null, startOnGrid, endOnGrid));
                     rightline = new ArrayList<>();
                 }
             }
@@ -93,16 +94,16 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
 
         // Also consider dead end
         if (sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.DEADEND) {
-            CoordinatePair p = wayArea.getStartPair()[0];
-            TerrainMesh.getInstance().registerLine(JtsUtil.toList(p.left(), p.right()), areas[0], null, false, false);
-            TerrainMesh.getInstance().addKnownTwoEdger(p.left());
-            TerrainMesh.getInstance().addKnownTwoEdger(p.right());
+            CoordinatePair p = wayArea.getStartPair(tm)[0];
+            tm.registerLine(JtsUtil.toList(p.left(), p.right()), areas[0], null, false, false);
+            tm.addKnownTwoEdger(p.left());
+            tm.addKnownTwoEdger(p.right());
         }
         if (sceneryWayObject.endMode == SceneryWayObject.WayOuterMode.DEADEND) {
             CoordinatePair p = wayArea.getEndPair()[0];
-            TerrainMesh.getInstance().registerLine(JtsUtil.toList(p.left(), p.right()), null, areas[0], false, false);
-            TerrainMesh.getInstance().addKnownTwoEdger(p.left());
-            TerrainMesh.getInstance().addKnownTwoEdger(p.right());
+            tm.registerLine(JtsUtil.toList(p.left(), p.right()), null, areas[0], false, false);
+            tm.addKnownTwoEdger(p.left());
+            tm.addKnownTwoEdger(p.right());
         }
         //  lazy cut isType already registerd in GridBounds, but needs left/right
 

@@ -43,18 +43,18 @@ public abstract class SceneryNodeObject extends SceneryFlatObject /*implements N
     }
 
     @Override
-    protected void/*EleConnectorGroupSet*/ registerCoordinatesToElegroups() {
+    protected void/*EleConnectorGroupSet*/ registerCoordinatesToElegroups(TerrainMesh tm) {
         //return null;
     }
 
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
         flatComponent = new AbstractArea[]{AbstractArea.EMPTYAREA};
         return null;
     }
 
     @Override
-    public boolean isPartOfMesh() {
+    public boolean isPartOfMesh(TerrainMesh tm) {
         //TODO irgendwie erkennen
         return false;
     }

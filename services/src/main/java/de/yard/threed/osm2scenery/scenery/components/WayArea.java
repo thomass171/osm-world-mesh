@@ -343,7 +343,7 @@ public class WayArea extends AbstractArea {
      * 11.4.19: Create TriangleStrip.
      */
     @Override
-    public boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder) {
+    public boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder, TerrainMesh tm) {
         if (material == null) {
             //Sonderlocke, texutils brauchen material
             logger.warn("no material");
@@ -381,7 +381,7 @@ public class WayArea extends AbstractArea {
      * @param elevations
      */
     @Override
-    public void registerCoordinatesToElegroups(EleConnectorGroupSet elevations) {
+    public void registerCoordinatesToElegroups(EleConnectorGroupSet elevations, TerrainMesh tm) {
         /*if (mapWay.getOsmId() == 173191603) {
             int h = 8;
         }
@@ -429,7 +429,7 @@ public class WayArea extends AbstractArea {
             }
         } else {
             //wurde schon beim register mitgemacht. Nein, das ist wegen evtl. split zu frueh.
-            TerrainMesh terrainMesh = TerrainMesh.getInstance();
+
 
             /*kein Zusammenhang! if (elevations.size() != getSegmentCount() + 1) {
                 throw new RuntimeException("inconsistent elegroups?");
@@ -447,8 +447,8 @@ public class WayArea extends AbstractArea {
                             //Pair<Coordinate, Coordinate> pair = getPair(index[0]);
                             //egr.add(new EleCoordinate(pair.getFirst()));
                             //egr.add(new EleCoordinate(pair.getSecond()));
-                            registerCoordinateToElegroup(pair.getFirst(), egr);
-                            registerCoordinateToElegroup(pair.getSecond(), egr);
+                            registerCoordinateToElegroup(pair.getFirst(), egr, tm);
+                            registerCoordinateToElegroup(pair.getSecond(), egr, tm);
                         }
                     }
                 }
@@ -456,7 +456,7 @@ public class WayArea extends AbstractArea {
             //Gegenprobe. left/right lines null sind mögliche Folgefehler.
             // TODO ways die durch Triangulation entstehen sind ein Problem. 9.9.19???
             if (isPartOfMesh) {
-                List<MeshLine> leftlines = getLeftLines(), rightlines = getRightLines();
+                List<MeshLine> leftlines = getLeftLines(tm), rightlines = getRightLines(tm);
                 if (leftlines != null && rightlines != null) {
                     for (MeshLine l : leftlines) {
                         for (Coordinate c : l.getCoordinates()) {
@@ -484,7 +484,7 @@ public class WayArea extends AbstractArea {
 
 
     @Override
-    public MeshLine findMeshLineWithCoordinates(Coordinate c0, Coordinate c1) {
+    public MeshLine findMeshLineWithCoordinates(Coordinate c0, Coordinate c1, TerrainMesh tm) {
         Util.notyet();
         return null;
     }
@@ -562,7 +562,8 @@ public class WayArea extends AbstractArea {
      * @return
      */
     public CoordinatePair getPair(int index) {
-        if (isEmpty()) {
+        TerrainMesh tm = null;
+        if (isEmpty(tm)) {
             //TODO sollte uebrhaupt kein Way sein, oder?
             logger.warn("should not be called on empty ways");
             return null;
@@ -590,7 +591,8 @@ public class WayArea extends AbstractArea {
      * see below.
      */
     public CoordinatePair[] getPairsOfSegment(int segment) {
-        Object[] os = getPairsOfSegment(segment, false);
+        TerrainMesh tm = null;
+        Object[] os = getPairsOfSegment(segment, false, tm);
         CoordinatePair[] result = new CoordinatePair[os.length];
         for (int i = 0; i < os.length; i++) {
             result[i] = (CoordinatePair) os[i];
@@ -605,7 +607,7 @@ public class WayArea extends AbstractArea {
      *
      * @return
      */
-    private Object[] getPairsOfSegment(int segment, boolean meshpoints) {
+    private Object[] getPairsOfSegment(int segment, boolean meshpoints, TerrainMesh tm) {
         int start = getSegmentIndex(segment, true);
         int end = getSegmentIndex(segment, false);
         if (start == -1 || end == -1) {
@@ -650,12 +652,15 @@ public class WayArea extends AbstractArea {
 
     /**
      * Geht auch fuer non multiple pairs.
-     *
+     * 27.3.24 TerrainMesh really needed?
      * @param index
      * @return
      */
     public CoordinatePair[] getMultiplePair(int index) {
-        if (isEmpty()) {
+        TerrainMesh tm = null;
+        //27.3.24 TerrainMesh isn't yet available here! Is it?
+
+        if (isEmpty(tm)) {
             //TODO sollte uebrhaupt kein Way sein, oder?
             logger.warn("should not be called on empty ways");
             return null;
@@ -685,7 +690,7 @@ public class WayArea extends AbstractArea {
      *
      * @return
      */
-    public CoordinatePair[] getStartPair() {
+    public CoordinatePair[] getStartPair(TerrainMesh tm) {
         CoordinatePair[] p = getMultiplePair(0);
         return p;
     }
@@ -696,6 +701,7 @@ public class WayArea extends AbstractArea {
      * @return
      */
     public CoordinatePair[] getEndPair() {
+        TerrainMesh tm = null;
         CoordinatePair[] p = getMultiplePair(getLength() - 1);
         return p;
     }
@@ -860,6 +866,7 @@ public class WayArea extends AbstractArea {
      * Not self modifying but just returning the values.
      */
     public CoordinatePair shift(int index, double offset) {
+        TerrainMesh tm = null;
         CoordinatePair[] mp0 = getMultiplePair(index);
         CoordinatePair[] mp1 = getMultiplePair(index + ((offset < 0) ? -1 : 1));
         if (mp0 == null || mp1 == null) {
@@ -886,7 +893,7 @@ public class WayArea extends AbstractArea {
     /**
      * Not self modifying but just returning the values.
      */
-    public CoordinatePair reduce(int index, double offset) {
+    public CoordinatePair reduce(int index, double offset, TerrainMesh tm) {
         CoordinatePair[] mp0 = getMultiplePair(index);
         //CoordinatePair[] mp1 = getMultiplePair(index + ((offset < 0) ? -1 : 1));
         if (mp0 == null) {
@@ -922,7 +929,7 @@ public class WayArea extends AbstractArea {
     }
 
     @Override
-    public Polygon getPolygon() {
+    public Polygon getPolygon(TerrainMesh tm) {
         Polygon polygon = JtsUtil.createPolygonFromWayOutlines(rightline, leftline);
         if (polygon == null || !polygon.isValid()) {
             logger.error("inconsistemt?");
@@ -969,24 +976,24 @@ public class WayArea extends AbstractArea {
 
     }
 
-    public List<MeshLine> getLeftLines() {
+    public List<MeshLine> getLeftLines(TerrainMesh tm) {
         if (leftlines == null) {
             return null;
         }
         List<MeshLine> lines = new ArrayList<>();
         for (MeshLineData l : leftlines) {
-            lines.addAll(l.getLines());
+            lines.addAll(l.getLines(tm));
         }
         return lines;
     }
 
-    public List<MeshLine> getRightLines() {
+    public List<MeshLine> getRightLines(TerrainMesh tm) {
         if (rightlines == null) {
             return null;
         }
         List<MeshLine> lines = new ArrayList<>();
         for (MeshLineData l : rightlines) {
-            lines.addAll(l.getLines());
+            lines.addAll(l.getLines(tm));
         }
         return lines;
     }
@@ -1049,7 +1056,7 @@ class MeshLineData {
         this.left = left;
     }
 
-    List<MeshLine> getLines() {
+    List<MeshLine> getLines(TerrainMesh tm) {
         List<MeshLine> lines = new ArrayList<>();
         lines.add(meshLine);
         if (meshLine.getTo() == to) {
@@ -1057,7 +1064,7 @@ class MeshLineData {
             return lines;
         }
         //left negieren, weil es hier der Indicator für die line ist, im terrain aber indicator fuer die area.
-        return TerrainMesh.getInstance().findLineOfWay(meshLine, to, wayArea, !left);
+        return tm.findLineOfWay(meshLine, to, wayArea, !left);
 
     }
 }

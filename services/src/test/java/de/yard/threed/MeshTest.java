@@ -55,7 +55,7 @@ public class MeshTest {
         SceneryAreaObject southFarmland = (SceneryAreaObject) areas.findObjectByOsmId(87822834);
         southFarmland.buildEleGroups();
         //cut/clip ist in createPolygon
-        southFarmland.createPolygon(null, SceneryTestUtil.gridCellBounds);
+        southFarmland.createPolygon(null, SceneryTestUtil.gridCellBounds, null);
         knownobjects.add(southFarmland);
 
 
@@ -64,14 +64,14 @@ public class MeshTest {
             //der wird aus irgendwelchen Gruenden nicht mit aufgenommen
             forestAnK41.buildEleGroups();
             //cut/clip ist in createPolygon
-            forestAnK41.createPolygon(null, SceneryTestUtil.gridCellBounds);
+            forestAnK41.createPolygon(null, SceneryTestUtil.gridCellBounds, null);
             knownobjects.add(forestAnK41);
         }
 
         SceneryAreaObject scrubAnK41 = (SceneryAreaObject) areas.findObjectByOsmId(225794276);
         scrubAnK41.buildEleGroups();
         //cut/clip ist in createPolygon
-        scrubAnK41.createPolygon(null, SceneryTestUtil.gridCellBounds);
+        scrubAnK41.createPolygon(null, SceneryTestUtil.gridCellBounds, null);
         knownobjects.add(scrubAnK41);
 
         SceneryMesh.connectAreas(knownobjects);
@@ -81,22 +81,21 @@ public class MeshTest {
 
         // TerrainMesh
 
-        SceneryTestUtil.gridCellBounds.rearrangeForWayCut(knownobjects);
+        SceneryTestUtil.gridCellBounds.rearrangeForWayCut(knownobjects, null);
+        TerrainMesh tm = TerrainMesh.init(SceneryTestUtil.gridCellBounds);
 
         assertEquals(4, SceneryTestUtil.gridCellBounds.getPolygon().getCoordinates().length, "gridCellBounds.coordinates.size");
         List<GridCellBounds.LazyCutObject> lazyCuts = SceneryTestUtil.gridCellBounds.getLazyCuts();
         assertEquals(0, lazyCuts.size(), "lazyCuts.size");
 
-        TerrainMesh.init(SceneryTestUtil.gridCellBounds);
-        TerrainMesh tm = TerrainMesh.getInstance();
         assertEquals(3, tm.lines.size(), "tm.lines.size");
 
 
-        southFarmland.addToTerrainMesh();
+        southFarmland.addToTerrainMesh(tm);
         assertEquals(5, tm.getBoundaries().size(), "tm.boundaries.size");
         assertEquals(5 + 3, tm.lines.size(), "tm.lines.size");
 
-        scrubAnK41.addToTerrainMesh();
+        scrubAnK41.addToTerrainMesh(tm);
 
         List<MeshLine> sharedBoundaries = tm.getSharedBoundaries();
         assertEquals(1, sharedBoundaries.size(), "tm.sharedBoundaries.size");

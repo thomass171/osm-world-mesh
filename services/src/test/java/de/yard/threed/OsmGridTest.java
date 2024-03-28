@@ -191,8 +191,8 @@ public class OsmGridTest {
 
         SceneryWayConnector k41k43connector = (SceneryWayConnector) sceneryMesh.sceneryObjects.findObjectByOsmId(255563538);
         assertNotNull(k41k43connector.getArea(), "k41k43connector.area");
-        assertEquals(5, k41k43connector.getArea()[0].getPolygon().getCoordinates().length, "k41k43connector.polygon.size");
-        SceneryTestUtil.validateConnector(255563538, sceneryMesh.sceneryObjects, SceneryWayConnector.WayConnectorType.STANDARD_TRI_JUNCTION, Boolean.TRUE);
+        assertEquals(5, k41k43connector.getArea()[0].getPolygon(sceneryMesh.terrainMesh).getCoordinates().length, "k41k43connector.polygon.size");
+        SceneryTestUtil.validateConnector(255563538, sceneryMesh.sceneryObjects, SceneryWayConnector.WayConnectorType.STANDARD_TRI_JUNCTION, Boolean.TRUE, sceneryMesh.terrainMesh);
 
         SceneryAreaObject splitfarmland = (SceneryAreaObject) sceneryMesh.sceneryObjects.findObjectByOsmId(87822834);
         assertEquals(2, splitfarmland.getArea().length, "splitfarmland.polygone.size");
@@ -200,18 +200,18 @@ public class OsmGridTest {
         assertEquals(4, splitfarmland.polydiffs.get(0).seam.size(), "splitfarmland.polydiff[0].seam.size");
         assertEquals((SceneryBuilder.FTR_SMARTGRID) ? 5 : 6, splitfarmland.polydiffs.get(1).seam.size(), "splitfarmland.polydiff[1].seam.size");
         assertEquals(1, splitfarmland.getAdjacent().size(), "splitfarmland.adjacent.size");
-        MeshPolygon splitfarmlandEast = splitfarmland.getArea()[1].getMeshPolygon();
+        MeshPolygon splitfarmlandEast = splitfarmland.getArea()[1].getMeshPolygon(sceneryMesh.terrainMesh);
 
         SceneryAreaObject smallScrubarea = (SceneryAreaObject) sceneryMesh.sceneryObjects.findObjectByOsmId(225794276);
         //es muss eine shared line geben. Oder sogar 2?
-        assertEquals(2/*26.8.19 3*/, smallScrubarea.getArea()[0].getMeshPolygon().lines.size(), "smallScrubarea.MeshPolygon.size");
+        assertEquals(2/*26.8.19 3*/, smallScrubarea.getArea()[0].getMeshPolygon(sceneryMesh.terrainMesh).lines.size(), "smallScrubarea.MeshPolygon.size");
         assertEquals(smallScrubarea, splitfarmland.getAdjacent().keySet().iterator().next(), "smallScrubarea==splitfarmland.adjacent");
-        assertEquals(1, TerrainMesh.getInstance().getShared(splitfarmland.getArea()[1], smallScrubarea.getArea()[0]).size(), "smallScrubarea,splitfarmland.sharedLines.size");
+        assertEquals(1, sceneryMesh.terrainMesh.getShared(splitfarmland.getArea()[1], smallScrubarea.getArea()[0]).size(), "smallScrubarea,splitfarmland.sharedLines.size");
 
         List<SceneryObject> wayToAreaFiller = sceneryMesh.sceneryObjects.findObjectsByCreatorTag("WayToAreaFiller");
         assertEquals(1, wayToAreaFiller.size(), "wayToAreaFiller.size");
 
-        SceneryTestUtil.validateResult(sceneryMesh, logger, 0, 9);
+        SceneryTestUtil.validateResult(sceneryMesh, logger, 0, 9, sceneryMesh.terrainMesh);
 
         //getCuts kann man nicht mehr aufrufenMap<Integer, List<GridCellBounds.LazyCutObject>> cuts = processor.gridCellBoundsused.getCuts(sceneryMesh.sceneryObjects.objects);
         //2 nodes + 4 lazy cut auf 3 Edges.->5
@@ -220,7 +220,7 @@ public class OsmGridTest {
         assertEquals(12 + 1, processor.gridCellBoundsused.getPolygon().getCoordinates().length, "gridCellBounds.coordinates.size");
         //Zwischenstufe des Boundary Polygon visuell getest und hier hinterlegt. Die Boundary im TerrainMesh ist noch weiter gesplittet.
         assertEquals("POLYGON ((205.60063218280519 -93.23774501728838, 211.2937464793042 -88.99528720927412, 71.44657661407406 151.0014835023132, 64.98341606170719 148.06251185901493, 48.06776390698129 126.56772547560094, 45.151512521241365 125.86382359666469, -143.32618865755532 -79.42480938115578, -146.28690948697593 -81.29139240107078, -209.97803471204543 -147.78372405767405, -207.82396724107957 -151.27227569818533, 26.540499353209718 -117.4358168330573, 29.332551336487548 -115.32526104780207, 205.60063218280519 -93.23774501728838))", processor.gridCellBoundsused.polygon345a.toString(), "new grid boundary");
-        TerrainMesh tm = TerrainMesh.getInstance();
+        TerrainMesh tm = sceneryMesh.terrainMesh;
         //3 normale Edges, 6 LazyCuts, 3 Areas. Aber 12 ist doch etwas wenig! 14 besser? 19.8.19: 14->16. Ganz plausibel.
         assertEquals(16, tm.getBoundaries().size(), "TerrainMesh.Bounds.size");
         assertTrue(tm.isValid(true), "TerrainMesh.valid");
@@ -277,7 +277,7 @@ public class OsmGridTest {
 
         SceneryFlatObject road = (SceneryFlatObject) sceneryMesh.sceneryObjects.objects.get(0);
         // durch den cut wohl nur noch 8. 12.4.19 8->7
-        assertEquals(7/*8/*11*/, road.getArea()[0].getPolygon().getCoordinates().length, "road.coordinates");
+        assertEquals(7/*8/*11*/, road.getArea()[0].getPolygon(sceneryMesh.terrainMesh).getCoordinates().length, "road.coordinates");
         assertEquals(3, road.getEleConnectorGroups().size(), "road.elegroups");
         //eigentlich sind es nur 4+4, aber unten rechts hatg ein Lazycut eine Gridnode "ersetzt", oder auch nicht, auf jeden Fall ist das nicht sauber.Klärt sich vielleicht noch mal.
         // und dann noch 5(?) durch BG Triangulation. 19.8.19: Durch earclipping wider 5 weniger?
@@ -327,7 +327,7 @@ public class OsmGridTest {
             assertBasicGraph(roadgraph, expectedelevation);
 
         }
-        assertTrue(TerrainMesh.getInstance().isValid(true), "TerrainMesh.valid");
+        assertTrue(sceneryMesh.terrainMesh.isValid(true), "TerrainMesh.valid");
 
     }
 
@@ -365,7 +365,6 @@ public class OsmGridTest {
         SceneryBuilder.FTR_SMARTBG = true;
 
         Processor processor = sb.execute(b55b477small, "detailed", gridname, false, customconfig, MATERIAL_FLIGHT).processor;
-        TerrainMesh tm = TerrainMesh.getInstance();
 
         assertEquals(12/*smartgrid 4 */, processor.gridCellBoundsused.getPolygon().getCoordinates().length - 1, "b55b477smallgrid.nodes");
         //Warum 7? Viewer zeigt nur 5. 13.8.19: 5 (wie hier) bei detailed, 7 bei superdetailed.Der 225794273 wird jetzt per Sonderlocke rausgenommen, darum -1
@@ -377,7 +376,7 @@ public class OsmGridTest {
         //14 scheint plausible. Das sind 11 normale Roads (keine Feldwege) und einmal ueber die Brucke. Der 225794273 wird jetzt per Sonderlocke rausgenommen, darum -1
         assertEquals(11 + 1 - 1, roadModule.getRoads().size(), "HighwayModule.roads");
         SceneryMesh sceneryMesh = processor.getResults().sceneryresults.sceneryMesh;
-
+        TerrainMesh tm = sceneryMesh.terrainMesh;
         assertEquals(expectedobjects, sceneryMesh.sceneryObjects.objects.size(), "scenery.areas");
 
         // wie spielen denn die Bridges rein? Normale Connector. Aber warum sind manche Outer da und manche nicht?
@@ -385,9 +384,9 @@ public class OsmGridTest {
         //Der 225794273 wird jetzt per Sonderlocke rausgenommen, darum -1
         assertEquals(7 - 1, wayMap.getConnectorMapForCategory(ROAD).size(), "connector.size");
 
-        SceneryTestUtil.validateConnector(2345486254L, sceneryMesh.sceneryObjects, SceneryWayConnector.WayConnectorType.SIMPLE_SINGLE_JUNCTION, Boolean.FALSE);
-        SceneryTestUtil.validateConnector(54286220, sceneryMesh.sceneryObjects, SceneryWayConnector.WayConnectorType.STANDARD_TRI_JUNCTION, Boolean.FALSE);
-        SceneryTestUtil.validateConnector(54286227, sceneryMesh.sceneryObjects, SceneryWayConnector.WayConnectorType.STANDARD_TRI_JUNCTION, Boolean.TRUE);
+        SceneryTestUtil.validateConnector(2345486254L, sceneryMesh.sceneryObjects, SceneryWayConnector.WayConnectorType.SIMPLE_SINGLE_JUNCTION, Boolean.FALSE, tm);
+        SceneryTestUtil.validateConnector(54286220, sceneryMesh.sceneryObjects, SceneryWayConnector.WayConnectorType.STANDARD_TRI_JUNCTION, Boolean.FALSE, tm);
+        SceneryTestUtil.validateConnector(54286227, sceneryMesh.sceneryObjects, SceneryWayConnector.WayConnectorType.STANDARD_TRI_JUNCTION, Boolean.TRUE, tm);
 
         validateEleGroups(7093390, sceneryMesh.sceneryObjects);
 
@@ -395,7 +394,7 @@ public class OsmGridTest {
         SceneryWayConnector c2345486254 = (SceneryWayConnector) sceneryMesh.sceneryObjects.findObjectByOsmId(2345486254L);
         assertEquals(3, c2345486254.getMajor0().getWayArea().getRawLength(), "2345486254.main0.rawlength");
         assertEquals(2, c2345486254.getMajor0().getWayArea().getLength(), "2345486254.main0.rawlength");
-        assertEquals(2, c2345486254.getMajor0().getWayArea().getStartPair().length, "2345486254.main0.rawlength");
+        assertEquals(2, c2345486254.getMajor0().getWayArea().getStartPair(tm).length, "2345486254.main0.rawlength");
         assertEquals(1, c2345486254.getMajor0().getWayArea().getEndPair().length, "2345486254.main0.rawlength");
         assertEquals(3, c2345486254.getMajor0().getWayArea().getPairsOfSegment(0).length, "2345486254.main0.PairsOfSegment(0)");
         //main0 hat am minor split
@@ -429,17 +428,17 @@ public class OsmGridTest {
         // Bridges
         // von Sueden ist cut, darum erstmal von Norden
         HighwayModule.Highway roadToBridgeFromNorth = (HighwayModule.Highway) sceneryMesh.sceneryObjects.findObjectByOsmId(8033747);
-        validateBridgeApproach(roadToBridgeFromNorth, false);
+        validateBridgeApproach(roadToBridgeFromNorth, false, sceneryMesh.terrainMesh);
 
         //Die Bruecke selber, aber auch das Roadsegment da drin muss hoeher liegen
         BridgeModule.Bridge bridge = (BridgeModule.Bridge) sceneryMesh.sceneryObjects.findObjectsByCreatorTag("Bridge").get(0);
-        validateBridge(bridge, bridgegroundfiller, roadToBridgeFromNorth);
+        validateBridge(bridge, bridgegroundfiller, roadToBridgeFromNorth, sceneryMesh.terrainMesh);
 
         //Background
         // wegen Bruecke 7 statt 9. Und mit background Holebereinigung wieder 9 (obs stimmt? viewer zeigt 8. Mit zaehlen sinds auch 8, obwohls logisch
         // nur 6 sein duerften.). Mit Surface sinds 10? Brücke dazu. 28.8.18: wieder 8? oder 9. 21.11.18: durch float->double wieder 8? 13.8.19: wieder 7
         //28.8.19: Die BridgeGaps schliessen z.Z.nicht richtig, darum 5 statt 7
-        SceneryTestUtil.validateResult(sceneryMesh, logger, 0, 5);
+        SceneryTestUtil.validateResult(sceneryMesh, logger, 0, 5, tm);
 
         //Elevation
         float expectedMinimumElevation = 68;
@@ -507,7 +506,7 @@ public class OsmGridTest {
         RailwayModule railwayModule = (RailwayModule) processor.scf.getModule("RailwayModule");
         SceneryObjectList sceneryObjectList = processor.getResults().sceneryresults.sceneryMesh.sceneryObjects;
         SceneryMesh sceneryMesh = processor.getResults().sceneryresults.sceneryMesh;
-        TerrainMesh tm = TerrainMesh.getInstance();
+        TerrainMesh tm = sceneryMesh.terrainMesh;
 
         List<SceneryWayObject> railways = sceneryObjectList.findWaysByCategory(SceneryObject.Category.RAILWAY);
         //2 ist sagen wir mal plausibel
@@ -530,34 +529,34 @@ public class OsmGridTest {
 
         //Connector des Kreisverkehr
         SceneryWayConnector c295055704 = (SceneryWayConnector) sceneryObjectList.findObjectByOsmId(295055704);
-        SceneryTestUtil.validateConnector(c295055704, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null);
+        SceneryTestUtil.validateConnector(c295055704, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null, tm);
 
         //two Connector at circle at 173190487
         SceneryWayConnector c1840257467 = (SceneryWayConnector) sceneryObjectList.findObjectByOsmId(1840257467);
-        SceneryTestUtil.validateConnector(c1840257467, SceneryWayConnector.WayConnectorType.SIMPLE_SINGLE_JUNCTION, Boolean.TRUE);
+        SceneryTestUtil.validateConnector(c1840257467, SceneryWayConnector.WayConnectorType.SIMPLE_SINGLE_JUNCTION, Boolean.TRUE, tm);
         SceneryWayConnector c1840257469 = (SceneryWayConnector) sceneryObjectList.findObjectByOsmId(1840257469);
-        SceneryTestUtil.validateConnector(c1840257469, SceneryWayConnector.WayConnectorType.SIMPLE_SINGLE_JUNCTION, Boolean.TRUE);
+        SceneryTestUtil.validateConnector(c1840257469, SceneryWayConnector.WayConnectorType.SIMPLE_SINGLE_JUNCTION, Boolean.TRUE, tm);
 
         //Auffahrt A61
         SceneryWayConnector c1353883890 = (SceneryWayConnector) sceneryObjectList.findObjectByOsmId(1353883890);
-        SceneryTestUtil.validateConnector(c1353883890, SceneryWayConnector.WayConnectorType.MOTORWAY_ENTRY_JUNCTION, Boolean.FALSE);
+        SceneryTestUtil.validateConnector(c1353883890, SceneryWayConnector.WayConnectorType.MOTORWAY_ENTRY_JUNCTION, Boolean.FALSE, tm);
 
         //Zweite Auffahrt A61
         SceneryWayConnector c255574409 = (SceneryWayConnector) sceneryObjectList.findObjectByOsmId(255574409);
-        SceneryTestUtil.validateConnector(c255574409, SceneryWayConnector.WayConnectorType.MOTORWAY_ENTRY_JUNCTION, Boolean.TRUE);
+        SceneryTestUtil.validateConnector(c255574409, SceneryWayConnector.WayConnectorType.MOTORWAY_ENTRY_JUNCTION, Boolean.TRUE, tm);
 
         //Connector an der Abfahrt. Bekommt overlap reduce
-        SceneryTestUtil.validateConnector((SceneryWayConnector) sceneryObjectList.findObjectByOsmId(2345486588L), SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null);
+        SceneryTestUtil.validateConnector((SceneryWayConnector) sceneryObjectList.findObjectByOsmId(2345486588L), SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null, tm);
 
         //Der 225794249 liegt zwischen zwei bridges. Da gabs mal einen nicht sauberen Split.
         HighwayModule.Highway w225794249 = (HighwayModule.Highway) sceneryObjectList.findObjectByOsmId(225794249);
-        List<MeshLine> ll = w225794249.getWayArea().getLeftLines();
+        List<MeshLine> ll = w225794249.getWayArea().getLeftLines(sceneryMesh.terrainMesh);
         assertEquals(3, ll.size(), "225794249.leftLines.length");
 
         //Ob 28 richtig sind? Auf jeden Fall plausibler als 9. NeeNee, die sind sehr groß. 9 würde schon gut passen. Oder? Gezählt komm ich schon auf 15
         //wahrscheinlich ein Hole Problem.
         //TODO assertEquals("scenery.backgrounds", 9/*10*/, sceneryMesh.getBackground().bgfiller.size());
-        SceneryTestUtil.validateResult(sceneryMesh, logger, 0, 28);
+        SceneryTestUtil.validateResult(sceneryMesh, logger, 0, 28, tm);
 
         //PML
         PortableModelList pml = processor.pml;
@@ -691,7 +690,7 @@ public class OsmGridTest {
         assertEquals(4 + 2 + 1, processor.gridCellBoundsused.getPolygon().getCoordinates().length, "gridCellBounds.coordinates.size");
         assertEquals(0, SceneryContext.getInstance().warnings.size(), "warnings");
 
-        TerrainMesh tm = TerrainMesh.getInstance();
+        TerrainMesh tm = sceneryMesh.terrainMesh;
         //22 ist plausibel
         assertEquals(22, tm.getSharedLines().size(), "TerrainMesh.sharedLines.size");
         assertTrue(tm.isValid(true), "TerrainMesh.valid");
@@ -841,12 +840,12 @@ public class OsmGridTest {
     }
 
 
-    private void validateBridgeApproach(HighwayModule.Highway roadToBridgeFromNorth, boolean superdetailed) {
+    private void validateBridgeApproach(HighwayModule.Highway roadToBridgeFromNorth, boolean superdetailed, TerrainMesh tm) {
         assertFalse(roadToBridgeFromNorth.getArea()[0].isOverlay, "overlayway");
         //just detailed->ASPHALT
         assertEquals("ASPHALT", roadToBridgeFromNorth.getMaterial().getName(), "roadToBridgeFromNorth.material");
         //Warum 7 und 3?
-        assertEquals(7/*5*/, roadToBridgeFromNorth.getArea()[0].getPolygon().getCoordinates().length, "scenery.roadToBridgeFromNorth.coordinates");
+        assertEquals(7/*5*/, roadToBridgeFromNorth.getArea()[0].getPolygon(tm).getCoordinates().length, "scenery.roadToBridgeFromNorth.coordinates");
         assertEquals(3/*2*/, roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.size(), "scenery.roadToBridgeFromNorth.coordinates");
 
         assertEleConnectorGroup("scenery.roadToBridgeFromNorth.elevation", roadToBridgeFromNorth.getEleConnectorGroups(), new float[]{68f + 6f, 68f + 3f, 68f});
@@ -878,7 +877,7 @@ public class OsmGridTest {
     /**
      * Ist das generisch für alle Bridges? Eher nicht.
      */
-    private void validateBridge(BridgeModule.Bridge bridge, ScenerySupplementAreaObject bridgegroundfillerfromobjectlist, HighwayModule.Highway roadToBridgeFromNorth) {
+    private void validateBridge(BridgeModule.Bridge bridge, ScenerySupplementAreaObject bridgegroundfillerfromobjectlist, HighwayModule.Highway roadToBridgeFromNorth, TerrainMesh tm) {
         assertFalse(bridge.isTerrainProvider(), "isTerrainProvider");
         assertTrue(bridge.isClipped(), "bridge.clipped");
         assertEquals("Bridge", bridge.getCreatorTag(), "creatortag");
@@ -886,15 +885,15 @@ public class OsmGridTest {
         assertEquals("BridgeGroundFiller", bridge.getGroundFiller().getCreatorTag(), "GroundFiller.creatortag");
 
         SceneryWayConnector startConnector = bridge.getStartConnector();
-        SceneryTestUtil.validateConnector(startConnector, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null);
+        SceneryTestUtil.validateConnector(startConnector, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null, tm);
 
         SceneryWayConnector endConnector = bridge.getEndConnector();
-        SceneryTestUtil.validateConnector(endConnector, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null);
+        SceneryTestUtil.validateConnector(endConnector, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null, tm);
 
 
         assertEquals(68f + 6f, bridge.getEleConnectorGroups().eleconnectorgroups.get(0).getElevation().floatValue(), "scenery.bridge.elevation");
         assertEquals(68f + 6f, bridge./*.roadorrailway*/getEleConnectorGroups().eleconnectorgroups.get(0).getElevation().floatValue(), "scenery.bridge.roadorrailway.elevation");
-        assertEquals(68f + 6f, (float) ((SceneryFlatObject) bridge/*.roadorrailway*/).getArea()[0].getPolygon().getCoordinates()[0].z, "scenery.bridge.roadorrailway.elevation");
+        assertEquals(68f + 6f, (float) ((SceneryFlatObject) bridge/*.roadorrailway*/).getArea()[0].getPolygon(tm).getCoordinates()[0].z, "scenery.bridge.roadorrailway.elevation");
         //assert elevations of the northern ramp. 17.7.19: Ist ramp2 nicht north right?
         ScenerySupplementAreaObject rampnorthleft = bridge.endHead.ramp0;
         Coordinate[] rampcoors = rampnorthleft.getArea()[0].poly.polygon.getCoordinates();
@@ -904,15 +903,15 @@ public class OsmGridTest {
         //start of north road isType at bridge. egrnorth ist am Brückenkopf.
         EleConnectorGroup egrnorth = roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(0);
         SceneryTestUtil.assertCoordinate("egrnorth.coordinate", JtsUtil.toCoordinate(roadToBridgeFromNorth.mapWay.getMapNodes().get(0).getPos()), egrnorth.getCoordinate());
-        assertTrue(EleConnectorGroup.getGroup(rampcoors[0], false, "for test", false) == roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(1), "Ramp.elegrooup[0]");
-        assertTrue(EleConnectorGroup.getGroup(rampcoors[1], false, "for test", false) == roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(0), "Ramp.elegrooup[1]");
-        assertTrue(EleConnectorGroup.getGroup(rampcoors[2], false, "for test", false) == bridge.gap.getEleConnectorGroups().eleconnectorgroups.get(0), "Ramp.elegrooup[2]");
+        assertTrue(EleConnectorGroup.getGroup(rampcoors[0], false, "for test", false, tm) == roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(1), "Ramp.elegrooup[0]");
+        assertTrue(EleConnectorGroup.getGroup(rampcoors[1], false, "for test", false, tm) == roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(0), "Ramp.elegrooup[1]");
+        assertTrue(EleConnectorGroup.getGroup(rampcoors[2], false, "for test", false, tm) == bridge.gap.getEleConnectorGroups().eleconnectorgroups.get(0), "Ramp.elegrooup[2]");
         //TODO 24.4.19 assertFloat("bridge.rampnorthleft.elevation", 68f + 3f, rampnorthleft.getEleConnectorGroups().eleconnectorgroups.get(0).getElevation().floatValue());
         //TODO 24.4.19 assertFloat("bridge.rampnorthleft.elevation", 68f + 6f, rampnorthleft.getEleConnectorGroups().eleconnectorgroups.get(1).getElevation().floatValue());
 
-        assertEquals(3, bridge.startHead.ramp0.getArea()[0].getPolygon().getCoordinates().length - 1, "Ramp0.polygon.size");
+        assertEquals(3, bridge.startHead.ramp0.getArea()[0].getPolygon(tm).getCoordinates().length - 1, "Ramp0.polygon.size");
         //6 statt 4 wegen mesh ist plausibel
-        assertEquals( /*4*/6, bridge.gap.getArea()[0].getPolygon().getCoordinates().length - 1, "Gapfiller.polygon.size");
+        assertEquals( /*4*/6, bridge.gap.getArea()[0].getPolygon(tm).getCoordinates().length - 1, "Gapfiller.polygon.size");
         //genau eine Group mit 14 Eles (4 vom Polygon + 4 sideramp + 6(?) background, scheint plausibel)
         //TODO 5.9.19 assertEquals("Gapfiller.elegroups", 1, bridge.gap.getEleConnectorGroups().eleconnectorgroups.size());
         //4 vom gap+ 4 von Ramps, 1 vom cut einer ramp, 10 vom BG=19, war mal 14. Jetzt wieder. 12.6.19:evtl. 14->8
@@ -929,10 +928,10 @@ public class OsmGridTest {
         assertEquals(3/*7/*5*/, bridge.endHead.ramp1.getArea()[0].getVertexData().vertices.size(), "Ramp3.vertices");
         //6 statt 4 wegen mesh ist plausibel
         assertEquals( /*4*/6, bridge.gap.getArea()[0].getVertexData().vertices.size(), "Gapfiller.vertices");
-        SceneryTestUtil.validateSupplement("", bridge.startHead.ramp0);
-        SceneryTestUtil.validateSupplement("", bridge.startHead.ramp1);
-        SceneryTestUtil.validateSupplement("", bridge.endHead.ramp0);
-        SceneryTestUtil.validateSupplement("", bridge.endHead.ramp1);
+        SceneryTestUtil.validateSupplement("", bridge.startHead.ramp0, tm);
+        SceneryTestUtil.validateSupplement("", bridge.startHead.ramp1, tm);
+        SceneryTestUtil.validateSupplement("", bridge.endHead.ramp0, tm);
+        SceneryTestUtil.validateSupplement("", bridge.endHead.ramp1, tm);
     }
 
 

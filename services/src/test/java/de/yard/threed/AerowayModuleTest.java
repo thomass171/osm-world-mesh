@@ -55,9 +55,9 @@ public class AerowayModuleTest {
         aerowayModule.classify(SceneryTestUtil.mapData);
 
         AerowayModule.Runway runway = (AerowayModule.Runway) objs.findObjectByOsmId(117);
-        runway.createPolygon(null, null);
+        runway.createPolygon(null, null, null);
         runway.cut(SceneryTestUtil.gridCellBounds);
-        runway.triangulateAndTexturize();
+        runway.triangulateAndTexturize(null);
 
         //800m lang. 16.8.19: jetzt multiple areas statt multiple objects.
         assertEquals( /*80 */1, objs.size(), "objs");
@@ -68,7 +68,7 @@ public class AerowayModuleTest {
         //Skizze 67: Segmente 4 und 5 schneiden Grid.
         for (int i = 0; i < 4; i++) {
             segment = runway.getArea()[0];
-            assertTrue(segment.isEmpty(), "apron.decorations.minimum 20");
+            assertTrue(segment.isEmpty(null), "apron.decorations.minimum 20");
         }
         segment = runway.getArea()[6];
         VertexData vd = segment.getVertexData();
@@ -125,7 +125,7 @@ public class AerowayModuleTest {
 
         // Polygons
 
-        apron.createPolygon(null, null);
+        apron.createPolygon(null, null, null);
 
         // Supplements
 
@@ -146,7 +146,7 @@ public class AerowayModuleTest {
 
         // VertexData
 
-        apron.triangulateAndTexturize();
+        apron.triangulateAndTexturize(null);
 
         AbstractArea deco0 = objs.findDecorationByName(c4name);//apron.getDecorations().get(0);
         VertexData vd = deco0.getVertexData();

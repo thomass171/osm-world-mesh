@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.*;
 
 import de.yard.threed.core.LatLon;
 import de.yard.threed.core.Util;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.*;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2scenery.SceneryObjectList;
@@ -358,10 +359,10 @@ public class GridCellBounds /*implements TargetBounds*/ {
 
     /**
      * Betrachtet nur Ways. Alles andere ist Fehler, obwohl es nicht erkannt wird.
-     *
+     * 27.3.24: Cannot get TerrainMesh, whose constructor calls this!
      * @param objects
      */
-    public void rearrangeForWayCut(List<SceneryObject> objects) {
+    public void rearrangeForWayCut(List<SceneryObject> objects, TerrainMesh tm) {
         if (locked) {
             throw new RuntimeException("locked");
         }
@@ -371,7 +372,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
         }
         //Die cut nodes gruppieren nach der BoundaryLine, auf der sie liegen
         //kann aber auch eine basicnode sein.
-        mapOfCuts = getCuts(objects);
+        mapOfCuts = getCuts(objects, tm);
 
         //really tricky. Das ganze mit der Polygonerzeugung ist ein Vabanquespiel und kann immer
         //mal wieder scheitern (invalid polygons).
@@ -470,11 +471,11 @@ public class GridCellBounds /*implements TargetBounds*/ {
     /**
      * Die Grid (Lazy)Cuts von ways ermitteln und den Boundary edges zuordnen.
      */
-    public Map<Integer, List<LazyCutObject>> getCuts(List<SceneryObject> ways) {
+    public Map<Integer, List<LazyCutObject>> getCuts(List<SceneryObject> ways, TerrainMesh tm) {
         Map<Integer, List<LazyCutObject>> cuts = new HashMap();
 
         SceneryObjectList.iterateWays(ways, (way) -> {
-            if (way.isEmpty()) {
+            if (way.isEmpty(tm)) {
                 //possible invalid polygon ways
                 return;
             }
@@ -488,7 +489,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
             }
             if (way.startMode == GRIDBOUNDARY) {
                 MapNode mapNode = way.getStartNode();
-                groupMapNode(way.getStartNode(), cuts, wayArea.getStartPair()[0], way);
+                groupMapNode(way.getStartNode(), cuts, wayArea.getStartPair(tm)[0], way);
             }
             if (way.endMode == GRIDBOUNDARY) {
                 MapNode mapNode = way.getEndNode();

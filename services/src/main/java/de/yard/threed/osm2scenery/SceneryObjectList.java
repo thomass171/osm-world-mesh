@@ -84,10 +84,10 @@ public class SceneryObjectList {
         return result;
     }
 
-    public List<SceneryAreaObject> findAreasByCoordinate(Coordinate coordinate) {
+    public List<SceneryAreaObject> findAreasByCoordinate(Coordinate coordinate, TerrainMesh tm) {
         List<SceneryAreaObject> result = new ArrayList<>();
         for (SceneryObject o : objects) {
-            if ((o instanceof SceneryAreaObject) && o.covers(coordinate)) {
+            if ((o instanceof SceneryAreaObject) && o.covers(coordinate, tm)) {
                 result.add((SceneryAreaObject) o);
             }
 

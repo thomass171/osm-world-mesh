@@ -6,6 +6,7 @@ import de.yard.threed.core.platform.PlatformInternals;
 import de.yard.threed.core.testutil.TestUtils;
 import de.yard.threed.javacommon.ConfigurationByEnv;
 import de.yard.threed.javacommon.SimpleHeadlessPlatform;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import org.apache.log4j.Logger;
@@ -125,9 +126,10 @@ public class WayAreaTest {
         SceneryTestUtil.assertCoordinate("wayArea.getPairsOfSegment[1]", new Coordinate(4, -width2), wayArea.getPairsOfSegment(1)[1].right(), 0.01);
         SceneryTestUtil.assertCoordinate("wayArea.getPairsOfSegment[2]", new Coordinate(5, -width2), wayArea.getPairsOfSegment(1)[2].right(), 0.01);
 
+        TerrainMesh tm = TerrainMesh.init(SceneryTestUtil.gridCellBounds);
 
         wayArea = buildWayArea();
-        wayArea.replaceStart(new CoordinatePair[]{wayArea.getStartPair()[0], buildPair(1)});
+        wayArea.replaceStart(new CoordinatePair[]{wayArea.getStartPair(tm)[0], buildPair(1)});
         wayArea.replace(1, new CoordinatePair[]{wayArea.getPair(1), buildPair(3.5)});
         //2-2-1: 0,1-3,3.5-5
         assertEquals(2, wayArea.getSegmentCount(), "wayArea.getSegmentCount");
@@ -135,7 +137,7 @@ public class WayAreaTest {
         assertEquals(1, wayArea.getSegmentIndex(0, false), "wayArea.getSegment[0].End");
 
         wayArea = buildWayArea();
-        wayArea.replaceStart(new CoordinatePair[]{wayArea.getStartPair()[0], buildPair(1)});
+        wayArea.replaceStart(new CoordinatePair[]{wayArea.getStartPair(tm)[0], buildPair(1)});
         wayArea.replaceEnd(new CoordinatePair[]{buildPair(4.5), wayArea.getPair(2),});
         //2-1-2: 0,1-3-4.5,5
         assertEquals(1, wayArea.getSegmentCount(), "wayArea.getSegmentCount");
@@ -154,7 +156,7 @@ public class WayAreaTest {
     public void testVerticalReduce() {
         WayArea wayArea = buildWayArea();
         double offset = 0.2;
-        CoordinatePair reduced = wayArea.reduce(1, offset);
+        CoordinatePair reduced = wayArea.reduce(1, offset, null);
         wayArea.replace(new int[]{1}, reduced);
         TestUtils.assertVector2(new Vector2(0, width2), toVector2(wayArea.getPair(0).getSecond()),"wayArea.pair[0].left");
         TestUtils.assertVector2( new Vector2(0, -width2), toVector2(wayArea.getPair(0).getFirst()),"wayArea.pair[0].right");

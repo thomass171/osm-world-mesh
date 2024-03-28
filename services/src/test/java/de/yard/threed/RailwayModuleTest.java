@@ -7,8 +7,10 @@ import de.yard.threed.javacommon.ConfigurationByEnv;
 import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.VertexData;
+import de.yard.threed.osm2scenery.Phase;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.RailwayModule;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.Dumper;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.Test;
@@ -46,14 +48,20 @@ public class RailwayModuleTest {
         assertEquals(24 + 1 + 1, hambachbahn.mapWay.getMapNodes().size(), "mapway.nodes");
         //assertNotNull("K41", k41vonunten);
 
+        if (SceneryBuilder.FTR_SMARTGRID) {
+            SceneryTestUtil.gridCellBounds.rearrangeForWayCut(railways.objects, null);
+        }
+        TerrainMesh tm = TerrainMesh.init(SceneryTestUtil.gridCellBounds);
+
         hambachbahn.buildEleGroups();
-        hambachbahn.createPolygon(null, null);
+        hambachbahn.createPolygon(null, null, tm);
 
         hambachbahn.cut(SceneryTestUtil.gridCellBounds);
-        Dumper.dumpPolygon(logger, hambachbahn.getArea()[0].getPolygon().getCoordinates());
+
+        Dumper.dumpPolygon(logger, hambachbahn.getArea()[0].getPolygon(tm).getCoordinates());
 
         assertNull(hambachbahn.getVertexData(), "vertexdata");
-        hambachbahn.triangulateAndTexturize();
+        hambachbahn.triangulateAndTexturize(tm);
 
         VertexData vertexData = hambachbahn.getVertexData();
         Dumper.dumpVertexData(logger, vertexData);

@@ -98,7 +98,7 @@ public abstract class AbstractArea {
      *
      * @return
      */
-    public abstract boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder);
+    public abstract boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder, TerrainMesh tm);
 
     private static AbstractArea createEmpty() {
         return new AbstractArea() {
@@ -108,12 +108,12 @@ public abstract class AbstractArea {
             }
 
             @Override
-            public boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder) {
+            public boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder, TerrainMesh tm) {
                 return true;
             }
 
             @Override
-            public void registerCoordinatesToElegroups(EleConnectorGroupSet elevations) {
+            public void registerCoordinatesToElegroups(EleConnectorGroupSet elevations, TerrainMesh tm) {
 
             }
 
@@ -124,20 +124,29 @@ public abstract class AbstractArea {
             }
 
             @Override
-            public MeshLine findMeshLineWithCoordinates(Coordinate c0, Coordinate c1) {
+            public MeshLine findMeshLineWithCoordinates(Coordinate c0, Coordinate c1, TerrainMesh tm) {
                 Util.notyet();
                 return null;
             }
         };
     }
 
-
-    public boolean isEmpty() {
+    /**
+     * 27.3.24: No longer use TerrainMesh?. This is a hell of dependencies. And why?
+     * @return
+     */
+    public boolean isEmpty(TerrainMesh tm) {
         if (empty) {
             return true;
         }
         if (isPartOfMesh) {
-            return getMeshPolygon() == null;
+            // who needs this? Almost every top level method/test. The reason is unclear. Appears weird.
+            //Util.nomore();
+            if (tm == null) {
+                logger.warn("27.3.24: Not using TerrainMesh");
+            } else {
+                return getMeshPolygon(tm) == null;
+            }
         }
         if (poly == null) {
             return true;
@@ -155,14 +164,14 @@ public abstract class AbstractArea {
      * Darum erst pruefen und ggfs skippen. Damit haengt eine Coordinate dieser Area evtl. an einer
      * fremden Group.
      */
-    protected void registerCoordinateToElegroup(Coordinate c, EleConnectorGroup egr) {
-        if (EleConnectorGroup.getGroup(c, false, "", true) == null) {
+    protected void registerCoordinateToElegroup(Coordinate c, EleConnectorGroup egr, TerrainMesh tm) {
+        if (EleConnectorGroup.getGroup(c, false, "", true, tm) == null) {
             egr.add(new EleCoordinate(c, egr, "Area Polygon"));
         }
     }
 
-    final public void calculateElevations(SceneryFlatObject parent, boolean isDeco) {
-        if (!isEmpty()) {
+    final public void calculateElevations(SceneryFlatObject parent, boolean isDeco, TerrainMesh tm) {
+        if (!isEmpty(tm)) {
             if (isDeco){
                 //ob embedded oder als Overlay. Die Decoartion hat keine eigene EleGroup (und damit keine registrierten Coordinates) und muss die Group/elevation des Parent verwenden.
                 if (vertexData == null || vertexData.vertices == null) {
@@ -182,12 +191,12 @@ public abstract class AbstractArea {
                         //19.7.19: Betrachte ich nicht mehr als warning?
                         logger.warn("area has no vertex data. Skipping elevation");
                     } else {
-                        ElevationCalculator.calculateElevationsForVertexCoordinates(vertexData.vertices, "" + parent + "" + name + ",material=" + ((material == null) ? "" : material.getName()));
+                        ElevationCalculator.calculateElevationsForVertexCoordinates(vertexData.vertices, "" + parent + "" + name + ",material=" + ((material == null) ? "" : material.getName()), tm);
                     }
                 } else {
                     if (poly != null) {
                         Polygon p = poly.polygon;
-                        ElevationCalculator.calculateElevationsForPolygon(p, poly.polygonMetadata, vertexData, "" + parent + "" + name + ",material=" + ((material == null) ? "" : material.getName()));
+                        ElevationCalculator.calculateElevationsForPolygon(p, poly.polygonMetadata, vertexData, "" + parent + "" + name + ",material=" + ((material == null) ? "" : material.getName()), tm);
                     }
                 }
             }
@@ -200,11 +209,11 @@ public abstract class AbstractArea {
         }
     }
 
-    public RenderedArea render(SceneryRenderer sceneryRenderer, String creatortag, OsmOrigin osmOrigin, EleConnectorGroupSet eleConnectorGroups) {
+    public RenderedArea render(SceneryRenderer sceneryRenderer, String creatortag, OsmOrigin osmOrigin, EleConnectorGroupSet eleConnectorGroups, TerrainMesh tm) {
         RenderedArea ro = new RenderedArea();
 
-        if (!isEmpty()) {
-            Polygon p = getPolygon();
+        if (!isEmpty(tm)) {
+            Polygon p = getPolygon(tm);
             if (p == null) {
                 logger.error("np polygon");
                 return ro;
@@ -292,13 +301,13 @@ public abstract class AbstractArea {
         return name;
     }
 
-    public abstract void registerCoordinatesToElegroups(EleConnectorGroupSet elevations);
+    public abstract void registerCoordinatesToElegroups(EleConnectorGroupSet elevations, TerrainMesh tm);
 
     /**
      * TODO 28.8.19 : muss der nicht mesh beruecksichtigen?
      * @return
      */
-    public Polygon getPolygon() {
+    public Polygon getPolygon(TerrainMesh tm) {
         if (poly == null) {
             return null;
         }
@@ -329,15 +338,15 @@ public abstract class AbstractArea {
      * @param c1
      * @return
      */
-    public abstract MeshLine findMeshLineWithCoordinates(Coordinate c0, Coordinate c1);
+    public abstract MeshLine findMeshLineWithCoordinates(Coordinate c0, Coordinate c1, TerrainMesh tm);
 
     /**
      * Fuer Way wie auch Area geeignet.
      *
      * @return
      */
-    final public MeshPolygon getMeshPolygon() {
-        return TerrainMesh.getInstance().getPolygon(this);
+    final public MeshPolygon getMeshPolygon(TerrainMesh tm) {
+        return tm.getPolygon(this);
     }
 
 

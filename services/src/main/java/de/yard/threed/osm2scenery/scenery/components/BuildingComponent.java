@@ -3,6 +3,7 @@ package de.yard.threed.osm2scenery.scenery.components;
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2scenery.modules.BuildingModule;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.WorldElement;
 import de.yard.threed.osm2world.Material;
 import de.yard.threed.osm2world.Primitive;
@@ -31,7 +32,7 @@ public class BuildingComponent implements VolumeProvider {
     }
 
     @Override
-    public void triangulateAndTexturize() {
+    public void triangulateAndTexturize(TerrainMesh tm) {
 
         primitiveBuffer = new PrimitiveBuffer();
         building.renderTo(primitiveBuffer);

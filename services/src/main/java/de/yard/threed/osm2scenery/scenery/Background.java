@@ -46,7 +46,7 @@ public class Background {
      * <p>
      * Effektiv leere Areas werden uebergangen.
      */
-    public void insert(SceneryFlatObject area, boolean cutonly) {
+    public void insert(SceneryFlatObject area, boolean cutonly, TerrainMesh tm) {
         //SceneryArea area=sceneryObject.getSceneryArea();
         if (/*background != null &&*/ !area.isTerrainProvider()) {
             return;
@@ -64,7 +64,7 @@ public class Background {
             }
             polygonToUse = new Polygon[area.getArea().length];
             for (int i = 0; i < polygonToUse.length; i++) {
-                polygonToUse[i] = area.getArea()[i].getPolygon();
+                polygonToUse[i] = area.getArea()[i].getPolygon(tm);
             }
         } else {
             polygonToUse = new Polygon[]{area.getUncutPolygon()};

@@ -166,21 +166,21 @@ public class SceneryTestUtil {
         }
     }
 
-    public static void validateConnector(long osmid, SceneryObjectList sceneryObjects, SceneryWayConnector.WayConnectorType expectedType, Boolean expectedminorHitsLeft) {
+    public static void validateConnector(long osmid, SceneryObjectList sceneryObjects, SceneryWayConnector.WayConnectorType expectedType, Boolean expectedminorHitsLeft, TerrainMesh tm) {
         SceneryWayConnector swc = (SceneryWayConnector) sceneryObjects.findObjectByOsmId(osmid);
-        validateConnector(swc, expectedType, expectedminorHitsLeft);
+        validateConnector(swc, expectedType, expectedminorHitsLeft, tm);
     }
 
-    public static void validateConnector(SceneryWayConnector swc, SceneryWayConnector.WayConnectorType expectedType, Boolean expectedminorHitsLeft) {
+    public static void validateConnector(SceneryWayConnector swc, SceneryWayConnector.WayConnectorType expectedType, Boolean expectedminorHitsLeft, TerrainMesh tm) {
         assertNotNull(swc);
         assertEquals(expectedType, swc.getType(), swc.getOsmIdsAsString() + ".type==" + expectedType);
         if (expectedminorHitsLeft != null) {
-            assertEquals(expectedminorHitsLeft.booleanValue(), swc.minorHitsLeft(swc.minorway), swc.getOsmIdsAsString() + ".minorHitsLeft");
+            assertEquals(expectedminorHitsLeft.booleanValue(), swc.minorHitsLeft(swc.minorway, tm), swc.getOsmIdsAsString() + ".minorHitsLeft");
         } else {
             assertEquals(-1, swc.minorway, swc.getOsmIdsAsString() + ".minor");
         }
         SceneryTestUtil.assertNoOverlap("", swc);
-        TerrainMesh tm = TerrainMesh.getInstance();
+
         for (int i = 0; i < swc.getWaysCount(); i++) {
             SceneryWayObject way = swc.getWay(i);
             //might be eg. a bridge
@@ -205,11 +205,11 @@ public class SceneryTestUtil {
                 if (swc.getMajor0().isClosed()) {
                     //TODO
                 } else {
-                    CoordinatePair expected = swc.getWayStartEndPair(swc.majorway0);
+                    CoordinatePair expected = swc.getWayStartEndPair(swc.majorway0, tm);
                     assertPair("", expected, swc.getAttachCoordinates(swc.getMajor0().mapWay));
-                    expected = swc.getWayStartEndPair(swc.majorway1);
+                    expected = swc.getWayStartEndPair(swc.majorway1, tm);
                     assertPair("", expected, swc.getAttachCoordinates(swc.getMajor1().mapWay));
-                    assertPair("", swc.getWayStartEndPairInNodeOrientation(swc.majorway0), swc.getWayStartEndPairInNodeOrientation(swc.majorway1).swap());
+                    assertPair("", swc.getWayStartEndPairInNodeOrientation(swc.majorway0, tm), swc.getWayStartEndPairInNodeOrientation(swc.majorway1, tm).swap());
                 }
                 break;
             case SIMPLE_SINGLE_JUNCTION:
@@ -221,8 +221,8 @@ public class SceneryTestUtil {
 
     }
 
-    public static void validateResult(SceneryMesh sceneryMesh, Logger logger, int toleratedWarnings, int expectedBgFiller) {
-        assertTrue(TerrainMesh.getInstance().isValid(true), "TerrainMesh.valid");
+    public static void validateResult(SceneryMesh sceneryMesh, Logger logger, int toleratedWarnings, int expectedBgFiller, TerrainMesh tm) {
+        assertTrue(tm.isValid(true), "TerrainMesh.valid");
         assertEquals(0, SceneryContext.getInstance().unresolvedoverlaps, "unresolvedoverlaps");
         assertEquals(0, SceneryContext.getInstance().overlappingways, "overlappingways");
         assertEquals(0, SceneryContext.getInstance().overlappingterrain, "overlappingterrain");
@@ -232,15 +232,15 @@ public class SceneryTestUtil {
         logger.debug("" + cnt + " overlapping areas");
         assertEquals(0, cnt, "overlaps cnt");
         assertEquals(0, ScenerySupplementAreaObject.deprecatedusage, "deprecatedusage");
-        assertEquals(0, TerrainMesh.getInstance().errorCounter, "TerrainMesh.errorCounter");
+        assertEquals(0,tm.errorCounter, "TerrainMesh.errorCounter");
         assertEquals(0, SceneryContext.getInstance().errorCounter, "SceneryContext.errorCounter");
         assertEquals(expectedBgFiller, sceneryMesh.getBackground().bgfillersize(), "scenery.background.bgfiller");
 
     }
 
-    public static void validateSupplement(String label, ScenerySupplementAreaObject supplement) {
-        TerrainMesh tm = TerrainMesh.getInstance();
-        if (!supplement.isEmpty()) {
+    public static void validateSupplement(String label, ScenerySupplementAreaObject supplement, TerrainMesh tm) {
+
+        if (!supplement.isEmpty(tm)) {
             if (supplement.isTerrainProvider()) {
                 MeshPolygon mp = tm.getPolygon(supplement.getArea()[0]);
                 assertNotNull(mp, "MeshPolygon for supplement isType null: " + supplement.getOsmIdsAsString());

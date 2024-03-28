@@ -89,8 +89,8 @@ public abstract class SceneryObject {
     /**
      *
      */
-    public void connectElevationGroups() {
-        registerCoordinatesToElegroups();
+    public void connectElevationGroups(TerrainMesh tm) {
+        registerCoordinatesToElegroups(tm);
         isValid();
     }
 
@@ -143,13 +143,13 @@ public abstract class SceneryObject {
      * Und wenn ich grad dabei bin, auch triangulate.
      * Immer erst triangluate und dann texturieren, denn triangulate könnte weitere Vertices anlegen.
      */
-    public abstract void triangulateAndTexturize();
+    public abstract void triangulateAndTexturize(TerrainMesh tm);
 
     /**
      * Aus den fixed {@link EleConnectorGroup}s die Elevation (z Coordinate) aller Vertices ermitteln.
      * Läuft deswegen nach der Triangulation.
      */
-    public abstract void calculateElevations();
+    public abstract void calculateElevations(TerrainMesh tm);
 
     /**
      * 28.8.18: Nur noch zum registrieren der Polygon Coordinates in den Groups.
@@ -158,14 +158,14 @@ public abstract class SceneryObject {
      * 25.4.19: Stimmt nicht mehr. Das passiert jetzt NACH dem cut.
      * 12.8.19: Bei SmartBG kommen die TerrainMesh (Points?) Coordinates an die Groups.
      */
-    protected abstract void registerCoordinatesToElegroups();
+    protected abstract void registerCoordinatesToElegroups(TerrainMesh tm);
 
     /**
      * 24.4.19: Doch eigenständig, weil die Polygone final vorliegen sollten.
      */
     protected abstract void buildEleGroups();
 
-    public abstract RenderedObject render(SceneryRenderer sceneryRenderer);
+    public abstract RenderedObject render(SceneryRenderer sceneryRenderer, TerrainMesh tm);
 
 
     /**
@@ -174,9 +174,9 @@ public abstract class SceneryObject {
      * 18.7.19: Es könnten Supplements z.B. duch Overlaps entstehen.
      * 23.7.19: GridBounds auch übergeben, um optionasl schon einen cut machen zu können.
      */
-    public abstract List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds);
+    public abstract List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm);
 
-    public void clip() {
+    public void clip(TerrainMesh tm) {
         if (isClipped) {
             return;
         }
@@ -237,7 +237,7 @@ public abstract class SceneryObject {
         return false;
     }
 
-    public boolean covers(Coordinate coordinate) {
+    public boolean covers(Coordinate coordinate, TerrainMesh tm) {
         return false;
     }
 

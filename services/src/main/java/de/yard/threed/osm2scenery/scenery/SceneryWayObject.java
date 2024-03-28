@@ -145,7 +145,7 @@ public class SceneryWayObject extends SceneryFlatObject {
     }
 
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
         createPolygon(widthProvider.getWidth(), gridbounds);
         return null;
     }
@@ -252,18 +252,19 @@ public class SceneryWayObject extends SceneryFlatObject {
      * 10.7.19: Nee, umgekehrt.
      */
     @Override
-    public void clip(/*10.7.19 boolean atstart, double len*/) {
+    public void clip(/*10.7.19 boolean atstart, double len*/TerrainMesh tm) {
+
         if (isClipped) {
             return;
         }
-        super.clip();
+        super.clip(tm);
         if (mapWay.getOsmId() == 33817500 || mapWay.getOsmId() == 173190487) {
             int h = 9;
         }
         if (mapWay.getOsmId() == 33817499 || mapWay.getOsmId() == 189650380) {
             int h = 9;
         }
-        if (flatComponent != null && flatComponent[0].isEmpty()) {
+        if (flatComponent != null && flatComponent[0].isEmpty(tm)) {
             return;
         }
 
@@ -306,7 +307,7 @@ public class SceneryWayObject extends SceneryFlatObject {
                             logger.error("startconnector without major0:" + startConnector.node.getOsmId());
                         } else {
                             if (startConnector.getMajor0().getArea()[0] == wayArea) {
-                                wayArea.replaceStart(new CoordinatePair[]{wayArea.getStartPair()[0], startConnector.additionalmain0pair});
+                                wayArea.replaceStart(new CoordinatePair[]{wayArea.getStartPair(tm)[0], startConnector.additionalmain0pair});
                             }
                         }
                     }
@@ -350,11 +351,11 @@ public class SceneryWayObject extends SceneryFlatObject {
      *
      * @param overlap
      */
-    public void resolveWayOverlaps(AbstractArea overlap) {
+    public void resolveWayOverlaps(AbstractArea overlap, TerrainMesh tm) {
         WayArea wayArea = getWayArea();
 
         if (startConnector != null) {
-            startConnector.resolveOverlaps(overlap);
+            startConnector.resolveOverlaps(overlap, tm);
         }
         /*CoordinatePair reduced = OverlapResolver.resolveSingleWayOverlap(getWayArea(),0,overlap);
         if (reduced!=null){
@@ -388,7 +389,7 @@ public class SceneryWayObject extends SceneryFlatObject {
             logger.debug("unhandled end conn reduce. Might be resolved by counterpart.");
         }*/
         if (endConnector != null) {
-            endConnector.resolveOverlaps(overlap);
+            endConnector.resolveOverlaps(overlap, tm);
         }
     }
 
@@ -402,18 +403,18 @@ public class SceneryWayObject extends SceneryFlatObject {
      * @return
      */
     @Override
-    public void/*EleConnectorGroupSet*/ registerCoordinatesToElegroups() {
+    public void/*EleConnectorGroupSet*/ registerCoordinatesToElegroups(TerrainMesh tm) {
         if (getOsmIdsAsString().contains("37935545")) {
             int h = 9;
         }
 
-        if (flatComponent != null && !flatComponent[0].isEmpty()) {
+        if (flatComponent != null && !flatComponent[0].isEmpty(tm)) {
             if (isCut) {
                 //Util.notyet();
                 //13.8.19: wofuer ist das?? logger.warn("Ignoring cut area for elevation");
             }
 
-            flatComponent[0].registerCoordinatesToElegroups(elevations);
+            flatComponent[0].registerCoordinatesToElegroups(elevations, tm);
         }
         //Die durch cut im BE entstandenen Coordinates registrieren. Erstmal einfach an die erste EleGroup. TODO improve
         if (newcoordinates != null && newcoordinates.size() > 0) {
@@ -583,11 +584,11 @@ public class SceneryWayObject extends SceneryFlatObject {
      * Hier dann noch fuer den Graph.
      */
     @Override
-    public void calculateElevations() {
+    public void calculateElevations(TerrainMesh tm) {
         if (mapWay.getOsmId() == 8033747) {
             int z = 99;
         }
-        super.calculateElevations();
+        super.calculateElevations(tm);
         if (graphComponent != null) {
             for (int i = 0; i < effectiveNodes/*mapWay.getMapNodes()*/.size(); i++) {
                 MapNode mapNode = effectiveNodes/*mapWay.getMapNodes()*/.get(i);
@@ -719,9 +720,10 @@ public class SceneryWayObject extends SceneryFlatObject {
      * <p>
      * 13.8.19: Ways haben keine uncutcoord mehr. Umgestellt auf getPair.
      * 7.9.19: Da kann auch ein multiple pair kommen. Da muss der Aufrufer dann mal sehen.
+     * 27.3.24: TerrainMesh not available??!!
      */
-    public CoordinatePair[] getPairRelatedFromNode(MapNode node, int index) {
-
+    public CoordinatePair[] getPairRelatedFromNode(MapNode node, int index/*, TerrainMesh tm*/) {
+        TerrainMesh tm = null;
         CoordinatePair[] pair = null;
         //bei Connector muss evtl multiple genutzt werden? Hmm, etwas unklar im Moment.
         //7.9.19: Ja, das ist wichtig an manchen Connector.
@@ -861,10 +863,10 @@ public class SceneryWayObject extends SceneryFlatObject {
     }
 
     @Override
-    public boolean isPartOfMesh() {
+    public boolean isPartOfMesh(TerrainMesh tm) {
         if (!(getArea()[0] instanceof WayArea)) {
             return false;
         }
-        return getWayArea().getLeftLines() != null && getWayArea().getRightLines() != null;
+        return getWayArea().getLeftLines(tm) != null && getWayArea().getRightLines(tm) != null;
     }
 }

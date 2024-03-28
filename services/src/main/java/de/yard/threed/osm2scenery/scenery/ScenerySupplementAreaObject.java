@@ -64,7 +64,7 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
      * TODO:kein MeshPolygon??
      */
     @Deprecated
-    public ScenerySupplementAreaObject(String creatortag, MeshPolygon meshPolygon, Material material) {
+    public ScenerySupplementAreaObject(String creatortag, MeshPolygon meshPolygon, Material material, TerrainMesh tm) {
         //this(creatortag, (Polygon) null, material);
         super(creatortag, material, null, new Area(meshPolygon, material, true));
         // den Cycle  lege ich jetzt einfach mal so fest
@@ -72,7 +72,7 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
         //in area this.meshPolygon = meshPolygon;
         //die Area muss direkt eingetragen werden, sonst geht später der getMeshPolygon nicht
         for (MeshLine meshLine : meshPolygon.lines) {
-            TerrainMesh.getInstance().completeLine(meshLine, flatComponent[0]);
+            tm.completeLine(meshLine, flatComponent[0]);
         }
         elevations = new EleConnectorGroupSet();
 
@@ -124,7 +124,7 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
 
     }
 
-    public void resolveSupplementOverlaps(List<SceneryFlatObject> overlaps) {
+    public void resolveSupplementOverlaps(List<SceneryFlatObject> overlaps, TerrainMesh tm) {
 
     }
 
@@ -135,7 +135,7 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
      * @return
      */
     @Override
-    protected void/*EleConnectorGroupSet*/ registerCoordinatesToElegroups() {
+    protected void/*EleConnectorGroupSet*/ registerCoordinatesToElegroups(TerrainMesh tm) {
         /*if (poly.wascut) {
             //Util.notyet();
             logger.warn("Ignoring cut area for elevation");
@@ -183,8 +183,8 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
      * Fuer jeden Polygonpunkt die Elevation eintragen. Fuer den Polygon kann das die Superklasse machen.
      */
     @Override
-    public void calculateElevations() {
-        super.calculateElevations();
+    public void calculateElevations(TerrainMesh tm) {
+        super.calculateElevations(tm);
     }
 
 }

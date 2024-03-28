@@ -46,6 +46,8 @@ import java.util.Map;
  * Created on 11.07.18.
  */
 public class SceneryMesh {
+    // 26.3.24: Instead of singleton TerrainMesh
+    public TerrainMesh terrainMesh;
     Logger logger = Logger.getLogger(SceneryMesh.class);
 
     //16.8.18: jetzt drei Listen. Aaach. ich weiss nicht
@@ -128,15 +130,15 @@ public class SceneryMesh {
         //Zuerst die Elevation der EleGroups setzen
         ElevationCalculator.fixElevationGroups(sceneryObjects, elevationProvider);
         //13.8.19: Die Berechnung im TerrainMesh ersetzt eigentlich die im Objekt, aber nicht das Anheben fuer Overlays z.B., auch nicht die VertexData.
-        TerrainMesh tm = TerrainMesh.getInstance();
-        tm.calculateElevations(elevationProvider);
+        //TerrainMesh tm = TerrainMesh.getInstance();
+        terrainMesh.calculateElevations(elevationProvider);
 
-        ElevationCalculator.calculateElevations(sceneryObjects, elevationProvider);
+        ElevationCalculator.calculateElevations(sceneryObjects, elevationProvider, terrainMesh);
         if (background != null) {
             if (!SceneryBuilder.FTR_SMARTBG) {
-                ElevationCalculator.registerBackgroundElevations(background.background, sceneryObjects);
+                ElevationCalculator.registerBackgroundElevations(background.background, sceneryObjects, terrainMesh);
             }
-            ElevationCalculator.calculateBackgroundElevations(background);
+            ElevationCalculator.calculateBackgroundElevations(background, terrainMesh);
         }
     }
 
@@ -147,7 +149,7 @@ public class SceneryMesh {
      */
     public void triangulateAndTexturize() {
         for (SceneryObject area : sceneryObjects.objects) {
-            area.triangulateAndTexturize();
+            area.triangulateAndTexturize(terrainMesh);
         }
         if (background != null) {
             //backgroundvd = new ArrayList<>();
@@ -159,12 +161,12 @@ public class SceneryMesh {
                 }
             }
             for (Area be : background.getBgfiller()) {
-                if (be.isEmpty()) {
+                if (be.isEmpty(terrainMesh)) {
                     logger.warn("empty BG filler?");
                 } else {
-                    be.triangulateAndTexturize(new SimpleEleConnectorGroupFinder(gridbounds.elegroups));
+                    be.triangulateAndTexturize(new SimpleEleConnectorGroupFinder(gridbounds.elegroups), terrainMesh);
                     if (be.getVertexData() == null) {
-                        Polygon p = be.getPolygon();
+                        Polygon p = be.getPolygon(terrainMesh);
                         if (p == null) {
                             logger.error("Triangulation failed for background filler area. polygon=null ");
                         } else {
@@ -211,7 +213,7 @@ public class SceneryMesh {
             }
             i = 0;
             for (Area be : background.getBgfiller()) {
-                Polygon p = be.getPolygon();
+                Polygon p = be.getPolygon(terrainMesh);
                 // 2.8.18: TODO hier kann es doch auch eine trifailed geben, oder?
                 OsmOrigin osmOrigin = new OsmOrigin("Background Area");
                 osmOrigin.trifailed = false;//TODO be.trifailed;
@@ -229,7 +231,7 @@ public class SceneryMesh {
             //SceneryAreaObject area = ((SceneryAreaObject) obj);//).getSceneryArea();
             //4.6.19  if (!obj.isDecoration) {
             if (!(obj instanceof SceneryWayObject)) {
-                RenderedObject ro = obj.render(sceneryRenderer);
+                RenderedObject ro = obj.render(sceneryRenderer, terrainMesh);
                 if (ro != null) {
                     rendermap.put(obj.id, ro);
                 }
@@ -240,7 +242,7 @@ public class SceneryMesh {
         }
         for (SceneryObject obj : sceneryObjects.objects) {
             if (obj instanceof SceneryWayObject) {
-                RenderedObject ro = obj.render(sceneryRenderer);
+                RenderedObject ro = obj.render(sceneryRenderer, terrainMesh);
                 if (ro != null) {
                     rendermap.put(obj.id, ro);
                 }
@@ -311,7 +313,7 @@ public class SceneryMesh {
         for (SceneryObject obj : sceneryObjects.objects) {
             //Connector brauchen die Ways
             if (/*obj instanceof SceneryWayObject*/obj.cycle == cycle && !(obj instanceof ScenerySupplementAreaObject)) {
-                List<ScenerySupplementAreaObject> l = obj.createPolygon(Collections.unmodifiableList(sceneryObjects.objects), gridbounds);
+                List<ScenerySupplementAreaObject> l = obj.createPolygon(Collections.unmodifiableList(sceneryObjects.objects), gridbounds, terrainMesh);
                 if (l != null) {
                     supplements.addAll(l);
                 }
@@ -320,7 +322,7 @@ public class SceneryMesh {
         for (SceneryObject obj : sceneryObjects.objects) {
             //Connector brauchen die Ways
             if (/*obj instanceof SceneryWayObject*/obj.cycle == cycle && (obj instanceof ScenerySupplementAreaObject)) {
-                List<ScenerySupplementAreaObject> l = obj.createPolygon(Collections.unmodifiableList(sceneryObjects.objects), gridbounds);
+                List<ScenerySupplementAreaObject> l = obj.createPolygon(Collections.unmodifiableList(sceneryObjects.objects), gridbounds, terrainMesh);
                 if (l != null) {
                     supplements.addAll(l);
                 }
@@ -358,7 +360,7 @@ public class SceneryMesh {
         for (SceneryObject obj : sceneryObjects.objects) {
             if (obj.cycle == cycle/*obj instanceof SceneryWayObject*/) {
                 /* ((SceneryWayObject) obj)*/
-                obj.clip();
+                obj.clip(terrainMesh);
             }
         }
         /*for (SceneryObject obj : sceneryObjects.objects) {
@@ -413,7 +415,7 @@ public class SceneryMesh {
                 //if (asf.poly==null) {
                 //26.9.18: immer, weil das auch connector sind
                 //if (ElevationMap.hasInstance()) {
-                obj.connectElevationGroups();
+                obj.connectElevationGroups(terrainMesh);
                 //}
             }
         }
@@ -421,7 +423,7 @@ public class SceneryMesh {
             if (obj instanceof ScenerySupplementAreaObject) {
                 //26.9.18: immer, weil das auch connector sind
                 //if (ElevationMap.hasInstance()) {
-                obj.connectElevationGroups();
+                obj.connectElevationGroups(terrainMesh);
                 //}
             }
         }
@@ -443,7 +445,7 @@ public class SceneryMesh {
      * schwieriger macht, z.B. bei Connectoren.
      * TODO: Aus dem Graphen sollten die outside Edges aber doch raus.
      */
-    public void insertSceneryObjectsIntoBackgroundAndCut(SceneryObject.Cycle cycle) {
+    public void insertSceneryObjectsIntoBackgroundAndCut(SceneryObject.Cycle cycle, TerrainMesh tm) {
         List<SceneryObject> outside = new ArrayList<>();
         for (SceneryObject obj : sceneryObjects.objects) {
             if (obj instanceof SceneryFlatObject && obj.cycle == cycle) {
@@ -456,14 +458,14 @@ public class SceneryMesh {
                 }
                 //17.7.19:Overlays kommen nicht mehr in den BG
                 if (background != null && !SceneryBuilder.FTR_SMARTBG && !obj.isOverlay()) {
-                    background.insert(asf, true);
+                    background.insert(asf, true, tm);
                 }
                 if (gridbounds != null) {
                     // area zurechtschneiden. Auch wenn das aufgrufen wird, kann das SO selber entscheiden, ob wirklich ein cut gemacht wird.
                     //30.7.19: Bei Precut wird z.B. kein Cut mehr gemacht.
                     asf.cut(gridbounds);
                 }
-                if (asf.isEmpty()) {
+                if (asf.isEmpty(tm)) {
                     //19.4.19 outside.add(asf);
                 }
             }
@@ -482,7 +484,7 @@ public class SceneryMesh {
             if (background.background.size() > 0) {
                 throw new RuntimeException("inconsistent background size " + background.background.size());
             }
-            TerrainMesh tm = TerrainMesh.getInstance();
+            TerrainMesh tm = terrainMesh;
             if (!tm.isValid(true)) {
                 logger.error("Terrain mesh not valid. Not building BG filler");
                 tm.errorCounter++;
@@ -529,7 +531,7 @@ public class SceneryMesh {
      */
     private boolean createBGFillerFromLine(MeshLine meshLine, boolean fromBoundary) {
         //logger.debug("found open mesh line " + meshLine);
-        TerrainMesh tm = TerrainMesh.getInstance();
+        TerrainMesh tm = terrainMesh;
         boolean left = meshLine.getLeft() == null;
         MeshPolygon meshPolygon = tm.traversePolygon(meshLine, null, left);
         if (meshPolygon == null || meshPolygon.lines.size() == 0) {
@@ -691,7 +693,7 @@ public class SceneryMesh {
     public void resolveWaysAndConnectorOverlaps() {
         sceneryObjects.iterateWayConnectors(sceneryObjects.objects, (connector) -> {
             //"logical" resolve
-            connector.resolveOverlaps();
+            connector.resolveOverlaps(terrainMesh);
         });
 
         nestedTerrainProviderLoop((sfo, sfo1) -> {
@@ -701,19 +703,19 @@ public class SceneryMesh {
                     if (aa.length != 1) {
                         throw new RuntimeException("invalid usage");
                     }
-                    ((SceneryWayObject)sfo).resolveWayOverlaps(aa[0]);
+                    ((SceneryWayObject)sfo).resolveWayOverlaps(aa[0], terrainMesh);
                 }
             }
         });
     }
 
-    public void resolveSupplementOverlaps() {
+    public void resolveSupplementOverlaps(TerrainMesh tm) {
         sceneryObjects.iterateSupplements(sceneryObjects.objects, (supplement) -> {
             List<SceneryFlatObject> overlaps = SceneryObjectList.getTerrainOverlaps(supplement, sceneryObjects.objects);
             if (supplement.isTerrainProvider() && overlaps.size() > 0) {
-                supplement.resolveSupplementOverlaps(overlaps);
+                supplement.resolveSupplementOverlaps(overlaps, tm);
                 //check again
-                OverlapResolver.reCheck(supplement,  sceneryObjects.objects);
+                OverlapResolver.reCheck(supplement,  sceneryObjects.objects, terrainMesh);
             }
         });
     }
@@ -745,7 +747,7 @@ public class SceneryMesh {
      */
     public int createWayToAreaFiller() {
         int cnt=0;
-        TerrainMesh terrainMesh = TerrainMesh.getInstance();
+
         if (terrainMesh.getStep() != 4) {
             //areas muessen schon drin sein. 28.8.19: Und andere non gapfiller supplements auch.
             throw new RuntimeException("invalid step");
@@ -756,7 +758,7 @@ public class SceneryMesh {
             if (obj instanceof SceneryWayObject) {
                 SceneryWayObject way = (SceneryWayObject) obj;
                 MeshFillCandidate[] candidates;
-                if ((candidates = createWayToAreaCandidates(way)) != null) {
+                if ((candidates = createWayToAreaCandidates(way, terrainMesh)) != null) {
                     logger.debug("found wayToArea candidate for way " + way.getOsmIdsAsString());
                     for (MeshFillCandidate candidate : candidates) {
                         //sicherheitshalber auf overlap pruefen, weil das einen Riesen Kudddelmuddel verursachen würde.
@@ -764,7 +766,7 @@ public class SceneryMesh {
                         if (overlapsWithAnyTerrainProvider(candidate.polygon) == 0) {
                             logger.debug("Creating new wayToArea Filler");
                             //weitgehend registrieren, um Inkonsistenzen bei Fehlern gering zu halten.
-                            candidate.register();
+                            candidate.register(terrainMesh);
                             if (candidate.lines == null) {
                                 logger.error("register failed");
                             } else {
@@ -789,7 +791,7 @@ public class SceneryMesh {
      * @param way
      * @return
      */
-    public MeshFillCandidate[] createWayToAreaCandidates(SceneryWayObject way) {
+    public MeshFillCandidate[] createWayToAreaCandidates(SceneryWayObject way, TerrainMesh tm) {
 
         WayArea wayArea = way.getWayArea();
         if (wayArea == null) {
@@ -798,11 +800,11 @@ public class SceneryMesh {
         SceneryAreaObject possibletarget = null;
         CoordinatePair pair0;
 
-        if (wayArea == null || wayArea.isEmpty()) {
+        if (wayArea == null || wayArea.isEmpty(terrainMesh)) {
             return null;
         }
-        List<MeshLine> leftlines = wayArea.getLeftLines();
-        List<MeshLine> rightlines = wayArea.getRightLines();
+        List<MeshLine> leftlines = wayArea.getLeftLines(terrainMesh);
+        List<MeshLine> rightlines = wayArea.getRightLines(terrainMesh);
         if (leftlines == null || rightlines == null) {
             if (SceneryBuilder.WayToAreaFillerDebugLog) {
                 logger.debug("no left/right lines");
@@ -828,7 +830,7 @@ public class SceneryMesh {
             Vector2 normal = wayArea.getNormalAtCoordinate(c/*pair.getFirst()*/);
             //mal in 5 Metern versuchen
             Coordinate destination = JtsUtil.moveCoordinate(c/*pair.getFirst()*/, normal.multiply(5));
-            List<SceneryAreaObject> result = sceneryObjects.findAreasByCoordinate(destination);
+            List<SceneryAreaObject> result = sceneryObjects.findAreasByCoordinate(destination, tm);
             if (result.size() > 0) {
                 //logger.debug("possible candidate for " + way.getOsmIdsAsString() + ":" + result.get(0).getOsmIdsAsString());
                 if (possibletarget == null) {
@@ -848,11 +850,11 @@ public class SceneryMesh {
         if (SceneryBuilder.WayToAreaFillerDebugLog) {
             logger.debug("inner points all fit for line " + rightline + " in way " + way.getOsmIdsAsString() + ":" + possibletarget.getOsmIdsAsString());
         }
-        if (!possibletarget.isPartOfMesh()) {
+        if (!possibletarget.isPartOfMesh(tm)) {
             logger.error("not part of mesh: " + possibletarget.getOsmIdsAsString());
             return null;
         }
-        Polygon polygon = possibletarget.getArea()[0].getPolygon();
+        Polygon polygon = possibletarget.getArea()[0].getPolygon(tm);
         if (polygon == null) {
             logger.error("no polygon: " + possibletarget.getOsmIdsAsString());
             return null;
@@ -870,7 +872,7 @@ public class SceneryMesh {
         if ((c1 = JtsUtil.findClosestWithinDistance(rightline.getTo().coordinate, polycoors, maxdistance)) == -1) {
             return null;
         }
-        if ((targetLine = possibletarget.getArea()[0].findMeshLineWithCoordinates(polycoors[c0], polycoors[c1])) == null) {
+        if ((targetLine = possibletarget.getArea()[0].findMeshLineWithCoordinates(polycoors[c0], polycoors[c1], terrainMesh)) == null) {
             return null;
         }
 
@@ -893,9 +895,9 @@ public class SceneryMesh {
         CoordinatePair pair = wayArea.getPair(0);
 
 
-        Coordinate[] wcoors = way.getArea()[0].getPolygon().getCoordinates();
+        Coordinate[] wcoors = way.getArea()[0].getPolygon(terrainMesh).getCoordinates();
 
-        Coordinate[] acoors = area.getArea()[0].getPolygon().getCoordinates();
+        Coordinate[] acoors = area.getArea()[0].getPolygon(terrainMesh).getCoordinates();
 
     }
 

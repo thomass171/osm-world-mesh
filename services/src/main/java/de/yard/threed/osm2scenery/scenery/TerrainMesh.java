@@ -32,6 +32,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * THE mesh of {@link MeshPoint}s and {@link MeshLine}s.
+ * 28.3.24:
+ *
  * Wird in drei Stufen aufgebaut:
  * 1) Boundary
  * 2) Ways+Connector
@@ -39,7 +42,7 @@ import java.util.stream.Collectors;
  * 4) Supplements
  */
 public class TerrainMesh {
-    static TerrainMesh instance;
+    //static TerrainMesh instance;
     static Logger logger = Logger.getLogger(TerrainMesh.class);
     public int errorCounter = 0;
     GridCellBounds gridCellBounds;
@@ -61,11 +64,17 @@ public class TerrainMesh {
                 registerPoint(coors[i]);
             }
             if (i > 0) {
-                //sfo might be null if there isType no lazy cut
-                SceneryFlatObject sfo = gridCellBounds.getLazyCutObjectOfCoordinate(coors[i - 1], coors[i]);
-                MeshLine meshLine = registerLine(JtsUtil.toList(coors[i - 1], coors[i]), (sfo != null) ? sfo.getArea()[0] : null, null, true, true);
+                //sfo might be null if there is no lazy cut. 27.3.24: Only pre DB has cuts
+                if (gridCellBounds.isPreDbStyle()) {
+                    SceneryFlatObject sfo = gridCellBounds.getLazyCutObjectOfCoordinate(coors[i - 1], coors[i]);
+                    MeshLine meshLine = registerLine(JtsUtil.toList(coors[i - 1], coors[i]), (sfo != null) ? sfo.getArea()[0] : null, null, true, true);
 
-                meshLine.isBoundary = true;
+                    meshLine.isBoundary = true;
+                } else {
+                    MeshLine meshLine = registerLine(JtsUtil.toList(coors[i - 1], coors[i]), null, null, true, true);
+
+                    meshLine.isBoundary = true;
+                }
                 //lines.add(meshLine);
             }
             //bei Boundary kann es immr mal bei nur zwei bleiben
@@ -75,8 +84,8 @@ public class TerrainMesh {
         step = 1;
     }
 
-    public static void init(GridCellBounds gridCellBounds) {
-        instance = new TerrainMesh(gridCellBounds);
+    public static TerrainMesh init(GridCellBounds gridCellBounds) {
+        TerrainMesh instance = new TerrainMesh(gridCellBounds);
         //may no longer change
         gridCellBounds.lock();
         //isValid() not usable because lazy cuts are only fragments.
@@ -88,11 +97,12 @@ public class TerrainMesh {
                 logger.error("not valid");
             }
         }
-    }
-
-    public static TerrainMesh getInstance() {
         return instance;
     }
+
+    /*public static TerrainMesh getInstance() {
+        return instance;
+    }*/
 
     public static List<MeshLine> sort(List<MeshLine> lines) {
         List<MeshLine> newlines = new ArrayList();
@@ -318,12 +328,12 @@ public class TerrainMesh {
             if (obj.isTerrainProvider) {
                 if (obj instanceof SceneryWayObject) {
                     SceneryWayObject way = (SceneryWayObject) obj;
-                    way.addToTerrainMesh();
+                    way.addToTerrainMesh(this);
 
                 }
                 if (obj instanceof SceneryWayConnector) {
                     SceneryWayConnector way = (SceneryWayConnector) obj;
-                    way.addToTerrainMesh();
+                    way.addToTerrainMesh(this);
 
                 }
             }
@@ -346,12 +356,12 @@ public class TerrainMesh {
 
                 if (obj instanceof SceneryAreaObject) {
                     SceneryAreaObject way = (SceneryAreaObject) obj;
-                    way.addToTerrainMesh();
+                    way.addToTerrainMesh(this);
 
                 }
                 if (obj instanceof AerowayModule.Runway) {
                     //der instanceof Runway ist ja nun auch wieder doof
-                    ((AerowayModule.Runway) obj).addToTerrainMesh();
+                    ((AerowayModule.Runway) obj).addToTerrainMesh(this);
 
                 }
             }
@@ -375,7 +385,7 @@ public class TerrainMesh {
 
                 //if (obj instanceof ScenerySupplementAreaObject) {
                 ScenerySupplementAreaObject way = (ScenerySupplementAreaObject) obj;
-                way.addToTerrainMesh();
+                way.addToTerrainMesh(this);
 
                 //}
 
@@ -1117,14 +1127,14 @@ public class TerrainMesh {
 
     public void calculateElevations(ElevationProvider elevationProvider) {
         //Alle Mesh Points muessen jetzt ueber ihre EGR eine fixe Elevation haben.
-        if (TerrainMesh.getInstance().hasUnFixedElevation()) {
+        if (/*TerrainMesh.getInstance().*/hasUnFixedElevation()) {
             throw new RuntimeException("no fixed elevation");
         }
         Set<Coordinate> coorset = new HashSet();
         for (MeshLine meshLine : lines) {
             coorset.addAll(JtsUtil.toList(meshLine.getCoordinates()));
         }
-        ElevationCalculator.calculateElevationsForCoordinates((Coordinate[]) coorset.toArray(new Coordinate[0]), "TerrainMesh");
+        ElevationCalculator.calculateElevationsForCoordinates((Coordinate[]) coorset.toArray(new Coordinate[0]), "TerrainMesh", this);
         //ElevationCalculator.calculateElevationsForVertexCoordinates()
     }
 

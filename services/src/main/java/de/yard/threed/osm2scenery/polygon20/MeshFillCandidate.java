@@ -39,8 +39,8 @@ public class MeshFillCandidate {
     }
 
 
-    public void register() {
-        TerrainMesh terrainMesh = TerrainMesh.getInstance();
+    public void register(TerrainMesh terrainMesh) {
+
         if (targetC0 == targetC1) {
             Util.notyet();
         }
