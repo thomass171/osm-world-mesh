@@ -2,11 +2,14 @@ package de.yard.owm.services.persistence;
 
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import de.yard.owm.services.JsonService;
 import de.yard.threed.core.LatLon;
+import de.yard.threed.osm2graph.osm.GridCellBounds;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,11 +37,19 @@ public class TerrainMeshTest {
     private MeshNodeRepository meshNodeRepository;
 
     @Autowired
+    private MeshLineRepository meshLineRepository;
+
+    @Autowired
+    private TerrainMeshManager manager;
+
+    @Autowired
     private WebApplicationContext context;
 
     @BeforeEach
     void setUp() {
-
+        // SQL script already deletes
+        //meshLineRepository.deleteAll();
+        //meshNodeRepository.deleteAll();
     }
 
     @AfterEach
@@ -69,6 +80,17 @@ public class TerrainMeshTest {
         assertEquals("P", foundMaze.getType());*/
     }
 
+    @Test
+    @Sql({"classpath:meshDesdorf.sql"})
+    public void testDesdorf() {
+
+        // minlat="50.9455" minlon="6.59" maxlat="50.950" maxlon="6.596
+        GridCellBounds gridCellBounds = GridCellBounds.buildFromGeos(50.96, 50.94, 6.59, 6.6);
+        TerrainMesh terrainMesh = manager.loadTerrainMesh(gridCellBounds);
+        assertNotNull(terrainMesh);
+        assertEquals(3, terrainMesh.points.size());
+        assertEquals(3, terrainMesh.lines.size());
+    }
 
     @Test
     //@Sql({"classpath:testGrids.sql"})

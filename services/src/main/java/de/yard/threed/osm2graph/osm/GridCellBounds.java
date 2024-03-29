@@ -316,13 +316,11 @@ public class GridCellBounds /*implements TargetBounds*/ {
 
             Bound firstBound = osmData.getBounds().iterator().next();
 
-            // Surrounding is needed for ...??
-            double offset = 0.01;
-            return new GridCellBounds(
-                    firstBound.getTop() + offset,
-                    firstBound.getBottom() - offset,
-                    firstBound.getLeft() - offset,
-                    firstBound.getRight() + offset
+            return buildFromGeos(
+                    firstBound.getTop(),
+                    firstBound.getBottom(),
+                    firstBound.getLeft(),
+                    firstBound.getRight()
             );
 
         } else {
@@ -337,6 +335,17 @@ public class GridCellBounds /*implements TargetBounds*/ {
             return null;
         }
 
+    }
+
+    public static GridCellBounds buildFromGeos(double top, double bottom, double left, double right) {
+
+        // Surrounding is needed for ...??
+        double offset = 0.01;
+        top = top + offset;
+        bottom = bottom - offset;
+        left = left - offset;
+        right = right + offset;
+        return new GridCellBounds(top, bottom, left, right);
     }
 
     /**
@@ -360,6 +369,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
     /**
      * Betrachtet nur Ways. Alles andere ist Fehler, obwohl es nicht erkannt wird.
      * 27.3.24: Cannot get TerrainMesh, whose constructor calls this!
+     *
      * @param objects
      */
     public void rearrangeForWayCut(List<SceneryObject> objects, TerrainMesh tm) {

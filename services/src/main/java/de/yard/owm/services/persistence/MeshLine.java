@@ -42,6 +42,10 @@ public class MeshLine {
     @Transient
     public LineString line;
 
+    public MeshLine() {
+
+    }
+
     private MeshLine(Coordinate[] coordinates, LineString line) {
         this.coordinates = coordinates;
         this.line = line;

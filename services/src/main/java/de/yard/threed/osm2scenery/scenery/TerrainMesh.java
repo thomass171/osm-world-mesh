@@ -61,27 +61,24 @@ public class TerrainMesh {
     private TerrainMesh(GridCellBounds gridCellBounds) {
         this.gridCellBounds = gridCellBounds;
         Polygon boundary = gridCellBounds.getPolygon();
-        Coordinate[] coors = boundary.getCoordinates();
-        for (int i = 0; i < coors.length; i++) {
-            if (i < coors.length - 1) {
-                registerPoint(coors[i]);
-            }
-            if (i > 0) {
-                //sfo might be null if there is no lazy cut. 27.3.24: Only pre DB has cuts
-                if (gridCellBounds.isPreDbStyle()) {
+        // 27.3.24: In DB boundary does not belong to mesh
+        if (gridCellBounds.isPreDbStyle()) {
+            Coordinate[] coors = boundary.getCoordinates();
+            for (int i = 0; i < coors.length; i++) {
+                if (i < coors.length - 1) {
+                    registerPoint(coors[i]);
+                }
+                if (i > 0) {
+                    //sfo might be null if there is no lazy cut.
                     SceneryFlatObject sfo = gridCellBounds.getLazyCutObjectOfCoordinate(coors[i - 1], coors[i]);
                     MeshLine meshLine = registerLine(JtsUtil.toList(coors[i - 1], coors[i]), (sfo != null) ? sfo.getArea()[0] : null, null, true, true);
-
                     meshLine.isBoundary = true;
-                } else {
-                    MeshLine meshLine = registerLine(JtsUtil.toList(coors[i - 1], coors[i]), null, null, true, true);
 
-                    meshLine.isBoundary = true;
+                    //lines.add(meshLine);
                 }
-                //lines.add(meshLine);
+                //bei Boundary kann es immr mal bei nur zwei bleiben
+                knowntwoedger.add(i);
             }
-            //bei Boundary kann es immr mal bei nur zwei bleiben
-            knowntwoedger.add(i);
         }
         //lastboundaryindex = lines.size() - 1;
         step = 1;
