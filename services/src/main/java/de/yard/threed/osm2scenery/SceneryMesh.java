@@ -383,8 +383,8 @@ public class SceneryMesh {
      * aber die Polygonpunkte werden angehangen.
      * <p>
      */
-    public void createElevationGroups() {
-        for (SceneryObject obj : sceneryObjects.objects) {
+    public static void createElevationGroups(List<SceneryObject> objects) {
+        for (SceneryObject obj : objects) {
             //16.8.18: Auch auf Volume, z.B. Bridge
             if (!(obj instanceof ScenerySupplementAreaObject)) {
                 //AbstractSceneryFlatObject asf = (SceneryObject) obj;
@@ -396,7 +396,7 @@ public class SceneryMesh {
                 //}
             }
         }
-        for (SceneryObject obj : sceneryObjects.objects) {
+        for (SceneryObject obj : objects) {
             if (obj instanceof ScenerySupplementAreaObject) {
                 //26.9.18: immer, weil das auch connector sind
                 //if (ElevationMap.hasInstance()) {
@@ -406,8 +406,8 @@ public class SceneryMesh {
         }
     }
 
-    public void connectElevationGroups() {
-        for (SceneryObject obj : sceneryObjects.objects) {
+    public static void connectElevationGroups(List<SceneryObject> objects, TerrainMesh terrainMesh) {
+        for (SceneryObject obj : objects) {
             //16.8.18: Auch auf Volume, z.B. Bridge
             if (!(obj instanceof ScenerySupplementAreaObject)) {
                 //AbstractSceneryFlatObject asf = (SceneryObject) obj;
@@ -419,7 +419,7 @@ public class SceneryMesh {
                 //}
             }
         }
-        for (SceneryObject obj : sceneryObjects.objects) {
+        for (SceneryObject obj : objects) {
             if (obj instanceof ScenerySupplementAreaObject) {
                 //26.9.18: immer, weil das auch connector sind
                 //if (ElevationMap.hasInstance()) {
@@ -434,8 +434,8 @@ public class SceneryMesh {
         }*/
     }
 
-    public void buildBridgeApproaches() {
-        HighwayModule.buildBridgeApproaches(sceneryObjects.objects);
+    public static void buildBridgeApproaches(List<SceneryObject> objects) {
+        HighwayModule.buildBridgeApproaches(objects);
     }
 
     /**

@@ -29,6 +29,8 @@ public class MapNode implements MapElement {
 
     private Collection<MapArea> adjacentAreas;
     //14.6.19: Soll nicht null sein, mal sehn ob sich durchsetzen laesst.
+    // 29.3.24: Deprecated because there is no longer an inside/outside grid (outside mesh will always abort)
+    @Deprecated
     public Location location;
 
     public MapNode(VectorXZ pos, OSMNode osmNode, Location location) {

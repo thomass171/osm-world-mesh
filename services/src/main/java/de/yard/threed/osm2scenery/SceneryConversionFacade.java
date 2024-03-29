@@ -287,10 +287,10 @@ public class SceneryConversionFacade {
         //24.4.19: Und die brauchen Elegroups für die Groundstates.
         EleConnectorGroup.clear();
         EleConnectorGroup.init((GridCellBounds) targetBounds, mapProjection);
-        sceneryMesh.createElevationGroups();
+        sceneryMesh.createElevationGroups(sceneryMesh.sceneryObjects.objects);
 
         //TODO 23.5.19 buildBridgeApproaches besser in Phasen abstrahieren.
-        sceneryMesh.buildBridgeApproaches();
+        sceneryMesh.buildBridgeApproaches(sceneryMesh.sceneryObjects.objects);
 
 
         //erst dann, wenn alle Objekte und Verbindungen bekannt sind, die Polygone dazu erstellen
@@ -407,7 +407,7 @@ public class SceneryConversionFacade {
 
         //24.4.19: Der ganze Elekram erst jetzt, wenn alle Polygone final sind. Elegroups gibt es aber schon lange.
         Phase.updatePhase(Phase.ELEVATION);
-        sceneryMesh.connectElevationGroups();
+        SceneryMesh.connectElevationGroups(sceneryMesh.sceneryObjects.objects, sceneryMesh.terrainMesh);
 
         // 28.8.18: Vorab Elevation vorbereiten, damit die Groups angelegt werden koennen.
         // Die Property ElevationProvider legt nicht nur den Provider fest, sondern

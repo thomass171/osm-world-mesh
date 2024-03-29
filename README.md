@@ -36,6 +36,8 @@ the "gapless mesh" requirement.
 
 26.3.24 new gridless DB approach
 
+There is no longer a mapnode location inside/outside grid (outside (sub)mesh will always abort)
+
 # Refactorings
 components that need a platform like 
 * PortableModelList for GLTF building will

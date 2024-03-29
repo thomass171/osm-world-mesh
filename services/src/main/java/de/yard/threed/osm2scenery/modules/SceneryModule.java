@@ -4,28 +4,33 @@ import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.TagFilter;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.MapData;
 import de.yard.threed.osm2world.MapWay;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Created on 11.07.18.
  */
 public abstract class SceneryModule {
-    public static List<SceneryModule> getRelevant(List<SceneryModule> worldModules, MapWay mapWay) {
-        return worldModules;
+    public static List<? extends SceneryModule> getRelevant(List<? extends SceneryModule> worldModules, MapWay mapWay) {
+        return new ArrayList<>(worldModules);
     }
 
     public abstract SceneryObjectList applyTo(MapData mapData);
 
     /**
-     * Default implementation
+     * Default implementation. TerrainMesh is for knowing
+     * the context but not for adding to it. That is done later.
      */
-    public SceneryObjectList applyTo(MapWay mapWay){
+    public SceneryObjectList applyTo(MapWay mapWay, TerrainMesh terrainMesh){
         return new SceneryObjectList();
     }
 

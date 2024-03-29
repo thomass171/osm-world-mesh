@@ -8,6 +8,7 @@ import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
+import de.yard.threed.osm2scenery.WayMap;
 import de.yard.threed.osm2scenery.elevation.ElevationCalculator;
 import de.yard.threed.osm2scenery.modules.AerowayModule;
 import de.yard.owm.services.persistence.MeshLine;
@@ -54,6 +55,8 @@ public class TerrainMesh {
     int step = 0;
     //so einer kann nicht mehr valid sein
     private boolean hasDuplicates = false;
+    // 29.3.24: Taken from SceneryContext
+    public WayMap wayMap = new WayMap();
 
     /**
      * gridCellBounds are the outer boundaries of the (sub)mesh.

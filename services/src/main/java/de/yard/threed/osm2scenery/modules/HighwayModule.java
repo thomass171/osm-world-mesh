@@ -13,6 +13,7 @@ import de.yard.threed.osm2scenery.scenery.SceneryObjectFactory;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.RoadDecorator;
@@ -200,34 +201,76 @@ public class HighwayModule extends SceneryModule {
             }
         }
 
-        /*10.7.19: Das duerfte Asbach sein.if (cutConnectors) {
-
-            // Die Connector durchgehen, die Ways daran cutten und dem Connector damit eine Fläche geben.
-            for (SceneryNodeObject connector : SceneryContext.getInstance().wayMap.getConnectors(ROAD)) {
-                if (connector instanceof RoadJunction) {
-                    RoadJunction roadJunction = (RoadJunction) connector;
-                    List<SceneryWayObject> ways = getConnectedWays(roadJunction.node, false);
-                    for (SceneryWayObject way : ways) {
-                        //Die Länge des cut hängt davon ab, in welchem Winkel der Way zu den anderen Ways hat. Knifflig.
-                        //TODO
-                        double len = 11;
-                        if (way.isOuterNode(roadJunction.node)) {
-                            if (way.isStartNode(roadJunction.node)) {
-                                way.clip(true, len);
-                            } else {
-                                way.clip(false, len);
-                            }
-                        } else {
-                            logger.warn("inconsistent: junction inside of way.");
-                        }
-                    }
-                }
-            }
-        }*/
-
         //30.7.18 hier zu frueh, weils noch keine Eles gibt. Und es gibts auch fuer Rails und River
         //die Eles muss es aber doch schon geben?
         //16.8.18 buildBridgeApproaches(roadsAndBridges);
+        return roadsAndBridges;
+    }
+
+    @Override
+    public SceneryObjectList applyTo(MapWay mapway, TerrainMesh terrainMesh) {
+        // Also contains Filler unter der Brücke
+        roadsAndBridges = new SceneryObjectList();
+
+        // material not needed yet?
+        TagMap materialmap = null;//getTagMap("materialmap");
+        if (mapway.getOsmId() == 8610418) {
+            int h = 6;
+        }
+        // just to be sure
+        if (isHighway(mapway.getTags())) {
+            long osmid = mapway.getOsmId();
+
+            //Ein Way ohne Segmente? Das ist doch bestimmt was inkonsistentes.
+            if (mapway.getMapWaySegments().size() > 0) {
+                if (BridgeModule.isBridge(mapway.getTags())) {
+                    //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
+                    BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/);
+                    //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
+                    SceneryContext.getInstance().highways.put(osmid, bridge);
+                    roadsAndBridges.add(bridge);
+                    SceneryContext.getInstance().bridges.put(osmid, bridge);
+                    bridge.addToWayMap(ROAD);
+                } else if (TunnelModule.isTunnel(mapway.getTags())) {
+                    //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
+                    Highway road = new Highway(mapway, materialmap);
+                    SceneryContext.getInstance().highways.put(osmid, road);
+                    roadsAndBridges.add(road);
+                    road.addToWayMap(ROAD);
+                } else {
+                    // regular highway
+                    Highway road = new Highway(mapway, materialmap);
+                    SceneryContext.getInstance().highways.put(osmid, road);
+                    roadsAndBridges.add(road);
+                    road.addToWayMap(ROAD);
+                }
+            } else {
+                logger.warn("Ignoring mapyway " + mapway.getOsmId() + " with only " + mapway.getMapWaySegments().size() + " segments");
+            }
+        }
+
+        // Junctions/RoadConnector erstellen.
+        //19.4.19: Connector/Junction sind normale SceneryObjects, die vielleich auch eine Darstellung haben
+        //29.3.24: Are now taken from terrain mesh.
+        //for (List<SceneryWayObject> roads : SceneryContext.getInstance().wayMap.getMapForCategory(ROAD).values()) {
+        for (List<SceneryWayObject> roads : terrainMesh.wayMap.getMapForCategory(ROAD).values()) {
+            for (SceneryWayObject road : roads) {
+                if (road.getOsmIdsAsString().contains("23696494")) {
+                    int h = 9;
+                }
+                SceneryWayConnector connector = processConnectionCandidate(road.mapWay.getStartNode(), roadsAndBridges);
+                if (connector != null) {
+                    connector.add(road);
+                    road.setStartConnector(connector);
+                }
+                connector = processConnectionCandidate(road.mapWay.getEndNode(), roadsAndBridges);
+                if (connector != null) {
+                    connector.add(road);
+                    road.setEndConnector(connector);
+                }
+            }
+        }
+        //Elevation and BridgeApproaches comes later
         return roadsAndBridges;
     }
 

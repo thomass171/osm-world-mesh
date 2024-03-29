@@ -65,12 +65,14 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
     private static int idc = 1;
     //Um undesired usage finden zu koennen
     public boolean locked = false;
+    // 29.3.24 deprecated like mapnode.location
+    @Deprecated
     public Location gridlocation;
 
     public EleConnectorGroup(MapNode mapNode) {
         this(mapNode, new ArrayList<EleCoordinate>());
         id = idc++;
-        if (mapNode != null) {
+        if (mapNode != null && mapNode.location != null) {
             switch (mapNode.location) {
                 case INSIDEGRID:
                     gridlocation = Location.INSIDEGRID;

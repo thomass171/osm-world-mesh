@@ -33,6 +33,7 @@ import de.yard.threed.traffic.geodesy.ElevationProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang.time.StopWatch;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +56,9 @@ public class OsmService {
 
     @Value(value = "${modules}")
     String[] modules;
+
+    @Autowired
+    OsmElementService osmElementService;
 
     /**
      * Use this when all data isType already
@@ -116,10 +120,9 @@ public class OsmService {
         // step by step approach istead of previous "all-in-one".
         for (MapWay mapWay : mapData.getMapWays()) {
             // 1 Scenery Objekte erstellen. WayConnector werden hier auch schon erstellt.
-            for (SceneryModule module : SceneryModule.getRelevant(worldModules, mapWay)) {
-                SceneryObjectList areas = module.applyTo(mapWay);
-                sceneryMesh.sceneryObjects.objects.addAll(areas.objects);
-            }
+            sceneryMesh.sceneryObjects.objects.addAll(osmElementService.process(mapWay,
+                    SceneryModule.getRelevant(worldModules, mapWay),terrainMesh));
+
 
             // Eine halbwegs schlüssige Klassifizierung (z.B. Garage) der Objekte geht erst jetzt, wenn der Kontext bekannt ist.
             Phase.updatePhase(Phase.CLASSIFY);
@@ -128,18 +131,7 @@ public class OsmService {
             }
             //20.8.19: ist doch zu frueh sceneryMesh.connectAreas(sceneryMesh.sceneryObjects.objects);
 
-            Phase.updatePhase(Phase.ELEGROUPS);
-
-            //4.4.19 schon gemacht? sceneryMesh.createConnections();
-            //Bridgeapproaches werden fuer Polygon gebraucht.
-            //24.4.19: Und die brauchen Elegroups für die Groundstates.
-            EleConnectorGroup.clear();
-            EleConnectorGroup.init((GridCellBounds) targetBounds, mapProjection);
-            sceneryMesh.createElevationGroups();
-
-            //TODO 23.5.19 buildBridgeApproaches besser in Phasen abstrahieren.
-            sceneryMesh.buildBridgeApproaches();
-
+            /*26.3.24 TODO
 
             //erst dann, wenn alle Objekte und Verbindungen bekannt sind, die Polygone dazu erstellen
             Phase.updatePhase(Phase.WAYS);
@@ -182,7 +174,7 @@ public class OsmService {
             // Ohne Smartgrid kann das nicht konsistent werden.
             Phase.updatePhase(Phase.TERRAINMESH);
             log.info("Initializing terrain mesh with " + sceneryMesh.sceneryObjects.size() + " scenery objects (ways and areas).");
-            /*26.3.24 TODO if (SceneryBuilder.FTR_SMARTGRID) {
+            if (SceneryBuilder.FTR_SMARTGRID) {
                 TerrainMesh.init(targetBounds);
                 //sonst geht waytoarea filler nicht if (SceneryBuilder.FTR_SMARTBG) {
                 //erst die Ways, danach areas, um Komplkationen zu vermeiden.
@@ -258,7 +250,7 @@ public class OsmService {
 
         //24.4.19: Der ganze Elekram erst jetzt, wenn alle Polygone final sind. Elegroups gibt es aber schon lange.
         Phase.updatePhase(Phase.ELEVATION);
-        sceneryMesh.connectElevationGroups();
+        SceneryMesh.connectElevationGroups(sceneryMesh.sceneryObjects.objects, sceneryMesh.terrainMesh);
 
         // 28.8.18: Vorab Elevation vorbereiten, damit die Groups angelegt werden koennen.
         // Die Property ElevationProvider legt nicht nur den Provider fest, sondern
