@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2scenery.RenderedObject;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryRenderer;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
@@ -45,6 +46,7 @@ public abstract class SceneryObject {
     //hier statt in FlatObject weil es praktischer ist.
     public VolumeProvider volumeProvider = null;
     protected List<AbstractArea> decorations = new ArrayList<>();
+    // 3.4.24: The cycle when the object (polygons?) was created?
     public Cycle cycle = Cycle.UNKNOWN;
     //Die beiden "isType*" heissen nur, dass die Funktion ausgeführt wurde. Ob wirklich ein cut gemacht wurde, steht in der Area?
     public boolean isCut = false;
@@ -174,7 +176,7 @@ public abstract class SceneryObject {
      * 18.7.19: Es könnten Supplements z.B. duch Overlaps entstehen.
      * 23.7.19: GridBounds auch übergeben, um optionasl schon einen cut machen zu können.
      */
-    public abstract List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm);
+    public abstract List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext);
 
     public void clip(TerrainMesh tm) {
         if (isClipped) {
@@ -262,7 +264,7 @@ public abstract class SceneryObject {
     }
 
     /**
-     * Cycle definiert, wann die Polygone erstellt werden.
+     * Cycle defines, when the polygons were created.
      */
     public enum Cycle {
         WAY, BUILDING, GENERICAREA, UNKNOWN, SUPPLEMENT;

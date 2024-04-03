@@ -7,6 +7,7 @@ import de.yard.threed.javacommon.ConfigurationByEnv;
 import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.VertexData;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.RailwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshFactory;
@@ -59,7 +60,7 @@ public class RailwayModuleTest {
         TerrainMesh tm = TerrainMesh.init(SceneryTestUtil.gridCellBounds);
 
         hambachbahn.buildEleGroups();
-        hambachbahn.createPolygon(null, null, tm);
+        hambachbahn.createPolygon(null, null, tm, SceneryContext.getInstance());
 
         hambachbahn.cut(SceneryTestUtil.gridCellBounds);
 

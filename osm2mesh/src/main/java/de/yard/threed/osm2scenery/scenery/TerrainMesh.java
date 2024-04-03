@@ -518,6 +518,10 @@ public class TerrainMesh {
         return valid;
     }
 
+    public GridCellBounds getGridCellBounds(){
+        return gridCellBounds;
+    }
+
     private MeshLine buildMeshLineFromList(List<Coordinate> line) {
         MeshLine meshLine = MeshFactory.buildMeshLine((Coordinate[]) line.toArray(new Coordinate[0]));
         if (meshLine == null) {

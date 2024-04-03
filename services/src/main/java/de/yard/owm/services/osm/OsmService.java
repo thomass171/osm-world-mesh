@@ -118,18 +118,9 @@ public class OsmService {
                     SceneryModule.getRelevant(worldModules, mapWay),terrainMesh, SceneryContext.getInstance()));
 
 
-            // Eine halbwegs schlüssige Klassifizierung (z.B. Garage) der Objekte geht erst jetzt, wenn der Kontext bekannt ist.
-            Phase.updatePhase(Phase.CLASSIFY);
-            for (SceneryModule module : worldModules) {
-                module.classify(mapData);
-            }
-            //20.8.19: ist doch zu frueh sceneryMesh.connectAreas(sceneryMesh.sceneryObjects.objects);
 
             /*26.3.24 TODO
 
-            //erst dann, wenn alle Objekte und Verbindungen bekannt sind, die Polygone dazu erstellen
-            Phase.updatePhase(Phase.WAYS);
-            processCycle(sceneryMesh, WAY, terrainMesh);
 
             log.info("Resolving way overlaps");
             sceneryMesh.resolveWaysAndConnectorOverlaps();
@@ -355,23 +346,7 @@ public class OsmService {
 
     }
 
-    private void processCycle(SceneryMesh sceneryMesh, SceneryObject.Cycle cycle, TerrainMesh tm) {
-        //Phase.updatePhase(Phase.POLYGONS);
-        //sceneryMesh.createNonWaysPolygons();
-        List<ScenerySupplementAreaObject> supplements = sceneryMesh.createPolygons(cycle);
-        if (SceneryBuilder.FTR_OVERLAPCAUSESSUPPLEMENT) {
-            //supplements verarbeiten fehlt.
-            Util.notyet();
-        }
 
-        //Phase.updatePhase(Phase.CLIP);
-        //sceneryMesh.clipNonWays();
-        sceneryMesh.clip(cycle);
-
-        // und aus dem Background ausschneiden und selber zuschneiden.
-        //Phase.updatePhase(Phase.CUT);
-        sceneryMesh.insertSceneryObjectsIntoBackgroundAndCut(cycle, tm);
-    }
 
     /**
      * uses OSM data and an terrain elevation data (usually from an external

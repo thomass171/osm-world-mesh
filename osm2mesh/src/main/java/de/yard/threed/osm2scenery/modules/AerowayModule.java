@@ -428,7 +428,7 @@ public class AerowayModule extends SceneryModule {
          * @return
          */
         @Override
-        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
+        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
             double width = 60;
             String s = tags.getValue("width");
             if (s != null) {
@@ -568,7 +568,7 @@ public class AerowayModule extends SceneryModule {
          * TODO in super bzw. nicht erforderlich?
          */
         @Override
-        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
+        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
             return null;
         }
     }

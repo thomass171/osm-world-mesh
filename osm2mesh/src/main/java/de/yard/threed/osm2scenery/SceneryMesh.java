@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 3.4.24: Just a container?
  * Created on 11.07.18.
  */
 public class SceneryMesh {
@@ -298,31 +299,23 @@ public class SceneryMesh {
      * Macht jetzt alles Polygone eines Cycle. Nicht mehr way spezifisch.
      * Supplements nach den anderen
      */
-    public List<ScenerySupplementAreaObject> createPolygons(SceneryObject.Cycle cycle) {
-       /* 12.7.19 for (SceneryObject obj : sceneryObjects.objects) {
-            //16.8.18: Auch auf Volume, z.B. Bridge
-            //TODO 12.7.19: Was ist das hier? Das ist doch die Asbach Idee, erst Flächen und dann Ways?
-            if (!(obj instanceof ScenerySupplementAreaObject) && !(obj instanceof SceneryWayConnector)) {
-                //AbstractSceneryFlatObject asf = (SceneryObject) obj;
-                //BG surfaces haben schon polygon
-                //if (asf.poly==null) {
-                obj.createPolygon();
-            }
-        }*/
+    public static List<ScenerySupplementAreaObject> createPolygons(SceneryObject.Cycle cycle, List<SceneryObject> sceneryObjects,
+                                                             GridCellBounds gridbounds, TerrainMesh terrainMesh, SceneryContext sceneryContext) {
+
         List<ScenerySupplementAreaObject> supplements = new ArrayList<>();
-        for (SceneryObject obj : sceneryObjects.objects) {
+        for (SceneryObject obj : sceneryObjects) {
             //Connector brauchen die Ways
             if (/*obj instanceof SceneryWayObject*/obj.cycle == cycle && !(obj instanceof ScenerySupplementAreaObject)) {
-                List<ScenerySupplementAreaObject> l = obj.createPolygon(Collections.unmodifiableList(sceneryObjects.objects), gridbounds, terrainMesh);
+                List<ScenerySupplementAreaObject> l = obj.createPolygon(Collections.unmodifiableList(sceneryObjects), gridbounds, terrainMesh, sceneryContext);
                 if (l != null) {
                     supplements.addAll(l);
                 }
             }
         }
-        for (SceneryObject obj : sceneryObjects.objects) {
+        for (SceneryObject obj : sceneryObjects) {
             //Connector brauchen die Ways
             if (/*obj instanceof SceneryWayObject*/obj.cycle == cycle && (obj instanceof ScenerySupplementAreaObject)) {
-                List<ScenerySupplementAreaObject> l = obj.createPolygon(Collections.unmodifiableList(sceneryObjects.objects), gridbounds, terrainMesh);
+                List<ScenerySupplementAreaObject> l = obj.createPolygon(Collections.unmodifiableList(sceneryObjects), gridbounds, terrainMesh, sceneryContext);
                 if (l != null) {
                     supplements.addAll(l);
                 }

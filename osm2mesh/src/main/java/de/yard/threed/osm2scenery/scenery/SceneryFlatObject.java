@@ -9,6 +9,7 @@ import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.PolygonSubtractResult;
 import de.yard.threed.osm2graph.osm.VertexData;
 import de.yard.threed.osm2scenery.RenderedObject;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryRenderer;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
@@ -141,7 +142,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * 25.4.19: Mal eine Defaultimplementierung.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
         //Nothing to do. Wahrscheinlich, area/poly kam schon als Parameter.
         return null;
     }

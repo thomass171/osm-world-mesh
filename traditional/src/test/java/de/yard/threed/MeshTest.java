@@ -6,6 +6,7 @@ import de.yard.threed.javacommon.ConfigurationByEnv;
 import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.SurfaceAreaModule;
@@ -61,7 +62,7 @@ public class MeshTest {
         SceneryAreaObject southFarmland = (SceneryAreaObject) areas.findObjectByOsmId(87822834);
         southFarmland.buildEleGroups();
         //cut/clip ist in createPolygon
-        southFarmland.createPolygon(null, SceneryTestUtil.gridCellBounds, null);
+        southFarmland.createPolygon(null, SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
         knownobjects.add(southFarmland);
 
 
@@ -70,14 +71,14 @@ public class MeshTest {
             //der wird aus irgendwelchen Gruenden nicht mit aufgenommen
             forestAnK41.buildEleGroups();
             //cut/clip ist in createPolygon
-            forestAnK41.createPolygon(null, SceneryTestUtil.gridCellBounds, null);
+            forestAnK41.createPolygon(null, SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
             knownobjects.add(forestAnK41);
         }
 
         SceneryAreaObject scrubAnK41 = (SceneryAreaObject) areas.findObjectByOsmId(225794276);
         scrubAnK41.buildEleGroups();
         //cut/clip ist in createPolygon
-        scrubAnK41.createPolygon(null, SceneryTestUtil.gridCellBounds, null);
+        scrubAnK41.createPolygon(null, SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
         knownobjects.add(scrubAnK41);
 
         SceneryMesh.connectAreas(knownobjects);

@@ -11,6 +11,7 @@ import de.yard.threed.osm2graph.osm.CoordinateList;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.OsmUtil;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.modules.common.BridgeOrTunnel;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
@@ -321,7 +322,7 @@ public boolean isCrossing;
     }
 
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
         if (node.getOsmId() == 2345486254L || node.getOsmId() == 295055704) {
             int h = 9;
         }

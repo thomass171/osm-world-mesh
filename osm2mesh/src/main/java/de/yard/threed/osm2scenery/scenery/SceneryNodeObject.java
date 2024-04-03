@@ -1,6 +1,7 @@
 package de.yard.threed.osm2scenery.scenery;
 
 import de.yard.threed.osm2graph.osm.GridCellBounds;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
@@ -48,7 +49,7 @@ public abstract class SceneryNodeObject extends SceneryFlatObject /*implements N
     }
 
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
         flatComponent = new AbstractArea[]{AbstractArea.EMPTYAREA};
         return null;
     }

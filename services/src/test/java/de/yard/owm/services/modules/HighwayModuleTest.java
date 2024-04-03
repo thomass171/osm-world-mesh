@@ -506,7 +506,7 @@ public class HighwayModuleTest {
         //3.4.24 assertEquals(2 + 1, SceneryContext.getInstance().getGraph(SceneryObject.Category.ROAD).getNodeCount(), "edges");
 
         //SceneryMesh sceneryMesh = processor.getResults().sceneryresults.sceneryMesh;
-        //nur die K41 und einen Background.
+        // only K41 und einen Background.
         assertEquals(1, sceneryContext.highways.size(), "sceneryContext.highways");
         assertEquals(1, sceneryObjects.size(), "scenery.areas");
 

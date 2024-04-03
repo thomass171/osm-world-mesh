@@ -477,7 +477,7 @@ public class SceneryConversionFacade {
     private void processCycle(SceneryMesh sceneryMesh, SceneryObject.Cycle cycle) {
         //Phase.updatePhase(Phase.POLYGONS);
         //sceneryMesh.createNonWaysPolygons();
-        List<ScenerySupplementAreaObject> supplements = sceneryMesh.createPolygons(cycle);
+        List<ScenerySupplementAreaObject> supplements = sceneryMesh.createPolygons(cycle, sceneryMesh.sceneryObjects.objects, sceneryMesh.gridbounds, sceneryMesh.terrainMesh, SceneryContext.getInstance());
         if (SceneryBuilder.FTR_OVERLAPCAUSESSUPPLEMENT) {
             //supplements verarbeiten fehlt.
             Util.notyet();

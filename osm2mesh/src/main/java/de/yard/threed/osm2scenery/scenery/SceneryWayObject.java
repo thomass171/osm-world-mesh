@@ -145,8 +145,8 @@ public class SceneryWayObject extends SceneryFlatObject {
     }
 
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm) {
-        createPolygon(widthProvider.getWidth(), gridbounds);
+    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+        createPolygon(widthProvider.getWidth(), gridbounds, sceneryContext);
         return null;
     }
 
@@ -165,7 +165,7 @@ public class SceneryWayObject extends SceneryFlatObject {
      *
      * @param width
      */
-    private/*protected*/ void createPolygon(double width, GridCellBounds gridbounds) {
+    private/*protected*/ void createPolygon(double width, GridCellBounds gridbounds, SceneryContext sceneryContext) {
         this.width = width;
         //polygon = MapDataHelper.getOutlinePolygon(mapWay, width);
         if (mapWay.getOsmId() == 107468171) {
@@ -188,7 +188,7 @@ public class SceneryWayObject extends SceneryFlatObject {
                 //ein EndConnector behandelt werden.
                 //10.7.19:NeeNee. Bei MidConnector bleibt der Way erhalten, bekommt nur 4 andere Coordinates
                 if (getArea()[0] instanceof WayArea) {
-                    extendMidwayConnector();
+                    extendMidwayConnector(sceneryContext);
                 }
             }
         }
@@ -197,7 +197,7 @@ public class SceneryWayObject extends SceneryFlatObject {
     /**
      * Den Polygon fuer die inner Connector erweitern.
      */
-    private void extendMidwayConnector() {
+    private void extendMidwayConnector(SceneryContext sceneryContext) {
         WayArea wayArea = getWayArea();
         if (effectiveNodes/*mapWay.getMapNodes()*/.size() != wayArea.getLength()) {
             logger.error("mapnode list inconsistent");
@@ -207,7 +207,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         innerConnectorMap = new HashMap<>();
         for (int i = 1; i < effectiveNodes/*mapWay.getMapNodes()*/.size() - 1; i++) {
             MapNode mapNode = effectiveNodes/*mapWay.getMapNodes()*/.get(i);
-            SceneryWayConnector connector = SceneryContext.getInstance().wayMap.getConnector(ROAD, mapNode.getOsmId());
+            SceneryWayConnector connector = sceneryContext.wayMap.getConnector(ROAD, mapNode.getOsmId());
             if (connector != null) {
                 if (connector.getType() != SceneryWayConnector.WayConnectorType.SIMPLE_INNER_SINGLE_JUNCTION &&
                         connector.getType() != SceneryWayConnector.WayConnectorType.SIMPLE_INNER_DOUBLE_JUNCTION/* &&

@@ -89,7 +89,7 @@ public class HighwayModuleTest {
         TerrainMesh tm = null;
 
         k41vonunten.buildEleGroups();
-        k41vonunten.createPolygon(null, null, tm);
+        k41vonunten.createPolygon(null, null, tm, SceneryContext.getInstance());
         assertEquals(1, k41vonunten.getArea().length, "K41.polygons");
         //double polygonarea = k41vonunten.getArea().poly.uncutPolygon.getArea();
         //logger.debug("vor cut: polygonarea=" + k41vonunten.getArea().poly.getArea());
@@ -99,20 +99,20 @@ public class HighwayModuleTest {
         assertNotNull( k41upper,"k41upper");
         knownobjects.add(k41upper);
         k41upper.buildEleGroups();
-        k41upper.createPolygon(null, null, tm);
+        k41upper.createPolygon(null, null, tm, SceneryContext.getInstance());
 
         //Die K43 (107468171) beginnt an 445410497 im Westen
         HighwayModule.Highway k43 = (HighwayModule.Highway) roads.findObjectByOsmId(107468171);
         assertNotNull(k43,"k43");
         k43.buildEleGroups();
-        k43.createPolygon(null, null, tm);
+        k43.createPolygon(null, null, tm, SceneryContext.getInstance());
         assertEquals(4, k43.innerConnector.size(), "k43.innerConnectorIndex.size");
         knownobjects.add(k43);
 
         //Der Weg südlich Richtung Haus ("Gut Desdorf") schneidet durch das Farmland.
         SceneryWayObject gutdesdorf = (SceneryWayObject) roads.findObjectByOsmId(37935545);
         gutdesdorf.buildEleGroups();
-        gutdesdorf.createPolygon(null, null, tm);
+        gutdesdorf.createPolygon(null, null, tm, SceneryContext.getInstance());
         assertEquals(4, gutdesdorf.getEleConnectorGroups().size(), "gutdesdorf.elegroups.size");
 
         knownobjects.add(gutdesdorf);
@@ -120,7 +120,7 @@ public class HighwayModuleTest {
         //Der Weg Richtung Norden mit einem Dead end.
         SceneryWayObject gutdesdorfnorth = (SceneryWayObject) roads.findObjectByOsmId(33817499);
         gutdesdorfnorth.buildEleGroups();
-        gutdesdorfnorth.createPolygon(null, null, tm);
+        gutdesdorfnorth.createPolygon(null, null, tm, SceneryContext.getInstance());
         knownobjects.add(gutdesdorfnorth);
 
         //k43 ist von West nach Ost
@@ -150,7 +150,7 @@ public class HighwayModuleTest {
             SceneryWayObject swo = (SceneryWayObject) roads.findObjectByOsmId(osmid);
             knownobjects.add(swo);
             swo.buildEleGroups();
-            swo.createPolygon(null, null, tm);
+            swo.createPolygon(null, null, tm, SceneryContext.getInstance());
         }
 
         // Connector und clip
@@ -160,7 +160,7 @@ public class HighwayModuleTest {
         assertEquals(k41upper.getOsmIdsAsString(), k41k43connector.getMajor0().getOsmIdsAsString(), "k41k43connector.major0");
         assertEquals(k41vonunten.getOsmIdsAsString(), k41k43connector.getMajor1().getOsmIdsAsString(), "k41k43connector.major1");
 
-        k41k43connector.createPolygon(null, null, tm);
+        k41k43connector.createPolygon(null, null, tm, SceneryContext.getInstance());
         assertNotNull(k41k43connector.getArea(),"k41k43connector.area");
         assertEquals(5, k41k43connector.getArea()[0].getPolygon(tm).getCoordinates().length, "k41k43connector.polygon.size");
 
@@ -175,7 +175,7 @@ public class HighwayModuleTest {
             SceneryWayConnector swo = (SceneryWayConnector) roads.findObjectByOsmId(osmid);
             knownobjects.add(swo);
             swo.buildEleGroups();
-            swo.createPolygon(null, null, tm);
+            swo.createPolygon(null, null, tm, SceneryContext.getInstance());
         }
 
 
@@ -191,7 +191,7 @@ public class HighwayModuleTest {
         List<SceneryWayConnector> k43innerconnector = k43.getInnerConnector();
         assertEquals(4, k43innerconnector.size(), "k43.innerConnector.size");
 
-        connectorK43GutDesdorf.createPolygon(null, null, tm);
+        connectorK43GutDesdorf.createPolygon(null, null, tm, SceneryContext.getInstance());
         connectorK43GutDesdorf.clip(tm);
         gutdesdorf.clip(tm);
 
@@ -207,11 +207,11 @@ public class HighwayModuleTest {
         knownobjects.add(w33817501);
         w33817500.buildEleGroups();
         w33817501.buildEleGroups();
-        w33817500.createPolygon(null, null, tm);
-        w33817501.createPolygon(null, null, tm);
-        w33817501.getStartConnector().createPolygon(null, null, tm);
-        gutdesdorfnorth.innerConnector.get(0).createPolygon(null, null, tm);
-        gutdesdorfnorth.getStartConnector().createPolygon(null, null, tm);
+        w33817500.createPolygon(null, null, tm, SceneryContext.getInstance());
+        w33817501.createPolygon(null, null, tm, SceneryContext.getInstance());
+        w33817501.getStartConnector().createPolygon(null, null, tm, SceneryContext.getInstance());
+        gutdesdorfnorth.innerConnector.get(0).createPolygon(null, null, tm, SceneryContext.getInstance());
+        gutdesdorfnorth.getStartConnector().createPolygon(null, null, tm, SceneryContext.getInstance());
         gutdesdorfnorth.clip(tm);
         w33817500.clip(tm);
         w33817501.clip(tm);
@@ -355,7 +355,7 @@ public class HighwayModuleTest {
         }
         TerrainMesh tm = TerrainMesh.init(SceneryTestUtil.gridCellBounds);
 
-        b477_363500734.createPolygon(null, null, tm);
+        b477_363500734.createPolygon(null, null, tm, SceneryContext.getInstance());
         b477_363500734.triangulateAndTexturize(tm);
         VertexData vertexData = b477_363500734.getVertexData();
         Dumper.dumpVertexData(logger, vertexData);
@@ -431,7 +431,7 @@ public class HighwayModuleTest {
 
         //Way 221158694 war mal ein Problem
         HighwayModule.Highway w221158694 = (HighwayModule.Highway) roads.findObjectByOsmId(221158694);
-        w221158694.createPolygon(null, null, tm);
+        w221158694.createPolygon(null, null, tm, SceneryContext.getInstance());
         Polygon p = w221158694.getArea()[0].getPolygon(tm);
         assertTrue(p.isValid(), "polygon.valid");
         w221158694.clip(tm);

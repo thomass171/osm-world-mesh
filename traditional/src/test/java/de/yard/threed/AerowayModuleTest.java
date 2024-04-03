@@ -62,7 +62,7 @@ public class AerowayModuleTest {
         aerowayModule.classify(SceneryTestUtil.mapData);
 
         AerowayModule.Runway runway = (AerowayModule.Runway) objs.findObjectByOsmId(117);
-        runway.createPolygon(null, null, null);
+        runway.createPolygon(null, null, null, SceneryContext.getInstance());
         runway.cut(SceneryTestUtil.gridCellBounds);
         runway.triangulateAndTexturize(null);
 
@@ -132,7 +132,7 @@ public class AerowayModuleTest {
 
         // Polygons
 
-        apron.createPolygon(null, null, null);
+        apron.createPolygon(null, null, null, SceneryContext.getInstance());
 
         // Supplements
 
