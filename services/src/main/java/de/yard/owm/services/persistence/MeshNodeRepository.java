@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 @CrossOrigin
 @Repository
-public interface MeshNodeRepository extends PagingAndSortingRepository<MeshNode, Long> {
+public interface MeshNodeRepository extends PagingAndSortingRepository<PersistedMeshNode, Long> {
 /*
     List<Maze> findByCreatedBy(@Param("createdBy") String name);
 

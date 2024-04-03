@@ -10,8 +10,6 @@ import de.yard.threed.osm2scenery.Phase;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryConversionFacade;
 import de.yard.threed.osm2scenery.SceneryMesh;
-import de.yard.threed.osm2scenery.SceneryObjectList;
-import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
@@ -22,7 +20,6 @@ import de.yard.threed.osm2world.MapData;
 import de.yard.threed.osm2world.MapWay;
 import de.yard.threed.osm2world.O2WEleConnector;
 import de.yard.threed.osm2world.OSMData;
-import de.yard.threed.osm2world.OSMWay;
 import de.yard.threed.osm2world.Renderable;
 import de.yard.threed.osm2world.TerrainElevationData;
 import de.yard.threed.osm2world.TerrainInterpolator;
@@ -40,11 +37,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
-import static de.yard.threed.osm2scenery.scenery.SceneryObject.Cycle.*;
-import static de.yard.threed.osm2scenery.scenery.SceneryObject.Cycle.SUPPLEMENT;
 import static java.util.Collections.emptyList;
 
 /**

@@ -6,10 +6,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
-import de.yard.owm.services.JsonService;
+import com.vividsolutions.jts.geom.Coordinate;
+import de.yard.owm.testutils.TestUtils;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
+import de.yard.threed.osm2graph.osm.JtsUtil;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2world.MetricMapProjection;
+import de.yard.threed.osm2world.O2WOriginMapProjection;
+import de.yard.threed.osm2world.VectorXZ;
+import de.yard.threed.traffic.geodesy.GeoCoordinate;
+import de.yard.threed.traffic.geodesy.MapProjection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,8 +28,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
@@ -45,11 +51,14 @@ public class TerrainMeshTest {
     @Autowired
     private WebApplicationContext context;
 
+    MetricMapProjection projection = new MetricMapProjection(TestUtils.DESDORF_SW);
+
     @BeforeEach
     void setUp() {
         // SQL script already deletes
         //meshLineRepository.deleteAll();
         //meshNodeRepository.deleteAll();
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(projection);
     }
 
     @AfterEach
@@ -66,9 +75,10 @@ public class TerrainMeshTest {
 
         assertEquals(3, meshNodeRepository.count());
 
-        MeshNode meshNode = new MeshNode();
-        meshNode.setLat(2.0);
-        meshNode.setLon(5.0);
+        Coordinate c = projection.project(TestUtils.DESDORF_SW);
+        PersistedMeshNode meshNode = (PersistedMeshNode) TerrainMesh.meshFactoryInstance.buildMeshNode(c);
+        //meshNode.setLat(2.0);
+        //meshNode.setLon(5.0);
         meshNode = meshNodeRepository.save(meshNode);
 
      /*

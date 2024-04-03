@@ -1,10 +1,7 @@
-package de.yard.owm.services;
+package de.yard.threed;
 
 
 import com.vividsolutions.jts.geom.Coordinate;
-import de.yard.owm.services.persistence.PersistedMeshFactory;
-import de.yard.owm.testutils.TestUtils;
-import de.yard.threed.TestUtil;
 import de.yard.threed.core.Color;
 import de.yard.threed.core.Vector2;
 import de.yard.threed.core.geometry.SimpleGeometry;
@@ -31,6 +28,7 @@ import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.WayMap;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
+import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.modules.AerowayModule;
 import de.yard.threed.osm2scenery.modules.BridgeModule;
 import de.yard.threed.osm2scenery.modules.BuildingModule;
@@ -52,24 +50,11 @@ import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.ConfigUtil;
 import de.yard.threed.tools.GltfBuilder;
 import de.yard.threed.tools.GltfBuilderResult;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.log4j.Logger;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -77,7 +62,6 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 
-import static de.yard.owm.testutils.TestUtils.loadFileFromClasspath;
 import static de.yard.threed.osm2graph.SceneryBuilder.loadConfig;
 import static de.yard.threed.osm2graph.SceneryBuilder.loadMaterialConfig;
 import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.ROAD;
@@ -89,40 +73,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
- *
+ * Die Tests hier sind alles HighLevel Tests über den Processor.
+ * <p>
+ * Created on 17.05.18.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@ExtendWith(SpringExtension.class)
-@WebAppConfiguration
-@Slf4j
 public class OsmGridTest {
-
-    public static final String ENDPOINT_OSM = "/api/osm";
-
-    private MockMvc mockMvc;
-
-    @Autowired
-    private WebApplicationContext context;
-
+    //EngineHelper platform = PlatformHomeBrew.init(new HashMap<String, String>());
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
     Logger logger = Logger.getLogger(OsmGridTest.class);
 
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(null);
+    @BeforeAll
+    public static void setup(){
+        TerrainMesh.meshFactoryInstance = new TraditionalMeshFactory();
     }
-
-    @Test
-    public void testPostXML() throws Exception {
-
-        String xml = loadFileFromClasspath("K41-segment.osm.xml");
-        MvcResult result = TestUtils.doPostXml(mockMvc, ENDPOINT_OSM, xml);
-        assertEquals(HttpStatus.OK.value(), result.getResponse().getStatus());
-
-    }
-
 
     //9.4.19 Das mit dem Maingrid muss redesigned werden @Test
     public void testMainGrid() {
@@ -195,7 +158,6 @@ public class OsmGridTest {
     }
 
     @Test
-    @Disabled // 2.4.24
     public void testDesdorfGridsuperdetailed() throws IOException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider");
@@ -276,7 +238,6 @@ public class OsmGridTest {
     }
 
     @Test
-    @Disabled // 2.4.24
     public void testDesdorfK41SegmentGrid2D() throws IOException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider");
@@ -285,7 +246,6 @@ public class OsmGridTest {
     }
 
     @Test
-    @Disabled // 2.4.24
     public void testDesdorfK41SegmentGrid2DE() throws IOException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider68");
@@ -383,7 +343,6 @@ public class OsmGridTest {
      * @throws IOException
      */
     @Test
-    @Disabled // 2.4.24
     public void testB55B477smallGrid() throws IOException {
         // 25.7.18: es wird nicht mehr gemerged, darum 6->12 (11 wegen gapfiller)+2scrub+4 farmland+4 Ramps
         //22.4.19: plus 9 Connector
@@ -536,7 +495,6 @@ public class OsmGridTest {
      * @throws IOException
      */
     @Test
-    @Disabled // 2.4.24
     public void testB55B477Grid() throws IOException {
         // 25.7.18: es wird nicht mehr gemerged, darum 6->12 (11 wegeen gapfiller)+2scrub+4 farmland
         doB55B477("B55-B477", 17);
@@ -624,7 +582,6 @@ public class OsmGridTest {
      * @throws IOException
      */
     @Test
-    @Disabled // 2.4.24
     public void testZieverichSuedGrid() throws IOException {
         doZieverichSued("Zieverich-Sued", 17);
     }
@@ -711,7 +668,6 @@ public class OsmGridTest {
     }
 
     @Test
-    @Disabled // 2.4.24
     public void testTestData() throws IOException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider68");
@@ -758,7 +714,6 @@ public class OsmGridTest {
     }
 
     @Test
-    @Disabled // 2.4.24
     public void testWayland() throws IOException, InvalidDataException {
         String zieverichsued = /*SceneryBuilder.osmdatadir*/"src/main/resources/Wayland.osm.xml";
         Configuration customconfig = new BaseConfiguration();
@@ -830,7 +785,6 @@ public class OsmGridTest {
      * @throws IOException
      */
     @Test
-    @Disabled // 2.4.24
     public void testEDDKSmallsuperdetailed() throws IOException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider68");

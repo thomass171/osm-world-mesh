@@ -35,7 +35,9 @@
     </dependencies>
 
     <modules>
+        <module>osm2mesh</module>
         <module>services</module>
+        <module>traditional</module>
     </modules>
 
     <build>

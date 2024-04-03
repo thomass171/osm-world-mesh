@@ -1,5 +1,7 @@
 package de.yard.owm.testutils;
 
+import de.yard.threed.core.LatLon;
+import de.yard.threed.traffic.geodesy.GeoCoordinate;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -19,6 +21,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 public class TestUtils {
+
+    // from K41 segment. elevation just guessed
+    public static GeoCoordinate DESDORF_SW = GeoCoordinate.fromLatLon(LatLon.fromDegrees(50.9455, 6.59), 65.0);
+    public static GeoCoordinate DESDORF_NE = GeoCoordinate.fromLatLon(LatLon.fromDegrees(50.950, 6.596), 65.0);
 
     public static MvcResult doPost(MockMvc mockMvc, String url, String body) throws Exception {
         MvcResult result = mockMvc.perform(post(url)
@@ -47,7 +53,7 @@ public class TestUtils {
     public static MvcResult doPatchWithKey(MockMvc mockMvc, String url, String body, String key) throws Exception {
         MvcResult result = mockMvc.perform(patch(url)
                         .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
-                        .header("Maze-Key",key)
+                        .header("Maze-Key", key)
                         .content(body))
                 .andDo(print()).andReturn();
         return result;
