@@ -2,6 +2,7 @@ package de.yard.threed.osm2graph.osm;
 
 
 import de.yard.threed.core.LatLon;
+import de.yard.threed.osm2world.MetricMapProjection;
 import de.yard.threed.osm2world.VectorXZ;
 
 /**
@@ -16,4 +17,6 @@ import de.yard.threed.osm2world.VectorXZ;
 public interface SceneryProjection {
     VectorXZ project(LatLon latlon);
     LatLon unproject(VectorXZ v);
+
+    MetricMapProjection getBaseProjection();
 }

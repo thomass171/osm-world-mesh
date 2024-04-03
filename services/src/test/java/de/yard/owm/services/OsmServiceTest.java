@@ -2,6 +2,7 @@ package de.yard.owm.services;
 
 
 import de.yard.owm.services.osm.OsmService;
+import de.yard.owm.services.persistence.PersistedMeshFactory;
 import de.yard.owm.services.util.OsmXmlParser;
 import de.yard.threed.core.platform.PlatformInternals;
 import de.yard.threed.javacommon.ConfigurationByEnv;
@@ -9,6 +10,7 @@ import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.Processor;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.OSMData;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -55,6 +57,7 @@ public class OsmServiceTest {
         customconfig.setProperty("modules.HighwayModule.tagfilter", "highway=secondary");
 
         GridCellBounds gridCellBounds = GridCellBounds.buildFromOsmData(osmData);
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(gridCellBounds.getProjection().getBaseProjection());
 
         OsmService.Results results = osmService.createRepresentations(gridCellBounds, gridCellBounds.getProjection() ,osmData);
         assertNotNull( results.sceneryMesh);

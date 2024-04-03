@@ -7,6 +7,7 @@ import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import org.apache.log4j.Logger;
 
@@ -34,7 +35,7 @@ public class TraditionalMeshLine implements MeshLine {
     public TraditionalMeshLine(Coordinate[] coordinates, LineString line) {
         this.coordinates = coordinates;
         this.line = line;
-        validate();
+        //TODO validate();
     }
 
     @Override
@@ -118,50 +119,22 @@ public class TraditionalMeshLine implements MeshLine {
         l.add(index, c);
         coordinates = (Coordinate[]) l.toArray(new Coordinate[0]);
         line = JtsUtil.createLine(coordinates);
-        validate();
     }
 
     public void setFrom(MeshNode p) {
         from = p;
-        validate();
-    }
-
-    public void setTo(MeshNode p) {
-        to = p;
-        validate();
     }
 
     @Override
-    public void validate() {
-        if (from != null && to != null && from == to) {
-            //warum sollte from nicht gleich to sein? Wenns doch closed ist.
-            //logger.error("from==to");
-            //SceneryContext.getInstance().warnings.add("invalid mesh line found");
-        }
-
-        //Konsistenzcheck auf doppelte
-        boolean isClosed = isClosed();
-        for (int i = 0; i < coordinates.length - ((isClosed) ? 1 : 0); i++) {
-            if (JtsUtil.findVertexIndex(coordinates[i], coordinates) != i) {
-                logger.error("duplicate coordinate?");
-                SceneryContext.getInstance().warnings.add("invalid mesh line found");
-            }
-        }
-        if (from != null && !from.getCoordinate().equals2D(coordinates[0])) {
-            logger.error("from not first coordinate");
-            SceneryContext.getInstance().warnings.add("invalid mesh line found");
-        }
-        if (to != null && !to.getCoordinate().equals2D(coordinates[length() - 1])) {
-            logger.error("to not last coordinate");
-            SceneryContext.getInstance().warnings.add("invalid mesh line found");
-        }
+    public void setTo(MeshNode p) {
+        to = p;
     }
+
 
     @Override
     public void setCoordinatesAndTo(Coordinate[] toArray, MeshNode p) {
         this.coordinates = toArray;
         to = p;
-        validate();
     }
 
     @Override

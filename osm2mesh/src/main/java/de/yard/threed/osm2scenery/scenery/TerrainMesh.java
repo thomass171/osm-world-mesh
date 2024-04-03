@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 /**
  * A mesh of {@link MeshNode}s and {@link MeshLine}s. Usually its just a submesh of the full world mesh.
  * 28.3.24:
- *
+ * <p>
  * Wird in drei Stufen aufgebaut:
  * 1) Boundary
  * 2) Ways+Connector
@@ -59,7 +59,7 @@ public class TerrainMesh {
     private boolean hasDuplicates = false;
     // 29.3.24: Taken from SceneryContext
     public WayMap wayMap = new WayMap();
-
+    public List<String> warnings = new ArrayList<>();
     /**
      * gridCellBounds are the outer boundaries of the (sub)mesh.
      */
@@ -317,11 +317,11 @@ public class TerrainMesh {
      * Ways and WayConnector.
      * 5.8.19:Auch sonstige Areas.NeeNee.
      */
-    public void addWays(SceneryObjectList sceneryObjects) {
+    public void addWays(List<SceneryObject> sceneryObjects) {
         if (step != 1) {
             throw new RuntimeException("invalid step");
         }
-        for (SceneryObject obj : sceneryObjects.objects) {
+        for (SceneryObject obj : sceneryObjects) {
            /*doofe pruefung  if (!obj.isCut || !obj.isClipped) {
                 throw new RuntimeException("neither cut or clipped:");
             }*/
@@ -349,11 +349,11 @@ public class TerrainMesh {
         }
     }
 
-    public void addAreas(SceneryObjectList sceneryObjects) {
+    public void addAreas(List<SceneryObject> sceneryObjects) {
         if (step != 2) {
             throw new RuntimeException("invalid step");
         }
-        for (SceneryObject obj : sceneryObjects.objects) {
+        for (SceneryObject obj : sceneryObjects) {
            /*doofe pruefung  if (!obj.isCut || !obj.isClipped) {
                 throw new RuntimeException("neither cut or clipped:");
             }*/
@@ -426,13 +426,15 @@ public class TerrainMesh {
         return meshLine;
     }
 
-    public MeshLine registerLine(MeshNode p0, MeshNode p1, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right) {
+    public MeshLine registerLine(MeshNode p0, MeshNode p1, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right ) {
         MeshLine meshLine = MeshFactory.buildMeshLine(new Coordinate[]{p0.getCoordinate(), p1.getCoordinate()});
         if (meshLine == null) {
             return null;
         }
         meshLine.setFrom(p0);
+        TerrainMesh.validateMeshLine(meshLine, warnings);
         meshLine.setTo(p1);
+        TerrainMesh.validateMeshLine(meshLine, warnings);
         meshLine.setLeft(left);
         meshLine.setRight(right);
         registerLine(meshLine);
@@ -518,7 +520,7 @@ public class TerrainMesh {
         return valid;
     }
 
-    public GridCellBounds getGridCellBounds(){
+    public GridCellBounds getGridCellBounds() {
         return gridCellBounds;
     }
 
@@ -532,10 +534,13 @@ public class TerrainMesh {
             p = registerPoint(line.get(0));
         }
         meshLine.setFrom(p);
+        TerrainMesh.validateMeshLine(meshLine, warnings);
         if ((p = getMeshNode(line.get(line.size() - 1))) == null) {
             p = registerPoint(line.get(line.size() - 1));
         }
         meshLine.setTo(p);
+        TerrainMesh.validateMeshLine(meshLine, warnings);
+
         return meshLine;
     }
 
@@ -929,6 +934,7 @@ public class TerrainMesh {
             linenewcoors = JtsUtil.sublist(line.getCoordinates(), 0, meshLineSplit.from - ((meshLineSplit.fromIsCoordinate) ? 1 : 0));
             linenewcoors.add(p0.getCoordinate());
             line.setCoordinatesAndTo(JtsUtil.toArray(linenewcoors), lastline.getFrom());
+            TerrainMesh.validateMeshLine(line, warnings);
             //line.setTo(lastline.getFrom());
             lastline.getFrom().addLine(line);
             if (line.isBoundary()) {
@@ -962,6 +968,8 @@ public class TerrainMesh {
         registerLine(midline);
         midline.getFrom().addLine(line);
         line.setCoordinatesAndTo(JtsUtil.toArray(linenewcoors), midline.getFrom());
+        TerrainMesh.validateMeshLine(line, warnings);
+
         //line.setTo(midline.getFrom());
         if (line.isBoundary()) {
             midline.setBoundary(true);
@@ -1273,6 +1281,34 @@ public class TerrainMesh {
         }
         return lines;
 
+    }
+
+    public static void validateMeshLine(MeshLine meshLine, List<String> warnings ) {
+        MeshNode from = meshLine.getFrom();
+        MeshNode to = meshLine.getTo();
+        if (from != null && to != null && from == to) {
+            //warum sollte from nicht gleich to sein? Wenns doch closed ist.
+            //logger.error("from==to");
+            //SceneryContext.getInstance().warnings.add("invalid mesh line found");
+        }
+
+        //Konsistenzcheck auf doppelte
+        boolean isClosed = meshLine.isClosed();
+        Coordinate[] coordinates = meshLine.getCoordinates();
+        for (int i = 0; i < coordinates.length - ((isClosed) ? 1 : 0); i++) {
+            if (JtsUtil.findVertexIndex(coordinates[i], coordinates) != i) {
+                logger.error("duplicate coordinate?");
+                warnings.add("invalid mesh line found");
+            }
+        }
+        if (from != null && !from.getCoordinate().equals2D(coordinates[0])) {
+            logger.error("from not first coordinate");
+            warnings.add("invalid mesh line found");
+        }
+        if (to != null && !to.getCoordinate().equals2D(coordinates[meshLine.length() - 1])) {
+            logger.error("to not last coordinate");
+            warnings.add("invalid mesh line found");
+        }
     }
 
     public static class PointPosition {

@@ -670,6 +670,11 @@ class MetricSceneryProjection implements SceneryProjection {
         return LatLon.fromDegrees(metricMapProjection.calcLat(loc), metricMapProjection.calcLon(loc));
     }
 
+    @Override
+    public MetricMapProjection getBaseProjection() {
+        return metricMapProjection;
+    }
+
     //@Override
     public LatLon/*SGGeod*/ getOrigin() {
         //22.12.21 return SGGeod.fromDeg(gridCellBounds.origin.getLonDeg().getDegree(), gridCellBounds.origin.getLatDeg().getDegree());

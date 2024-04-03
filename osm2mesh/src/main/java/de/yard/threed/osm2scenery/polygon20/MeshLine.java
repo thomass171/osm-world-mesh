@@ -47,8 +47,6 @@ public interface MeshLine {
 
      void setTo(MeshNode p);
 
-     void validate() ;
-
      void setCoordinatesAndTo(Coordinate[] toArray, MeshNode p);
 
      AbstractArea getLeft();

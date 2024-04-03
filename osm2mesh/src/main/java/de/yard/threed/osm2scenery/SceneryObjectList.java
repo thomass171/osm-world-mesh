@@ -79,7 +79,7 @@ public class SceneryObjectList {
         return result;
     }
 
-    public List<SceneryObject> findObjectsByCycle(SceneryObject.Cycle cycle) {
+    public static List<SceneryObject> findObjectsByCycle(List<SceneryObject> objects, SceneryObject.Cycle cycle) {
         List<SceneryObject> result = objects.stream().filter(o -> o.getCycle() == cycle).collect(Collectors.toList());
         return result;
     }

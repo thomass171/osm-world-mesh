@@ -323,10 +323,10 @@ public class SceneryConversionFacade {
         logger.debug(SceneryContext.getInstance().overlappingterrain + " overlapping terrain areas");
 
         //erst wenn alle Polygone/Areas da sind, können adjacent areas ermittelt werden.
-        sceneryMesh.connectAreas(sceneryMesh.sceneryObjects.objects);
+        SceneryMesh.connectAreas(sceneryMesh.sceneryObjects.objects);
 
         //Konsistenzcheck. OSM Objekte sind jetzt alle angelegt. Supplements darf noch nicht geben.
-        List<SceneryObject> supples = sceneryMesh.sceneryObjects.findObjectsByCycle(SUPPLEMENT);
+        List<SceneryObject> supples = sceneryMesh.sceneryObjects.findObjectsByCycle(sceneryMesh.sceneryObjects.objects, SUPPLEMENT);
         if (supples.size() > 0) {
             throw new RuntimeException("supplements not yet expected");
         }
@@ -340,9 +340,9 @@ public class SceneryConversionFacade {
             //sonst geht waytoarea filler nicht if (SceneryBuilder.FTR_SMARTBG) {
             //erst die Ways, danach areas, um Komplkationen zu vermeiden.
             logger.info("adding ways to terrain mesh");
-            sceneryMesh.terrainMesh.addWays(sceneryMesh.sceneryObjects);
+            sceneryMesh.terrainMesh.addWays(sceneryMesh.sceneryObjects.objects);
             logger.info("adding areas to terrain mesh");
-            sceneryMesh.terrainMesh.addAreas(sceneryMesh.sceneryObjects);
+            sceneryMesh.terrainMesh.addAreas(sceneryMesh.sceneryObjects.objects);
             //}
         }
 
@@ -372,11 +372,11 @@ public class SceneryConversionFacade {
         if (SceneryContext.getInstance().overlappingTerrainWithSupplements > 0) {
             comment = "" + SceneryContext.getInstance().overlappingTerrainWithSupplements + " terrain overlaps";
         }
-        logger.info("Created " + sceneryMesh.sceneryObjects.findObjectsByCycle(SUPPLEMENT).size() + " supplements. Now " + sceneryMesh.sceneryObjects.size() + " scenery objects (" +
+        logger.info("Created " + SceneryObjectList.findObjectsByCycle(sceneryMesh.sceneryObjects.objects,SUPPLEMENT).size() + " supplements. Now " + sceneryMesh.sceneryObjects.size() + " scenery objects (" +
                 comment + ").Start adding to mesh.");
 
         // Supplements muessen auch ins TerrainMesh
-        sceneryMesh.terrainMesh.addSupplements(sceneryMesh.sceneryObjects.findObjectsByCycle(SUPPLEMENT));
+        sceneryMesh.terrainMesh.addSupplements(SceneryObjectList.findObjectsByCycle(sceneryMesh.sceneryObjects.objects,SUPPLEMENT));
         boolean meshValid = sceneryMesh.terrainMesh.isValid(true);
         //gap filler sind zwar auch supplements. Aber die haengen sich schon selber ins mesh.
         logger.info("Supplements added to terrain mesh (mesh " + ((meshValid) ? "valid" : "invalid") + "). Creating gap filler");

@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+import static de.yard.threed.osm2scenery.scenery.SceneryObject.Cycle.SUPPLEMENT;
 import static de.yard.threed.osm2scenery.scenery.SceneryObject.Cycle.WAY;
 
 @Service
@@ -65,6 +66,119 @@ public class OsmElementService {
         Phase.updatePhase(Phase.WAYS);
         processCycle( WAY, tm, sceneryObjects, tm.getGridCellBounds(), sceneryContext);
 
+            /*26.3.24 TODO
+
+
+            log.info("Resolving way overlaps");
+            sceneryMesh.resolveWaysAndConnectorOverlaps();
+            SceneryContext.getInstance().overlappingways = sceneryMesh.checkForOverlappingAreas(true);
+            log.debug("After resolving still " + SceneryContext.getInstance().overlappingways + " overlapping terrain provider way areas");
+
+            //Ermitteln, was unter den Bridges ist und die Approaches der Bridges. Dazu werden die Polygone gebraucht.
+            //13.7.19 nicht mehr sceneryMesh.completeBridgeRelations();
+            //bridge gap soll eigentlich eine normale Area sein, braucht aber Polygon. Und "below".
+            //sceneryMesh.closeBridgeGaps();
+
+            if (SceneryBuilder.FTR_SMARTGRID) {
+                Phase.updatePhase(Phase.GRIDREARRANGE);
+
+                // 26.3.24 no longer cut targetBounds.rearrangeForWayCut(sceneryMesh.sceneryObjects.objects);
+            }
+
+            //die Areas brauchen für den Cut das finale Grid mit LazyCuts
+            Phase.updatePhase(Phase.BUILDINGSANDAREAS);
+            for (SceneryObject.Cycle cycle : new SceneryObject.Cycle[]{SceneryObject.Cycle.BUILDING, GENERICAREA, UNKNOWN}) {
+                processCycle(sceneryMesh, cycle, terrainMesh);
+            }
+            SceneryContext.getInstance().overlappingterrain = sceneryMesh.checkForOverlappingAreas(true);
+            log.debug(SceneryContext.getInstance().overlappingterrain + " overlapping terrain areas");
+
+           end of TODO */
+
+        //erst wenn alle Polygone/Areas da sind, können adjacent areas ermittelt werden.
+        SceneryMesh.connectAreas(sceneryObjects);
+
+        //Konsistenzcheck. OSM Objekte sind jetzt alle angelegt. Supplements darf noch nicht geben.
+        List<SceneryObject> supples = SceneryObjectList.findObjectsByCycle(sceneryObjects, SUPPLEMENT);
+        if (supples.size() > 0) {
+            throw new RuntimeException("supplements not yet expected");
+        }
+
+        // Vor den Supplements das Mesh erstellen. Die Supplements koennen dann daran anschliessen, muessen aber nicht (oder auch teilweise).
+        // Ohne Smartgrid kann das nicht konsistent werden.
+        Phase.updatePhase(Phase.TERRAINMESH);
+        log.info("Updating terrain mesh with " + sceneryObjects.size() + " scenery objects (ways and areas).");
+        //sonst geht waytoarea filler nicht if (SceneryBuilder.FTR_SMARTBG) {
+        //erst die Ways, danach areas, um Komplkationen zu vermeiden.
+
+        log.info("adding ways to terrain mesh");
+        tm.addWays(sceneryObjects);
+        log.info("adding areas to terrain mesh");
+        tm.addAreas(sceneryObjects);
+
+
+        //}
+
+
+            /*26.3.24 TODO
+            //Supplements anlegen und verarbeiten
+            Phase.updatePhase(Phase.SUPPLEMENTS);
+            log.info("Creating supplements for " + sceneryMesh.sceneryObjects.size() + " scenery objects.");
+
+            for (SceneryModule module : worldModules) {
+                //Das durefen definitionsgemaess nur Supplements mit Cycle SUPPLEMENT sein.
+                List<ScenerySupplementAreaObject> supplements = module.createSupplements(Collections.unmodifiableList(sceneryMesh.sceneryObjects.objects));
+                if (supplements != null) {
+                    for (ScenerySupplementAreaObject s : supplements) {
+                        //Supplement haben vielleicht gar keine eigenen
+                        s.prepareElevationGroups();
+                    }
+                    sceneryMesh.sceneryObjects.objects.addAll(supplements);
+                }
+            }
+            processCycle(sceneryMesh, SUPPLEMENT);
+
+
+
+            log.info("Resolving supplement overlaps");
+            sceneryMesh.resolveSupplementOverlaps();
+            // wenn durch Supplements overlaps entstanden sind, wird das mit Sicherheit zu Problemen im TerrainMesh führen.
+            // SceneryContext.getInstance().unresolvedoverlaps ist aber nur der Zaehler fuer versuchte und gescheiterte!
+            // Darum neu zählen.
+            String comment = "no terrain overlaps";
+            SceneryContext.getInstance().overlappingTerrainWithSupplements = sceneryMesh.checkForOverlappingAreas(true);
+            if (SceneryContext.getInstance().overlappingTerrainWithSupplements > 0) {
+                comment = "" + SceneryContext.getInstance().overlappingTerrainWithSupplements + " terrain overlaps";
+            }
+            log.info("Created " + sceneryMesh.sceneryObjects.findObjectsByCycle(SUPPLEMENT).size() + " supplements. Now " + sceneryMesh.sceneryObjects.size() + " scenery objects (" +
+                    comment + ").Start adding to mesh.");
+
+            // Supplements muessen auch ins TerrainMesh
+            TerrainMesh.getInstance().addSupplements(sceneryMesh.sceneryObjects.findObjectsByCycle(SUPPLEMENT));
+            boolean meshValid = TerrainMesh.getInstance().isValid(true);
+            //gap filler sind zwar auch supplements. Aber die haengen sich schon selber ins mesh.
+            log.info("Supplements added to terrain mesh (mesh " + ((meshValid) ? "valid" : "invalid") + "). Creating gap filler");
+            int cnt = sceneryMesh.createWayToAreaFiller();
+            log.info("Created " + cnt + " gap filler");
+
+            Phase.updatePhase(Phase.BACKGROUND);
+            sceneryMesh.createBackground();
+
+            //lieber erst nach bridgeaaproaches dekorieren. 24.5.19 braucht doch Polygone. Die Aussenpolygone ändern sich nicht,
+            //darum ist nach "cut" OK.
+            Phase.updatePhase(Phase.DECORATION);
+            sceneryMesh.createDecorations();
+
+            Phase.updatePhase(Phase.OVERLAPS);
+            sceneryMesh.processOverlaps();
+
+            //25.4.19: Gefällt mir besser: Erst nach dem cut die Polygone in die Elegroups connecten. Dann spart man sich den
+            //Huddle mit den Änderungen durch den cut. Und die Elegroups sind halbwegs frei von alten Coordinates.
+            //Sogar erst nach Triangulation. Dann hat man wirklich alle Coordinates.
+            Phase.updatePhase(Phase.POLYGONSREADY);
+            //sceneryMesh.connectElevationGroups();
+            end of TODO */
+
         return sceneryObjects;
     }
 
@@ -85,5 +199,7 @@ public class OsmElementService {
         // und aus dem Background ausschneiden und selber zuschneiden.
         //Phase.updatePhase(Phase.CUT);
         //3.4.24 sceneryMesh.insertSceneryObjectsIntoBackgroundAndCut(cycle, tm);
+
+
     }
 }

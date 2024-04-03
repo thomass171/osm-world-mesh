@@ -231,7 +231,7 @@ public class Area extends AbstractArea {
                                 if (meshPolygon == null) {
                                     logger.error("no mesh polygon");
                                 } else {
-                                    if (meshPolygon.insert(c) == null) {
+                                    if (meshPolygon.insert(c, tm) == null) {
                                         logger.error("adding new vertex failed:" + c);
                                     } else {
                                         //logger.debug("added new vertex to mesh:" + c);

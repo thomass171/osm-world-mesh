@@ -111,11 +111,13 @@ public class MeshPolygon {
      *
      * @param c
      */
-    public MeshLine insert(Coordinate c) {
+    public MeshLine insert(Coordinate c, TerrainMesh terrainMesh) {
         for (MeshLine line : lines) {
             int index;
             if ((index = line.getCoveringSegment(c)) != -1) {
                 line.insert(index + 1, c);
+                TerrainMesh.validateMeshLine(line, terrainMesh.warnings);
+
                 return line;
             }
         }

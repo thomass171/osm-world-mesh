@@ -19,6 +19,7 @@ import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.MapDataHelper;
+
 import de.yard.threed.osm2graph.osm.Processor;
 import de.yard.threed.osm2graph.osm.VertexData;
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
@@ -78,11 +79,6 @@ public class HighwayModuleTest {
 
     @Autowired
     OsmElementService osmElementService;
-
-    @BeforeAll
-    public static void setup() {
-        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(null);
-    }
 
     /**
      * Den clip() hier nicht testen, da haengt zu viel dran? Connector clippen jetzt aber teilweise in createPolygon()?
@@ -487,6 +483,7 @@ public class HighwayModuleTest {
         OSMData osmData = parser.getData();
 
         GridCellBounds gridCellBounds = GridCellBounds.buildFromOsmData(osmData);
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(gridCellBounds.getProjection().getBaseProjection());
 
         OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
         MapData mapData = converter.createMapData(osmData);

@@ -29,7 +29,7 @@ import java.util.List;
 
 
 @Entity
-@Table(name="meshnode")
+@Table(name = "meshnode")
 public class PersistedMeshNode implements MeshNode {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshnode_id_generator")
@@ -49,7 +49,8 @@ public class PersistedMeshNode implements MeshNode {
     @Transient
     private List<PersistedMeshLine> linesOfPoint = new ArrayList();
     @Transient
-    public Coordinate coordinate;
+    MetricMapProjection projection;
+
     @Transient
     public EleConnectorGroup group;
     @Transient
@@ -60,7 +61,8 @@ public class PersistedMeshNode implements MeshNode {
     }
 
     public PersistedMeshNode(Coordinate coordinate, MetricMapProjection projection) {
-        this.coordinate = coordinate;
+        //this.coordinate = coordinate;
+        setProjection(projection);
         GeoCoordinate latlon = projection.unproject(coordinate);
         lat = latlon.getLatDeg().getDegree();
         lon = latlon.getLonDeg().getDegree();
@@ -68,7 +70,7 @@ public class PersistedMeshNode implements MeshNode {
 
     @Override
     public String toString() {
-        return "" + coordinate;
+        return "" + lat + "," + lon;
     }
 
 
@@ -78,7 +80,7 @@ public class PersistedMeshNode implements MeshNode {
 
     @Override
     public Coordinate getCoordinate() {
-        return null;
+        return projection.project(getGeoCoordinate());
     }
 
     @Override
@@ -97,5 +99,13 @@ public class PersistedMeshNode implements MeshNode {
 
     public List<MeshLine> getLines() {
         return Collections.unmodifiableList(linesOfPoint);
+    }
+
+    public GeoCoordinate getGeoCoordinate() {
+        return GeoCoordinate.fromLatLon(LatLon.fromDegrees(lat, lon),-555);
+    }
+
+    public void setProjection(MetricMapProjection projection) {
+        this.projection = projection;
     }
 }

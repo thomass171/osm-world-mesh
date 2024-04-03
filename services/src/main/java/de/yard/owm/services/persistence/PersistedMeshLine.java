@@ -51,7 +51,7 @@ public class PersistedMeshLine implements MeshLine {
     public PersistedMeshLine(Coordinate[] coordinates, LineString line) {
         this.coordinates = coordinates;
         this.line = line;
-        validate();
+        //TODO validate();
     }
 
     public static PersistedMeshLine buildMeshLine(Coordinate[] coordinates) {
@@ -135,50 +135,21 @@ public class PersistedMeshLine implements MeshLine {
         l.add(index, c);
         coordinates = (Coordinate[]) l.toArray(new Coordinate[0]);
         line = JtsUtil.createLine(coordinates);
-        validate();
     }
 
     @Override
     public void setFrom(MeshNode p) {
         from = p;
-        validate();
     }
 
     @Override
     public void setTo(MeshNode p) {
         to = p;
-        validate();
-    }
-
-    public void validate() {
-        if (from != null && to != null && from == to) {
-            //warum sollte from nicht gleich to sein? Wenns doch closed ist.
-            //logger.error("from==to");
-            //SceneryContext.getInstance().warnings.add("invalid mesh line found");
-        }
-
-        //Konsistenzcheck auf doppelte
-        boolean isClosed = isClosed();
-        for (int i = 0; i < coordinates.length - ((isClosed) ? 1 : 0); i++) {
-            if (JtsUtil.findVertexIndex(coordinates[i], coordinates) != i) {
-                logger.error("duplicate coordinate?");
-                SceneryContext.getInstance().warnings.add("invalid mesh line found");
-            }
-        }
-        if (from != null && !from.getCoordinate().equals2D(coordinates[0])) {
-            logger.error("from not first coordinate");
-            SceneryContext.getInstance().warnings.add("invalid mesh line found");
-        }
-        if (to != null && !to.getCoordinate().equals2D(coordinates[length() - 1])) {
-            logger.error("to not last coordinate");
-            SceneryContext.getInstance().warnings.add("invalid mesh line found");
-        }
     }
 
     public void setCoordinatesAndTo(Coordinate[] toArray, MeshNode p) {
         this.coordinates = toArray;
         to = p;
-        validate();
     }
 
     public AbstractArea getLeft() {

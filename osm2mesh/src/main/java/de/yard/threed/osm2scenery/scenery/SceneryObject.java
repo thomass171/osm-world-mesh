@@ -48,7 +48,7 @@ public abstract class SceneryObject {
     protected List<AbstractArea> decorations = new ArrayList<>();
     // 3.4.24: The cycle when the object (polygons?) was created?
     public Cycle cycle = Cycle.UNKNOWN;
-    //Die beiden "isType*" heissen nur, dass die Funktion ausgeführt wurde. Ob wirklich ein cut gemacht wurde, steht in der Area?
+    //The two "is" only indicate that the function was executed. Ob wirklich ein cut gemacht wurde, steht in der Area?
     public boolean isCut = false;
     boolean isClipped = false;
     public int failureCounter=0;

@@ -361,7 +361,10 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      */
     public void addToTerrainMesh(TerrainMesh tm) {
         if (!isCut || !isClipped) {
-            throw new RuntimeException("neither cut or clipped:" + getOsmIdsAsString());
+            // DB style neither cuts nor clips.
+            if (tm.getGridCellBounds().isPreDbStyle()) {
+                throw new RuntimeException("neither cut or clipped:" + getOsmIdsAsString());
+            }
         }
         // hier das Flag isterrainprovider zu prufen ist riskant, denn Bridges z.B. sind als Way keine TerrainProvider, als Container für Ramps und Gap aber schon.
         if (terrainMeshAdder!=null) {
