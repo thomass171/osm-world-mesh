@@ -6,6 +6,7 @@ import com.google.common.collect.Iterables;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * OSM2World's abstraction of {@link OSMData}, consists of {@link MapElement}s.
@@ -146,4 +147,8 @@ public class MapData {
     public List<MapWay> getMapWays() {
         return mapWays;
     }
+
+	public List<MapWay> findMapWays(long osmId) {
+		return mapWays.stream().filter(m->m.getOsmWay().id == osmId).collect(Collectors.toList());
+	}
 }

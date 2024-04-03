@@ -1,6 +1,7 @@
 package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.Polygon;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.AerowayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshFillCandidate;
 import de.yard.threed.osm2scenery.scenery.components.Area;
@@ -34,9 +35,9 @@ public class SceneryObjectFactory {
      * Das ist aber unguenstig, weil es dann zu vielen Überschneidungen kommen kann/wird, die schlecht handhabbar sind.
      * Lieber doch schmaler Taxiway; das fehlende Areal wird dann später dazugebaut.
      */
-    public static SceneryWayObject createTaxiway(MapWay line, TagMap materialmap, AerowayModule.TaxiWayCustomData taxiWayCustomData) {
+    public static SceneryWayObject createTaxiway(MapWay line, TagMap materialmap, AerowayModule.TaxiWayCustomData taxiWayCustomData, SceneryContext sceneryContext) {
 
-        SceneryWayObject taxiway = new SceneryWayObject("Taxiway", line, Materials.TAXIWAY_YELLOW, SceneryObject.Category.TAXIWAY, new FixedWidthProvider(AerowayModule.GROUNDNETMARKERWIDTH));
+        SceneryWayObject taxiway = new SceneryWayObject("Taxiway", line, Materials.TAXIWAY_YELLOW, SceneryObject.Category.TAXIWAY, new FixedWidthProvider(AerowayModule.GROUNDNETMARKERWIDTH), sceneryContext);
         return taxiway;
     }
 

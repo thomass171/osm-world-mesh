@@ -13,6 +13,7 @@ import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2graph.osm.TextureUtil;
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupFinder;
@@ -146,7 +147,7 @@ public class AerowayModule extends SceneryModule {
                 //don't mix OSM taxiways with dedicated groundnet
                 if ((groundNet != null && mapway.getOsmId() < 0) || groundNet == null && mapway.getOsmId() > 0) {
                     if (isTaxiway(mapway.getTags()) || isParkingTaxiway(mapway.getTags())) {
-                        addTaxiway(mapway, materialmap);
+                        addTaxiway(mapway, materialmap, SceneryContext.getInstance());
                     }
                 }
             }
@@ -237,12 +238,12 @@ public class AerowayModule extends SceneryModule {
      * Die Menge der Taxyways ist ein Sonderfall, weil es nicht nur die Ways für einen Graph, sondern durch ihre Ausdehnung auch eine Fläche ergeben, die
      * zum Teil definiertes Apron ist, zum Teil Apron aber auch vergrößert.
      */
-    private void addTaxiway(MapWay mapway, TagMap materialmap) {
+    private void addTaxiway(MapWay mapway, TagMap materialmap, SceneryContext sceneryContext) {
         //logger.debug("found taxiway");
         TaxiWayCustomData taxiWayCustomData = new TaxiWayCustomData(mapway);
-        SceneryWayObject taxiway = SceneryObjectFactory.createTaxiway(mapway, materialmap, taxiWayCustomData);
+        SceneryWayObject taxiway = SceneryObjectFactory.createTaxiway(mapway, materialmap, taxiWayCustomData, sceneryContext);
         //aerowayobjects.add(taxiway/*area*/);
-        taxiway.addToWayMap(SceneryObject.Category.TAXIWAY);
+        taxiway.addToWayMap(SceneryObject.Category.TAXIWAY, sceneryContext);
         aerowayobjects.add(taxiway/*area*/);
 
         //Polygone werden gleich schon berbaucht zum Ausscvhneiden.17.7.19:nicht mehr

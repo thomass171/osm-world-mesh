@@ -34,6 +34,17 @@ public class SceneryContext {
     public int unresolvedoverlaps = 0;
     public int errorCounter=0;
 
+    /**
+     * 3.4.24 Non singleton constructor.
+     * Needs to be filled from DB.
+     */
+    public SceneryContext() {
+        roadgraph = new Graph(GraphOrientation.buildForZ0());
+        taxiwaygraph = new Graph(GraphOrientation.buildForZ0());
+        railwaygraph = new Graph(GraphOrientation.buildForZ0());
+        rivergraph = new Graph(GraphOrientation.buildForZ0());
+    }
+
     public static void init(MapData mapdata) {
         instance = new SceneryContext();
         instance.mapdata=mapdata;

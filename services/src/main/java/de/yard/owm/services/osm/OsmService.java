@@ -115,7 +115,7 @@ public class OsmService {
         for (MapWay mapWay : mapData.getMapWays()) {
             // 1 Scenery Objekte erstellen. WayConnector werden hier auch schon erstellt.
             sceneryMesh.sceneryObjects.objects.addAll(osmElementService.process(mapWay,
-                    SceneryModule.getRelevant(worldModules, mapWay),terrainMesh));
+                    SceneryModule.getRelevant(worldModules, mapWay),terrainMesh, SceneryContext.getInstance()));
 
 
             // Eine halbwegs schlüssige Klassifizierung (z.B. Garage) der Objekte geht erst jetzt, wenn der Kontext bekannt ist.

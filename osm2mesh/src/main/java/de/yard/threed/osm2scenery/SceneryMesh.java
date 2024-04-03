@@ -434,8 +434,8 @@ public class SceneryMesh {
         }*/
     }
 
-    public static void buildBridgeApproaches(List<SceneryObject> objects) {
-        HighwayModule.buildBridgeApproaches(objects);
+    public static void buildBridgeApproaches(List<SceneryObject> objects, SceneryContext sceneryContext) {
+        HighwayModule.buildBridgeApproaches(objects, sceneryContext);
     }
 
     /**

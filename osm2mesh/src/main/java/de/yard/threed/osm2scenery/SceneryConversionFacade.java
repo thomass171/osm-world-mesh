@@ -290,7 +290,7 @@ public class SceneryConversionFacade {
         sceneryMesh.createElevationGroups(sceneryMesh.sceneryObjects.objects);
 
         //TODO 23.5.19 buildBridgeApproaches besser in Phasen abstrahieren.
-        sceneryMesh.buildBridgeApproaches(sceneryMesh.sceneryObjects.objects);
+        sceneryMesh.buildBridgeApproaches(sceneryMesh.sceneryObjects.objects, SceneryContext.getInstance());
 
 
         //erst dann, wenn alle Objekte und Verbindungen bekannt sind, die Polygone dazu erstellen

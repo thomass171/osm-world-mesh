@@ -1,6 +1,7 @@
 package de.yard.owm.services.osm;
 
 import de.yard.threed.osm2graph.osm.GridCellBounds;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
@@ -23,12 +24,12 @@ import java.util.List;
 public class OsmElementService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<SceneryObject> process(MapWay mapWay, List<? extends SceneryModule> modules, TerrainMesh tm){
+    public List<SceneryObject> process(MapWay mapWay, List<? extends SceneryModule> modules, TerrainMesh tm, SceneryContext sceneryContext){
 
         List<SceneryObject> sceneryObjects = new ArrayList<>();
 
         for (SceneryModule module : modules) {
-            SceneryObjectList areas = module.applyTo(mapWay, tm);
+            SceneryObjectList areas = module.applyTo(mapWay, tm, sceneryContext);
             sceneryObjects.addAll(areas.objects);
         }
         // objects are only in sceneryObjects and not yet in TerrainMesh
@@ -43,7 +44,7 @@ public class OsmElementService {
         SceneryMesh.createElevationGroups(sceneryObjects);
 
         // 23.5.19 buildBridgeApproaches besser in Phasen abstrahieren?
-        SceneryMesh.buildBridgeApproaches(sceneryObjects);
+        SceneryMesh.buildBridgeApproaches(sceneryObjects, sceneryContext);
 
         return sceneryObjects;
     }

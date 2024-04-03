@@ -96,6 +96,7 @@ public class HighwayModule extends SceneryModule {
     //static  private Map<Long, List<Road>> roadmap = new HashMap<>();
 
     @Override
+    @Deprecated
     public SceneryObjectList applyTo(MapData tile) {
         // In die Liste kommen vorerst auch die Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
@@ -127,7 +128,7 @@ public class HighwayModule extends SceneryModule {
                     if (BridgeModule.isBridge(mapway.getTags())) {
                         //return GroundState.ABOVE;
                         //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
-                        BridgeModule.Bridge bridge/*Highway roadoverbridge*/ = new BridgeModule.Bridge /*Highway*/(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/);
+                        BridgeModule.Bridge bridge/*Highway roadoverbridge*/ = new BridgeModule.Bridge /*Highway*/(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
                         //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
                         SceneryContext.getInstance().highways.put(osmid, bridge/*roadoverbridge*/);
                         //roadsAndBridges.add(bridge.roadoverbridge);
@@ -140,7 +141,7 @@ public class HighwayModule extends SceneryModule {
                         roadsAndBridges.add(bridge);
                         SceneryContext.getInstance().bridges.put(osmid, bridge);
                         /*roadover*/
-                        bridge.addToWayMap(ROAD);
+                        bridge.addToWayMap(ROAD, SceneryContext.getInstance());
 
                         /*roadsAndBridges.add(bridge.gap);
                         if (bridge.ramp0 != null) {
@@ -152,18 +153,18 @@ public class HighwayModule extends SceneryModule {
 
                     } else if (TunnelModule.isTunnel(mapway.getTags())) {
                         //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
-                        Highway road = new Highway(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/);
+                        Highway road = new Highway(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
                         SceneryContext.getInstance().highways.put(osmid, road);
                         roadsAndBridges.add(road);
-                        road.addToWayMap(ROAD);
+                        road.addToWayMap(ROAD, SceneryContext.getInstance());
                     } else {
                         // normaler Highway
-                        Highway road = new Highway(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/);
+                        Highway road = new Highway(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
                         SceneryContext.getInstance().highways.put(osmid, road);
 
                         //SceneryArea area = new SceneryArea("Road", p, ASPHALT, mapway.getOsmId());
                         roadsAndBridges.add(road/*area*/);
-                        road.addToWayMap(ROAD);
+                        road.addToWayMap(ROAD, SceneryContext.getInstance());
                     }
                 } else {
                     logger.warn("Ignoring mapyway " + mapway.getOsmId() + " with only " + mapway.getMapWaySegments().size() + " segments");
@@ -208,7 +209,7 @@ public class HighwayModule extends SceneryModule {
     }
 
     @Override
-    public SceneryObjectList applyTo(MapWay mapway, TerrainMesh terrainMesh) {
+    public SceneryObjectList applyTo(MapWay mapway, TerrainMesh terrainMesh, SceneryContext sceneryContext) {
         // Also contains Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
 
@@ -225,24 +226,24 @@ public class HighwayModule extends SceneryModule {
             if (mapway.getMapWaySegments().size() > 0) {
                 if (BridgeModule.isBridge(mapway.getTags())) {
                     //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
-                    BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/);
+                    BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, sceneryContext);
                     //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
                     SceneryContext.getInstance().highways.put(osmid, bridge);
                     roadsAndBridges.add(bridge);
                     SceneryContext.getInstance().bridges.put(osmid, bridge);
-                    bridge.addToWayMap(ROAD);
+                    bridge.addToWayMap(ROAD, sceneryContext);
                 } else if (TunnelModule.isTunnel(mapway.getTags())) {
                     //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
-                    Highway road = new Highway(mapway, materialmap);
+                    Highway road = new Highway(mapway, materialmap, sceneryContext);
                     SceneryContext.getInstance().highways.put(osmid, road);
                     roadsAndBridges.add(road);
-                    road.addToWayMap(ROAD);
+                    road.addToWayMap(ROAD, sceneryContext);
                 } else {
                     // regular highway
-                    Highway road = new Highway(mapway, materialmap);
-                    SceneryContext.getInstance().highways.put(osmid, road);
+                    Highway road = new Highway(mapway, materialmap, sceneryContext);
+                    sceneryContext.highways.put(osmid, road);
                     roadsAndBridges.add(road);
-                    road.addToWayMap(ROAD);
+                    road.addToWayMap(ROAD, sceneryContext);
                 }
             } else {
                 logger.warn("Ignoring mapyway " + mapway.getOsmId() + " with only " + mapway.getMapWaySegments().size() + " segments");
@@ -376,8 +377,8 @@ public class HighwayModule extends SceneryModule {
      * Aber nicht als "Raod", weil das dann auch ein Graph wird.
      * Nicht mehr hier wegen Coupling.
      */
-    public static void buildBridgeApproaches(/*SceneryObjectList*/List<SceneryObject> roadsAndBridges) {
-        for (BridgeModule.Bridge bridge : SceneryContext.getInstance().bridges.values()) {
+    public static void buildBridgeApproaches(/*SceneryObjectList*/List<SceneryObject> roadsAndBridges, SceneryContext sceneryContext) {
+        for (BridgeModule.Bridge bridge : sceneryContext.bridges.values()) {
             List<SceneryWayObject> sroads = getConnectedWays(bridge./*roadorrailway.*/mapWay.getStartNode(), true);
             sroads.remove(bridge/*.roadorrailway*/);
             if (checkRoadsAtBridge(sroads)) {
@@ -1061,10 +1062,10 @@ public class HighwayModule extends SceneryModule {
         final private boolean steps;
         private AbstractArea marking;
 
-        public Highway(MapWay/*Segment*/ line/*, TagGroup tags/*, long osmid*/, TagMap materialmap) {
+        public Highway(MapWay/*Segment*/ line/*, TagGroup tags/*, long osmid*/, TagMap materialmap, SceneryContext sceneryContext) {
 
             //super(line);
-            super("Road", line, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, null);//mapWay = line;
+            super("Road", line, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, null, sceneryContext);//mapWay = line;
             logger = Logger.getLogger(Highway.class.getName());
 
 

@@ -1,6 +1,7 @@
 package de.yard.threed.osm2scenery.modules;
 
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
@@ -22,6 +23,10 @@ public abstract class SceneryModule {
         return new ArrayList<>(worldModules);
     }
 
+    /**
+     * Deprecated in favor of applyTo(MapWay mapWay, TerrainMesh terrainMesh)
+     */
+    @Deprecated
     public abstract SceneryObjectList applyTo(MapData mapData);
 
     /**
@@ -29,7 +34,7 @@ public abstract class SceneryModule {
      * the context but not for adding to it. That is done later.
      * TODO should be sufficint to pass waymaps.
      */
-    public SceneryObjectList applyTo(MapWay mapWay, TerrainMesh terrainMesh){
+    public SceneryObjectList applyTo(MapWay mapWay, TerrainMesh terrainMesh, SceneryContext sceneryContext){
         return new SceneryObjectList();
     }
 

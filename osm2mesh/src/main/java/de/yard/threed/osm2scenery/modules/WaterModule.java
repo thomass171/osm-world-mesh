@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.scenery.FixedWidthProvider;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
@@ -80,7 +81,7 @@ public class WaterModule extends SceneryModule {
         for (MapWay/*Segment*/ line : mapData.getMapWays()/*Segments()*/) {
             for (String value : WATERWAY_WIDTHS.keySet()) {
                 if (line.getTags().contains("waterway", value) && tagfilter.isAccepted(line.getTags())) {
-                    Waterway waterway = new Waterway(line);
+                    Waterway waterway = new Waterway(line, SceneryContext.getInstance());
                     //line.addRepresentation(waterway);
                     rivers.add(waterway);
                 }
@@ -117,8 +118,8 @@ public class WaterModule extends SceneryModule {
 
     public static class Waterway extends SceneryWayObject {
 
-        public Waterway(MapWay/*Segment*/ line) {
-            super("River", line, WATER, RIVER, new FixedWidthProvider(getWidth(line.getTags())));
+        public Waterway(MapWay/*Segment*/ line, SceneryContext sceneryContext) {
+            super("River", line, WATER, RIVER, new FixedWidthProvider(getWidth(line.getTags())), sceneryContext);
             //16.8.18 super.createPolygon(getWidth());
         }
 		

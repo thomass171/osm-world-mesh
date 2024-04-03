@@ -38,10 +38,10 @@ public class GraphComponent extends de.yard.threed.graph.GraphComponent {
      * @param parent
      * @param category
      */
-    public GraphComponent(SceneryWayObject parent, SceneryObject.Category category) {
+    public GraphComponent(SceneryWayObject parent, SceneryObject.Category category, SceneryContext sceneryContext) {
         this.parent = parent;
         edgelist = new ArrayList<>();
-        Graph graph = graph = SceneryContext.getInstance().getGraph(category);
+        Graph graph = sceneryContext/*3.4.24 SceneryContext.getInstance()*/.getGraph(category);
         this.category = category;
 
         for (MapWaySegment line : parent.mapWay.getMapWaySegments()) {

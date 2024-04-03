@@ -4,6 +4,7 @@ package de.yard.threed.osm2scenery.modules;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineSegment;
 import de.yard.threed.osm2graph.osm.JtsUtil;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
@@ -95,9 +96,9 @@ public class BridgeModule extends SceneryModule {
         public BridgeHead startHead, endHead;
 
         public Bridge(MapWay mapWay, TagMap materialmap/*SceneryWayObject roadorrailway/*MapWay mapWay/*MapWaySegment segment,
-                AbstractNetworkWaySegmentWorldObject primaryWO*/) {
+                AbstractNetworkWaySegmentWorldObject primaryWO*/, SceneryContext sceneryContext) {
             //TODO category kann auch Railway sein.
-            super("Bridge", mapWay, materialmap, Category.ROAD/*BRIDGE*/);
+            super("Bridge", mapWay, materialmap, Category.ROAD/*BRIDGE*/, sceneryContext);
             //super("Bridge", roadorrailway, Category.BRIDGE/*mapWay/*segment, primaryWO*/);
             //shadowway = MapDataHelper.createShadowMapWay(roadorrailway.mapWay);
 

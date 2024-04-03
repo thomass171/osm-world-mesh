@@ -63,12 +63,12 @@ public class SceneryWayObject extends SceneryFlatObject {
     public Map<Integer, SceneryWayConnector> innerConnectorMap;
     public List<MapNode> effectiveNodes;
 
-    protected SceneryWayObject(String creatortag, MapWay mapWay, Material material, Category category, WidthProvider widthProvider) {
+    protected SceneryWayObject(String creatortag, MapWay mapWay, Material material, Category category, WidthProvider widthProvider, SceneryContext sceneryContext) {
         super(creatortag, material, category, null/*new WayArea(material)*/);
         this.mapWay = mapWay;
         this.widthProvider = widthProvider;
         this.cycle = Cycle.WAY;
-        graphComponent = new GraphComponent(this, category);
+        graphComponent = new GraphComponent(this, category, sceneryContext);
         //11.4.19: Die soll doch wohl nachgehalten werden
         osmIds.add(mapWay.getOsmId());
         setNameFromOsm(mapWay.getTags());
@@ -430,10 +430,10 @@ public class SceneryWayObject extends SceneryFlatObject {
     }
 
 
-    public void addToWayMap(Category category) {
-        SceneryContext.getInstance().wayMap.registerWayAtNode(category, mapWay.getStartNode(), this);
+    public void addToWayMap(Category category, SceneryContext sceneryContext) {
+        sceneryContext.wayMap.registerWayAtNode(category, mapWay.getStartNode(), this);
         for (MapWaySegment seg : mapWay.getMapWaySegments()) {
-            SceneryContext.getInstance().wayMap.registerWayAtNode(category, seg.getEndNode(), this);
+            sceneryContext.wayMap.registerWayAtNode(category, seg.getEndNode(), this);
         }
     }
 

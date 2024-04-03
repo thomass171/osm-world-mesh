@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.scenery.FixedWidthProvider;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
@@ -34,7 +35,7 @@ public class RailwayModule extends SceneryModule {
 		for (MapWay/*Segment*/ segment : grid.getMapWays/*Segments*/()) {
 			if (segment.getTags().containsAny("railway", RAILWAY_VALUES)) {
 				//segment.addRepresentation(new Rail(segment));
-				rails.add(new Rail(segment));
+				rails.add(new Rail(segment, SceneryContext.getInstance()));
 			}
 		}
 		
@@ -103,9 +104,9 @@ public class RailwayModule extends SceneryModule {
 		final float sleeperWidth;
 		final float groundWidth;
 		
-		public Rail(MapWay/*Segment*/ segment) {
+		public Rail(MapWay/*Segment*/ segment, SceneryContext sceneryContext) {
 			
-			super("Railway",segment, RAIL,RAILWAY,new FixedWidthProvider(5/*groundwidht*/));
+			super("Railway",segment, RAIL,RAILWAY,new FixedWidthProvider(5/*groundwidht*/), sceneryContext);
 			
 			gaugeMeters = parseInt(segment.getTags(), DEFAULT_GAUGE_MM, "gauge") / 1000.0f;
 			railDist = gaugeMeters + 2 * (0.5f * RAIL_HEAD_WIDTH);

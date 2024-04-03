@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules.common;
 
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
@@ -40,9 +41,9 @@ public abstract class BridgeOrTunnel extends HighwayModule.Highway/*SceneryVolum
     public SceneryWayObject eroad;
 
     public BridgeOrTunnel(String creatortag, MapWay mapWay, TagMap materialmap, Category category/*/* SceneryWayObject roadorrailway,* / /*MapWay mapWay/*MapWaySegment segment,
-                          AbstractNetworkWaySegmentWorldObject primaryRepresentation*/) {
+                          AbstractNetworkWaySegmentWorldObject primaryRepresentation*/, SceneryContext sceneryContext) {
         //super(creatortag, category);
-        super(mapWay,materialmap);
+        super(mapWay, materialmap, sceneryContext);
         this.creatortag=creatortag;
         //this.roadorrailway = roadorrailway;
         isTerrainProvider=false;
