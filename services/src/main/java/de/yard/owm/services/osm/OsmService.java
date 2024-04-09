@@ -131,7 +131,7 @@ public class OsmService {
 
         //24.4.19: Der ganze Elekram erst jetzt, wenn alle Polygone final sind. Elegroups gibt es aber schon lange.
         Phase.updatePhase(Phase.ELEVATION);
-        SceneryMesh.connectElevationGroups(sceneryMesh.sceneryObjects.objects, sceneryMesh.terrainMesh);
+        SceneryMesh.connectElevationGroups(sceneryMesh.sceneryObjects.objects, terrainMesh);
 
         // 28.8.18: Vorab Elevation vorbereiten, damit die Groups angelegt werden koennen.
         // Die Property ElevationProvider legt nicht nur den Provider fest, sondern

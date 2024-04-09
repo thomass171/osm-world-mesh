@@ -4,7 +4,9 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.owm.services.osm.OsmElementService;
 import de.yard.owm.services.persistence.PersistedMeshFactory;
+import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.owm.services.util.OsmXmlParser;
+import de.yard.owm.testutils.TestUtils;
 import de.yard.threed.TestUtil;
 import de.yard.threed.core.Pair;
 import de.yard.threed.core.Vector2;
@@ -12,7 +14,6 @@ import de.yard.threed.core.geometry.SimpleGeometry;
 import de.yard.threed.core.loader.PortableModelDefinition;
 import de.yard.threed.core.loader.PortableModelList;
 import de.yard.threed.core.platform.PlatformInternals;
-import de.yard.threed.core.testutil.TestUtils;
 import de.yard.threed.graph.Graph;
 import de.yard.threed.javacommon.ConfigurationByEnv;
 import de.yard.threed.javacommon.SimpleHeadlessPlatform;
@@ -79,6 +80,9 @@ public class HighwayModuleTest {
 
     @Autowired
     OsmElementService osmElementService;
+
+    @Autowired
+    TerrainMeshManager terrainMeshManager;
 
     /**
      * Den clip() hier nicht testen, da haengt zu viel dran? Connector clippen jetzt aber teilweise in createPolygon()?
@@ -483,7 +487,7 @@ public class HighwayModuleTest {
         OSMData osmData = parser.getData();
 
         GridCellBounds gridCellBounds = GridCellBounds.buildFromOsmData(osmData);
-        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(gridCellBounds.getProjection().getBaseProjection());
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(gridCellBounds.getProjection().getBaseProjection(), terrainMeshManager);
 
         OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
         MapData mapData = converter.createMapData(osmData);
@@ -495,9 +499,14 @@ public class HighwayModuleTest {
 
         MapWay k41 = mapData.findMapWays(24927839).get(0);
         TerrainMesh tm = TerrainMesh.init(gridCellBounds);
+        TestUtils.addTerrainMeshBoundary(tm, gridCellBounds.getOrigin().getLatDeg().getDegree(), gridCellBounds.getOrigin().getLonDeg().getDegree(),
+                gridCellBounds.degwidth, gridCellBounds.degheight, gridCellBounds.getProjection().getBaseProjection());
+
         //Processor processor = sb.execute(desdorfk41, configsuffix, "Desdorf", false, customconfig, MATERIAL_FLIGHT).processor;
         HighwayModule roadModule = new HighwayModule();
         List<SceneryObject> sceneryObjects = osmElementService.process(k41, List.of(roadModule), tm, sceneryContext);
+
+        TestUtils.writeTmpSvg(tm.toSvg());
 
         // 5 echte und eine durch gridnode. 13.8.19 jetzt nur innerhalb
         //3.4.24 assertEquals(2 + 1, SceneryContext.getInstance().getGraph(SceneryObject.Category.ROAD).getNodeCount(), "edges");
@@ -506,6 +515,8 @@ public class HighwayModuleTest {
         // only K41 und einen Background.
         assertEquals(1, sceneryContext.highways.size(), "sceneryContext.highways");
         assertEquals(1, sceneryObjects.size(), "scenery.areas");
+
+        assertEquals(4 + 2 * 4 + 2, tm.lines.size(), "TerrainMesh.lines");
 
 
         /*3.4.24 if (SceneryBuilder.FTR_SMARTBG) {

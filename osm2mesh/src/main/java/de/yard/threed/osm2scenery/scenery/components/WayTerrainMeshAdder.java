@@ -12,6 +12,9 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Added for adding a way to the TerrainMesh.
+ */
 public class WayTerrainMeshAdder implements TerrainMeshAdder {
     Logger logger = Logger.getLogger(WayTerrainMeshAdder.class);
     SceneryWayObject sceneryWayObject;
@@ -67,7 +70,7 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
                 }
                 int conn = 0;
                 if (segment < sceneryWayObject.innerConnector.size()) {
-                    SceneryWayConnector con =sceneryWayObject.innerConnector.get(segment);
+                    SceneryWayConnector con = sceneryWayObject.innerConnector.get(segment);
                     if (con.hasMinor()) {
                         if (con.minorHitsLeft(con.minorway, tm)) {
                             conn = 1;
@@ -76,34 +79,40 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
                         }
                     }
                 }
-                boolean endOnGrid = conn == 0 && sceneryWayObject.endMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
+                if (tm.isPreDbStyle()) {
+                    boolean endOnGrid = conn == 0 && sceneryWayObject.endMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
 
-                if (conn == 0 || conn == 1) {
-                    boolean startOnGrid = wayArea.getLeftLines(tm).size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
-                    MeshLine line = tm.registerLine(leftline, null, areas[0], startOnGrid, endOnGrid);
-                    wayArea.addLeftline(line);
-                    leftline = new ArrayList<>();
-                }
-                if (conn == 0 || conn == 2) {
-                    boolean startOnGrid = wayArea.getRightLines(tm).size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
-                    wayArea.addRightline(tm.registerLine(rightline, areas[0], null, startOnGrid, endOnGrid));
-                    rightline = new ArrayList<>();
+                    if (conn == 0 || conn == 1) {
+                        boolean startOnGrid = wayArea.getLeftLines(tm).size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
+                        MeshLine line = tm.registerLine(leftline, null, areas[0], startOnGrid, endOnGrid);
+                        wayArea.addLeftline(line);
+                        leftline = new ArrayList<>();
+                    }
+                    if (conn == 0 || conn == 2) {
+                        boolean startOnGrid = wayArea.getRightLines(tm).size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
+                        wayArea.addRightline(tm.registerLine(rightline, areas[0], null, startOnGrid, endOnGrid));
+                        rightline = new ArrayList<>();
+                    }
+                } else {
+                  tm.registerWay(null, leftline, rightline ,null,2);
                 }
             }
         }
 
-        // Also consider dead end
-        if (sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.DEADEND) {
-            CoordinatePair p = wayArea.getStartPair(tm)[0];
-            tm.registerLine(JtsUtil.toList(p.left(), p.right()), areas[0], null, false, false);
-            tm.addKnownTwoEdger(p.left());
-            tm.addKnownTwoEdger(p.right());
-        }
-        if (sceneryWayObject.endMode == SceneryWayObject.WayOuterMode.DEADEND) {
-            CoordinatePair p = wayArea.getEndPair()[0];
-            tm.registerLine(JtsUtil.toList(p.left(), p.right()), null, areas[0], false, false);
-            tm.addKnownTwoEdger(p.left());
-            tm.addKnownTwoEdger(p.right());
+        // Also consider dead end. Connect left and right lines from above.
+        if (tm.isPreDbStyle()) {
+            if (sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.DEADEND) {
+                CoordinatePair p = wayArea.getStartPair(tm)[0];
+                tm.registerLine(JtsUtil.toList(p.left(), p.right()), areas[0], null, false, false);
+                tm.addKnownTwoEdger(p.left());
+                tm.addKnownTwoEdger(p.right());
+            }
+            if (sceneryWayObject.endMode == SceneryWayObject.WayOuterMode.DEADEND) {
+                CoordinatePair p = wayArea.getEndPair()[0];
+                tm.registerLine(JtsUtil.toList(p.left(), p.right()), null, areas[0], false, false);
+                tm.addKnownTwoEdger(p.left());
+                tm.addKnownTwoEdger(p.right());
+            }
         }
         //  lazy cut isType already registerd in GridBounds, but needs left/right
 

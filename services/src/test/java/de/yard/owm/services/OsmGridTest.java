@@ -3,6 +3,7 @@ package de.yard.owm.services;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.owm.services.persistence.PersistedMeshFactory;
+import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.owm.testutils.TestUtils;
 import de.yard.threed.TestUtil;
 import de.yard.threed.core.Color;
@@ -105,13 +106,16 @@ public class OsmGridTest {
     @Autowired
     private WebApplicationContext context;
 
+    @Autowired
+    TerrainMeshManager terrainMeshManager;
+
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
     Logger logger = Logger.getLogger(OsmGridTest.class);
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(null);
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(null, terrainMeshManager);
     }
 
     @Test

@@ -83,6 +83,8 @@ public class GridCellBounds /*implements TargetBounds*/ {
     private boolean locked = false;
     private Map<Integer, List<LazyCutObject>> mapOfCuts;
 
+    public double degwidth, degheight;
+
     /**
      * 26.3.24: Deprecated because of new gridless DB approach.
      */
@@ -125,8 +127,8 @@ public class GridCellBounds /*implements TargetBounds*/ {
         this.left = left;
         this.right = right;
 
-        double degwidth = right - left;
-        double degheight = top - bottom;
+        degwidth = right - left;
+        degheight = top - bottom;
         // der groessere Wert bestimmt den factor, in die andere Richtung wird Verschnitt entstehen.
         degsize = Math.max(degheight, degwidth);
 
@@ -251,6 +253,10 @@ public class GridCellBounds /*implements TargetBounds*/ {
 
     public LatLon getTopLeft() {
         return LatLon.fromDegrees(getTop(), getLeft());
+    }
+
+    public LatLon getTopRight() {
+        return LatLon.fromDegrees(getTop(), getRight());
     }
 
     public double getScale(int imagesize) {

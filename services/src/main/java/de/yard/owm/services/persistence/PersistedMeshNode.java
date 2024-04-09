@@ -68,6 +68,12 @@ public class PersistedMeshNode implements MeshNode {
         lon = latlon.getLonDeg().getDegree();
     }
 
+    public PersistedMeshNode(GeoCoordinate latLon, MetricMapProjection projection) {
+        setProjection(projection);
+        lat = latLon.getLatDeg().getDegree();
+        lon = latLon.getLonDeg().getDegree();
+    }
+
     @Override
     public String toString() {
         return "" + lat + "," + lon;
@@ -85,7 +91,7 @@ public class PersistedMeshNode implements MeshNode {
 
     @Override
     public void addLine(MeshLine line) {
-
+        linesOfPoint.add((PersistedMeshLine) line);
     }
 
     @Override
@@ -102,7 +108,7 @@ public class PersistedMeshNode implements MeshNode {
     }
 
     public GeoCoordinate getGeoCoordinate() {
-        return GeoCoordinate.fromLatLon(LatLon.fromDegrees(lat, lon),-555);
+        return GeoCoordinate.fromLatLon(LatLon.fromDegrees(lat, lon), -555);
     }
 
     public void setProjection(MetricMapProjection projection) {

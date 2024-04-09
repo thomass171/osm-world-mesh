@@ -3,6 +3,8 @@ package de.yard.threed.osm2scenery.scenery;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
+import de.yard.threed.core.Pair;
+import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
@@ -19,6 +21,7 @@ import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
+import de.yard.threed.osm2world.VectorXZ;
 import de.yard.threed.traffic.geodesy.ElevationProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -60,6 +63,7 @@ public class TerrainMesh {
     // 29.3.24: Taken from SceneryContext
     public WayMap wayMap = new WayMap();
     public List<String> warnings = new ArrayList<>();
+
     /**
      * gridCellBounds are the outer boundaries of the (sub)mesh.
      */
@@ -315,7 +319,7 @@ public class TerrainMesh {
 
     /**
      * Ways and WayConnector.
-     * 5.8.19:Auch sonstige Areas.NeeNee.
+     * 5.8.19: Not for areas.
      */
     public void addWays(List<SceneryObject> sceneryObjects) {
         if (step != 1) {
@@ -403,15 +407,23 @@ public class TerrainMesh {
 
     }
 
-
+    /**
+     * 5.4.24: Deprecated in favor of registerArea
+     */
+    @Deprecated
     public MeshLine registerLine(LineString line, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right) {
         return registerLine(JtsUtil.toList(line.getCoordinates()), left, right, false, false);
     }
 
+    /**
+     * 5.4.24: Deprecated in favor of registerArea
+     * 8.4.24: registerArea/Way uses below method
+     */
+    @Deprecated
     public MeshLine registerLine(List<Coordinate> line, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right,
                                  boolean startOnGrid, boolean endOnGrid) {
         //logger.debug("new line with " + line.size() + " coordinates");
-        MeshLine meshLine = buildMeshLineFromList(line);
+        MeshLine meshLine = buildMeshLinesFromList(line).get(0);
         int startPoint, endPoint;
         if (startOnGrid) {
             MeshNode p = getMeshNode(line.get(0));
@@ -426,8 +438,23 @@ public class TerrainMesh {
         return meshLine;
     }
 
-    public MeshLine registerLine(MeshNode p0, MeshNode p1, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right ) {
-        MeshLine meshLine = MeshFactory.buildMeshLine(new Coordinate[]{p0.getCoordinate(), p1.getCoordinate()});
+    private List<MeshLine> registerLineNonPreDB(List<Coordinate> line, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right                                ) {
+        //logger.debug("new line with " + line.size() + " coordinates");
+        List<MeshLine> meshLines = buildMeshLinesFromList(line);
+        for (MeshLine meshLine : meshLines) {
+            meshLine.setLeft(left);
+            meshLine.setRight(right);
+            registerLine(meshLine);
+        }
+        return lines;
+    }
+
+    /**
+     * 5.4.24: Deprecated in favor of registerArea
+     */
+    @Deprecated
+    public MeshLine registerLine(MeshNode p0, MeshNode p1, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right) {
+        MeshLine meshLine = MeshFactory.buildMeshLines(new Coordinate[]{p0.getCoordinate(), p1.getCoordinate()}).get(0);
         if (meshLine == null) {
             return null;
         }
@@ -439,6 +466,30 @@ public class TerrainMesh {
         meshLine.setRight(right);
         registerLine(meshLine);
         return meshLine;
+    }
+
+    /**
+     * 5.4.24: Three additional register instead of registerLine, which isn't ready for polygons.
+     * lanes is used leter to detect ways for triangulateAndTexturize
+     * connector might be null, otherwise the connecting part must have been created before.
+     * 6.4.24: Well, maybe its easier to keep existing registerLine for a while?
+     */
+    public void registerWay(Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) {
+        AbstractArea/*SceneryFlatObject*/ leftArea=null;
+        AbstractArea/*SceneryFlatObject*/ rightArea=null;
+        registerLineNonPreDB(leftLine,leftArea ,  rightArea);
+        registerLineNonPreDB(rightLine,leftArea ,  rightArea);
+        registerLineNonPreDB(JtsUtil.toList(leftLine.get(0), rightLine.get(0)), null, null);
+        registerLineNonPreDB(JtsUtil.toList(leftLine.get(leftLine.size()-1), rightLine.get(rightLine.size()-1)), null, null);
+
+    }
+
+    public void registerConnector() {
+
+    }
+
+    public void registerArea() {
+
     }
 
     public boolean isValid() {
@@ -524,24 +575,29 @@ public class TerrainMesh {
         return gridCellBounds;
     }
 
-    private MeshLine buildMeshLineFromList(List<Coordinate> line) {
-        MeshLine meshLine = MeshFactory.buildMeshLine((Coordinate[]) line.toArray(new Coordinate[0]));
-        if (meshLine == null) {
-            return null;
-        }
-        MeshNode p;
-        if ((p = getMeshNode(line.get(0))) == null) {
-            p = registerPoint(line.get(0));
-        }
-        meshLine.setFrom(p);
-        TerrainMesh.validateMeshLine(meshLine, warnings);
-        if ((p = getMeshNode(line.get(line.size() - 1))) == null) {
-            p = registerPoint(line.get(line.size() - 1));
-        }
-        meshLine.setTo(p);
-        TerrainMesh.validateMeshLine(meshLine, warnings);
+    private List<MeshLine> buildMeshLinesFromList(List<Coordinate> line) {
+        List<MeshLine> meshLines = MeshFactory.buildMeshLines((Coordinate[]) line.toArray(new Coordinate[0]));
+        if (isPreDbStyle()) {
+            MeshLine meshLine = meshLines.get(0);
+            if (meshLine == null) {
+                return null;
+            }
+            MeshNode p;
+            if ((p = getMeshNode(line.get(0))) == null) {
+                p = registerPoint(line.get(0));
+            }
+            meshLine.setFrom(p);
+            TerrainMesh.validateMeshLine(meshLine, warnings);
+            if ((p = getMeshNode(line.get(line.size() - 1))) == null) {
+                p = registerPoint(line.get(line.size() - 1));
+            }
+            meshLine.setTo(p);
+            TerrainMesh.validateMeshLine(meshLine, warnings);
 
-        return meshLine;
+            return List.of(meshLine);
+        }
+        // DB style
+        return meshLines;
     }
 
     private MeshNode registerPoint(Coordinate coordinate) {
@@ -907,6 +963,10 @@ public class TerrainMesh {
      */
     public MeshLine[] split(MeshLineSplitCandidate meshLineSplit) {
 
+        if (!isPreDbStyle()){
+            Util.notyet();
+        }
+
         /*if (!isValid(true)) {
             logger.error("already invalid");
         }*/
@@ -921,7 +981,7 @@ public class TerrainMesh {
             // start with last line
             linenewcoors.add(p0.getCoordinate());
             linenewcoors.addAll(JtsUtil.sublist(line.getCoordinates(), meshLineSplit.from + 1, line.length() - 1));
-            MeshLine lastline = buildMeshLineFromList(linenewcoors);
+            MeshLine lastline = buildMeshLinesFromList(linenewcoors).get(0);
             if (lastline == null) {
                 return null;
             }
@@ -952,7 +1012,7 @@ public class TerrainMesh {
         List<Coordinate> linenewcoors = new ArrayList<>();
         linenewcoors.add(p1.getCoordinate());
         linenewcoors.addAll(JtsUtil.sublist(line.getCoordinates(), meshLineSplit.to + 1, line.length() - 1));
-        MeshLine lastline = buildMeshLineFromList(linenewcoors);
+        MeshLine lastline = buildMeshLinesFromList(linenewcoors).get(0);
         //wenn die line closed ist, nicht entfernen, sonst hängt der Anfang in der Luft.
         if (!toWasFrom) {
             line.getTo().removeLine(line);
@@ -964,7 +1024,7 @@ public class TerrainMesh {
         linenewcoors = JtsUtil.sublist(line.getCoordinates(), 0, meshLineSplit.from - ((meshLineSplit.fromIsCoordinate) ? 1 : 0));
         linenewcoors.add(p0.getCoordinate());
         //line.coordinates = JtsUtil.toArray(linenewcoors);
-        MeshLine midline = buildMeshLineFromList(meshLineSplit.newcoors);
+        MeshLine midline = buildMeshLinesFromList(meshLineSplit.newcoors).get(0);
         registerLine(midline);
         midline.getFrom().addLine(line);
         line.setCoordinatesAndTo(JtsUtil.toArray(linenewcoors), midline.getFrom());
@@ -1283,7 +1343,7 @@ public class TerrainMesh {
 
     }
 
-    public static void validateMeshLine(MeshLine meshLine, List<String> warnings ) {
+    public static void validateMeshLine(MeshLine meshLine, List<String> warnings) {
         MeshNode from = meshLine.getFrom();
         MeshNode to = meshLine.getTo();
         if (from != null && to != null && from == to) {
@@ -1399,6 +1459,47 @@ public class TerrainMesh {
         }
         MeshLine meshLine = registerLine(segment, (areaIsLeft) ? abstractArea : null, (areaIsLeft) ? null : abstractArea);
         return meshLine;
+    }
+
+    public boolean isPreDbStyle() {
+        return gridCellBounds.isPreDbStyle();
+    }
+
+    public String toSvg() {
+
+        int width = 800;
+        int height = 600;
+        String svg = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"" + width + "px\" height=\"" + height + "px\" viewBox=\"0 0 " + width + " " + height + "\">\n";
+
+        svg += " <rect x=\"0\" y=\"0\" width=\"" + width + "\" height=\"" + height +
+                "\" stroke=\"green\" stroke-width=\"1px\" fill=\"white\"/>\n";
+
+        svg += "<g transform=\"translate(" + width / 2 + "," + height / 2 + ")\">";
+
+        VectorXZ bottomLeft = gridCellBounds.getProjection().getBaseProjection().calcPos(gridCellBounds.getBottomLeft());
+        VectorXZ topRight = gridCellBounds.getProjection().getBaseProjection().calcPos(gridCellBounds.getTopRight());
+
+        // maxextension in gridCellBounds can be used instead?
+        double spanX = topRight.x - bottomLeft.x;
+        double spanY = topRight.z - bottomLeft.z;
+        double scale;
+        if (spanX > spanY) {
+            scale = (double) width / spanX;
+        } else {
+            scale = (double) height / spanY;
+        }
+
+        for (MeshLine line : lines) {
+            int x1 = (int) (line.getFrom().getCoordinate().x * scale);
+            int y1 = -(int) (line.getFrom().getCoordinate().y * scale);
+            int x2 = (int) (line.getTo().getCoordinate().x * scale);
+            int y2 = -(int) (line.getTo().getCoordinate().y * scale);
+            svg += " <line x1=\"" + x1 + "\" y1=\"" + y1 + "\" x2=\"" + x2 + "\" y2=\"" + y2 + "\" stroke=\"black\"/>\n";
+        }
+        svg += "</g>";
+        svg += "</svg>";
+        return svg;
     }
 }
 

@@ -3,6 +3,7 @@ package de.yard.owm.services;
 
 import de.yard.owm.services.osm.OsmService;
 import de.yard.owm.services.persistence.PersistedMeshFactory;
+import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.owm.services.util.OsmXmlParser;
 import de.yard.threed.core.platform.PlatformInternals;
 import de.yard.threed.javacommon.ConfigurationByEnv;
@@ -42,6 +43,9 @@ public class OsmServiceTest {
     @Autowired
     private OsmService osmService;
 
+    @Autowired
+    TerrainMeshManager terrainMeshManager;
+
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
 
 
@@ -57,7 +61,7 @@ public class OsmServiceTest {
         customconfig.setProperty("modules.HighwayModule.tagfilter", "highway=secondary");
 
         GridCellBounds gridCellBounds = GridCellBounds.buildFromOsmData(osmData);
-        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(gridCellBounds.getProjection().getBaseProjection());
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(gridCellBounds.getProjection().getBaseProjection(), terrainMeshManager);
 
         OsmService.Results results = osmService.createRepresentations(gridCellBounds, gridCellBounds.getProjection() ,osmData);
         assertNotNull( results.sceneryMesh);

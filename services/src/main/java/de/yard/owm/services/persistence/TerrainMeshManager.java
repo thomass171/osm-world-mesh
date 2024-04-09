@@ -25,4 +25,9 @@ public class TerrainMeshManager {
         // TODO make sure to have full outline in mesh
         return terrainMesh;
     }
+
+    public void persist(TerrainMesh terrainMesh) {
+        terrainMesh.points.forEach(p-> meshNodeRepository.save((PersistedMeshNode) p));
+        terrainMesh.lines.forEach(p-> meshLineRepository.save((PersistedMeshLine) p));
+    }
 }

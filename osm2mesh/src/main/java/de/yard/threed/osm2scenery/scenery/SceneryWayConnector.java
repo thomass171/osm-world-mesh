@@ -39,7 +39,7 @@ import static de.yard.threed.osm2graph.osm.OsmUtil.toVector2;
  * <p>
  * 14.6.19: RoadConnector und Junction vereint in abstrakten WayConnector, der auch eine Flaeche hat.
  * 10.7.19: Bei innerConnector hat er aber nicht (unbedingt) eine Flaeche.
- * 18.7.19: Diese Connector sind für alle Ways, auch Railway, River, etc.
+ * 18.7.19: For all ways, also railway, River, etc.
  */
 public class SceneryWayConnector extends SceneryNodeObject {
     private WayConnectorType type = null;

@@ -1,17 +1,24 @@
 package de.yard.owm.testutils;
 
+import de.yard.owm.services.persistence.PersistedMeshLine;
+import de.yard.owm.services.persistence.PersistedMeshNode;
 import de.yard.threed.core.LatLon;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2world.MetricMapProjection;
 import de.yard.threed.traffic.geodesy.GeoCoordinate;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 
@@ -76,5 +83,41 @@ public class TestUtils {
 
         Duration duration = Duration.between(dateTime, ZonedDateTime.now());
         assertTrue(duration.abs().getSeconds() < 10);
+    }
+
+    public static void writeTmpSvg(String svg){
+
+        // string -> bytes
+        try {
+            Files.write(Paths.get("/Users/thomas/tmp/tmp.svg"), svg.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public static void addTerrainMeshBoundary(TerrainMesh terrainMesh, double centerLat, double centerLon, double widthInDegrees, double heightInDegrees, MetricMapProjection baseProjection) {
+        // mesh boundary
+        double margin = 0.01;
+        PersistedMeshNode topLeft = new PersistedMeshNode(GeoCoordinate.fromLatLon(
+                LatLon.fromDegrees(centerLat + heightInDegrees / 2 - margin, centerLon - widthInDegrees / 2 + margin), 0),
+                baseProjection);
+        PersistedMeshNode topRight = new PersistedMeshNode(GeoCoordinate.fromLatLon(
+                LatLon.fromDegrees(centerLat + heightInDegrees / 2 - margin, centerLon + widthInDegrees / 2 - margin), 0),
+                baseProjection);
+        PersistedMeshNode bottomRight = new PersistedMeshNode(GeoCoordinate.fromLatLon(
+                LatLon.fromDegrees(centerLat - heightInDegrees / 2 + margin, centerLon + widthInDegrees / 2 - margin), 0),
+                baseProjection);
+        PersistedMeshNode bottomLeft = new PersistedMeshNode(GeoCoordinate.fromLatLon(
+                LatLon.fromDegrees(centerLat - heightInDegrees / 2 + margin, centerLon - widthInDegrees / 2 + margin), 0),
+                baseProjection);
+        terrainMesh.points.add(topLeft);
+        terrainMesh.points.add(topRight);
+        terrainMesh.points.add(bottomRight);
+        terrainMesh.points.add(bottomLeft);
+        terrainMesh.lines.add(new PersistedMeshLine(topLeft, topRight));
+        terrainMesh.lines.add(new PersistedMeshLine(topRight, bottomRight));
+        terrainMesh.lines.add(new PersistedMeshLine(bottomRight, bottomLeft));
+        terrainMesh.lines.add(new PersistedMeshLine(bottomLeft, topLeft));
     }
 }

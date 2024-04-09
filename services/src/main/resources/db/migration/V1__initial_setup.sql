@@ -29,11 +29,11 @@ create sequence meshnode_seq start with 1;
 
 create table meshline (
     id bigint not null,
-    fromnode bigint not null,
-    tonode bigint not null,
+    from_node bigint not null,
+    to_node bigint not null,
 
-    foreign key (fromnode) references meshnode,
-    foreign key (tonode) references meshnode,
+    foreign key (from_node) references meshnode,
+    foreign key (to_node) references meshnode,
     primary key(id)
 );
 

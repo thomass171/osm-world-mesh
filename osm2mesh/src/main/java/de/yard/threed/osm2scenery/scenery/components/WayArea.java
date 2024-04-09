@@ -62,6 +62,7 @@ public class WayArea extends AbstractArea {
     //public List<MeshLine> leftlines = null, rightlines = null;
     // die neue wirkliche Representation des Way. Beide muessen immer gleich lang sein.
     // was wird denn daraus bei inner connector mit polygon? Vermutlich gehen diese lines "einfach darüber hinweg". TODO
+    // 5.4.24: The representation as line is important to keep way characteristics for triangulateAndTexturize()
     private CoordinateList rightline, leftline;
 
     /**

@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import de.yard.owm.testutils.TestData;
 import de.yard.owm.testutils.TestUtils;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
@@ -58,7 +59,7 @@ public class TerrainMeshTest {
         // SQL script already deletes
         //meshLineRepository.deleteAll();
         //meshNodeRepository.deleteAll();
-        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(projection);
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(projection, manager);
     }
 
     @AfterEach
@@ -107,5 +108,15 @@ public class TerrainMeshTest {
     public void testFindByName() throws Exception {
       /*  this.mockMvc.perform(get("/mazes/mazes/search/findByName?name=Sokoban Wikipedia")).andDo(print())
                 .andExpect(content().string(containsString("##")));*/
+    }
+
+    @Test
+    public void testTestData2024() {
+
+        TestData testData = TestData.build2024(manager);
+
+        String svg = testData.terrainMesh.toSvg();
+
+        TestUtils.writeTmpSvg(svg);
     }
 }
