@@ -8,13 +8,16 @@ import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.TagHelper;
+import de.yard.threed.osm2world.OSMData;
 import de.yard.threed.osm2world.OSMNode;
 import de.yard.threed.osm2world.OSMWay;
 import de.yard.threed.scenery.util.SimpleRoundBodyCalculations;
 import de.yard.threed.traffic.EllipsoidCalculations;
 import de.yard.threed.traffic.geodesy.GeoCoordinate;
+import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static de.yard.threed.osm2scenery.util.TagHelper.buildTagGroup;
@@ -27,8 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class TestData {
 
     GridCellBounds gridCellBounds;
-    List<OSMWay> ways = new ArrayList();
-    List<OSMNode> nodes = new ArrayList();
+    private List<OSMWay> ways = new ArrayList();
+    private List<OSMNode> nodes = new ArrayList();
+    public OSMData osmData;
     int id = 100;
     public TerrainMesh terrainMesh;
 
@@ -37,10 +41,12 @@ public class TestData {
 
         terrainMesh = TerrainMesh.init(gridCellBounds);
 
-        //OSMData osmData = new OSMData(null, nodes, ways, null);
         createUshapedWay(gridCellBounds.getOrigin(), 0.003);
 
         //String bounds = "<bounds minlat=\"50.9450000\" minlon=\"6.5944000\" maxlat=\"50.9479000\" maxlon=\"6.5997000\"/>";
+
+        Bound bound = new Bound(gridCellBounds.getRight(),  gridCellBounds.getLeft(),  gridCellBounds.getTop(), gridCellBounds.getBottom(), "");
+        osmData = new OSMData(List.of(bound), nodes, ways, Collections.emptySet());
 
     }
 
@@ -69,16 +75,16 @@ public class TestData {
      * U-shape
      */
     private OSMWay createUshapedWay(LatLon origin, double lenInDegrees) {
-        LatLon latloneast = LatLon.fromDegrees(origin.getLatDeg().getDegree() + lenInDegrees / 2, origin.getLonDeg().getDegree());
-        LatLon latlonwest = LatLon.fromDegrees(origin.getLatDeg().getDegree() - lenInDegrees / 2, origin.getLonDeg().getDegree());
-        LatLon latlonuppereast = LatLon.fromDegrees(origin.getLatDeg().getDegree(), origin.getLonDeg().getDegree() + lenInDegrees);
-        LatLon latlonupperwest = LatLon.fromDegrees(origin.getLatDeg().getDegree(), origin.getLonDeg().getDegree() + lenInDegrees);
+        LatLon latloneast = LatLon.fromDegrees(origin.getLatDeg().getDegree() , origin.getLonDeg().getDegree()+ lenInDegrees / 2);
+        LatLon latlonwest = LatLon.fromDegrees(origin.getLatDeg().getDegree() , origin.getLonDeg().getDegree()- lenInDegrees / 2);
+        LatLon latlonuppereast = LatLon.fromDegrees(origin.getLatDeg().getDegree() + lenInDegrees, latloneast.getLonDeg().getDegree());
+        LatLon latlonupperwest = LatLon.fromDegrees(origin.getLatDeg().getDegree() + lenInDegrees, latlonwest.getLonDeg().getDegree());
         List<OSMNode> way = new ArrayList<>();
         way.add(createNode(latlonupperwest));
         way.add(createNode(latlonwest));
         way.add(createNode(latloneast));
         way.add(createNode(latlonuppereast));
-        OSMWay osmWay = new OSMWay(buildTagGroup("railway", "rail"), id++, way);
+        OSMWay osmWay = new OSMWay(buildTagGroup("highway", "primary"), id++, way);
         ways.add(osmWay);
         return osmWay;
     }

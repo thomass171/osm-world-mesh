@@ -41,6 +41,7 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
 
         WayArea wayArea = sceneryWayObject.getWayArea();
         if (wayArea == null) {
+            // No area. Check for buildOutlinePolygonFromGraph() warnings
             return;
         }
 

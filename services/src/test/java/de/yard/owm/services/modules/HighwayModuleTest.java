@@ -6,6 +6,7 @@ import de.yard.owm.services.osm.OsmElementService;
 import de.yard.owm.services.persistence.PersistedMeshFactory;
 import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.owm.services.util.OsmXmlParser;
+import de.yard.owm.testutils.TestData;
 import de.yard.owm.testutils.TestUtils;
 import de.yard.threed.TestUtil;
 import de.yard.threed.core.Pair;
@@ -583,5 +584,39 @@ public class HighwayModuleTest {
         }
         assertTrue(sceneryMesh.terrainMesh.isValid(true), "TerrainMesh.valid");*/
 
+    }
+
+    /**
+     * Test not existing in traditional
+     */
+    @Test
+    public void testTestData2024() throws IOException {
+
+        TestData testData = TestData.build2024(terrainMeshManager);
+
+        GridCellBounds gridCellBounds = testData.terrainMesh.getGridCellBounds();
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(gridCellBounds.getProjection().getBaseProjection(), terrainMeshManager);
+
+        TerrainMesh tm = TerrainMesh.init(gridCellBounds);
+        TestUtils.addTerrainMeshBoundary(tm, gridCellBounds.getOrigin().getLatDeg().getDegree(), gridCellBounds.getOrigin().getLonDeg().getDegree(),
+                gridCellBounds.degwidth, gridCellBounds.degheight, gridCellBounds.getProjection().getBaseProjection());
+
+        OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
+        MapData mapData = converter.createMapData(testData.osmData);
+
+        MapWay uWay = mapData.getMapWays().get(0);
+
+        SceneryContext sceneryContext = new SceneryContext();
+
+        HighwayModule roadModule = new HighwayModule();
+        List<SceneryObject> sceneryObjects = osmElementService.process(uWay, List.of(roadModule), tm, sceneryContext);
+
+        TestUtils.writeTmpSvg(tm.toSvg());
+
+        // only way and Background.
+        assertEquals(1, sceneryContext.highways.size(), "sceneryContext.highways");
+        assertEquals(1, sceneryObjects.size(), "scenery.areas");
+
+        assertEquals(4 + 2 * 3 + 2, tm.lines.size(), "TerrainMesh.lines");
     }
 }
