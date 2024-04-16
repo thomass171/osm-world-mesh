@@ -113,7 +113,7 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
      * Geht ueber den BridgeTerrainMeshAdder in SceneryFlatObject. Methode ist hier nur zur Doku dass das so ist.
      */
     @Override
-    public void addToTerrainMesh(TerrainMesh tm) {
+    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException {
         super.addToTerrainMesh(tm);
     }
 

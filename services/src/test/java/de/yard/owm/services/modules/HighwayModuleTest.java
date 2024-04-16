@@ -501,7 +501,7 @@ public class HighwayModuleTest {
         MapWay k41 = mapData.findMapWays(24927839).get(0);
         TerrainMesh tm = TerrainMesh.init(gridCellBounds);
         TestUtils.addTerrainMeshBoundary(tm, gridCellBounds.getOrigin().getLatDeg().getDegree(), gridCellBounds.getOrigin().getLonDeg().getDegree(),
-                gridCellBounds.degwidth, gridCellBounds.degheight, gridCellBounds.getProjection().getBaseProjection());
+                gridCellBounds.degwidth, gridCellBounds.degheight, gridCellBounds.getProjection().getBaseProjection(), 0.01);
 
         //Processor processor = sb.execute(desdorfk41, configsuffix, "Desdorf", false, customconfig, MATERIAL_FLIGHT).processor;
         HighwayModule roadModule = new HighwayModule();
@@ -517,7 +517,7 @@ public class HighwayModuleTest {
         assertEquals(1, sceneryContext.highways.size(), "sceneryContext.highways");
         assertEquals(1, sceneryObjects.size(), "scenery.areas");
 
-        assertEquals(4 + 2 * 4 + 2, tm.lines.size(), "TerrainMesh.lines");
+        assertEquals(4 + 1 + 2 * 4 + 2, tm.lines.size(), "TerrainMesh.lines");
 
 
         /*3.4.24 if (SceneryBuilder.FTR_SMARTBG) {
@@ -590,7 +590,7 @@ public class HighwayModuleTest {
      * Test not existing in traditional
      */
     @Test
-    public void testTestData2024() throws IOException {
+    public void testTestData2024() throws Exception {
 
         TestData testData = TestData.build2024(terrainMeshManager);
 
@@ -599,7 +599,7 @@ public class HighwayModuleTest {
 
         TerrainMesh tm = TerrainMesh.init(gridCellBounds);
         TestUtils.addTerrainMeshBoundary(tm, gridCellBounds.getOrigin().getLatDeg().getDegree(), gridCellBounds.getOrigin().getLonDeg().getDegree(),
-                gridCellBounds.degwidth, gridCellBounds.degheight, gridCellBounds.getProjection().getBaseProjection());
+                gridCellBounds.degwidth, gridCellBounds.degheight, gridCellBounds.getProjection().getBaseProjection(), 0.01);
 
         OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
         MapData mapData = converter.createMapData(testData.osmData);

@@ -12,6 +12,7 @@ import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.SurfaceAreaModule;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -48,7 +49,7 @@ public class MeshTest {
      * @throws IOException
      */
     @Test
-    public void testDesdorf() throws IOException {
+    public void testDesdorf() throws IOException, OsmProcessException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Desdorf.osm.xml", "Desdorf", "superdetailed");
 
         SurfaceAreaModule surfaceAreaModule = new SurfaceAreaModule();

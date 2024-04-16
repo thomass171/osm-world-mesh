@@ -13,6 +13,7 @@ import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MetricMapProjection;
 import de.yard.threed.osm2world.O2WOriginMapProjection;
@@ -30,6 +31,9 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Also for MeshNode, MeshLine and repositories
@@ -57,8 +61,6 @@ public class TerrainMeshTest {
     @BeforeEach
     void setUp() {
         // SQL script already deletes
-        //meshLineRepository.deleteAll();
-        //meshNodeRepository.deleteAll();
         TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(projection, manager);
     }
 
@@ -111,7 +113,49 @@ public class TerrainMeshTest {
     }
 
     @Test
+    public void testSimpleRegisterWay() throws OsmProcessException {
+        meshLineRepository.deleteAll();
+        meshNodeRepository.deleteAll();
+
+        double centerLat = (51);
+        double centerLon = (7.0);
+        double widthInDegrees = 0.002;
+        double heightInDegrees = 0.002;
+        TestData testData = TestData.build2024(manager, centerLat, centerLon, widthInDegrees, heightInDegrees, 0.0001, false);
+
+        TerrainMesh terrainMesh = testData.terrainMesh;
+        assertNotNull(terrainMesh);
+        assertEquals(4, terrainMesh.points.size());
+        assertEquals(5, terrainMesh.lines.size());
+
+        // create way not intersecting triangulation line
+        List<Coordinate> leftLine = new ArrayList<>();
+        leftLine.add(new Coordinate(50, 10));
+        leftLine.add(new Coordinate(60, 10));
+        List<Coordinate> rightLine = new ArrayList<>();
+        rightLine.add(new Coordinate(50, 9));
+        rightLine.add(new Coordinate(60, 9));
+        terrainMesh.registerWay(null, leftLine, rightLine, null, 1);
+
+        String svg = terrainMesh.toSvg();
+
+        TestUtils.writeTmpSvg(svg);
+
+        assertEquals(4 + 4, terrainMesh.points.size(), "points");
+        assertEquals(5 + 4, terrainMesh.lines.size(), "lines");
+
+        manager.persist(terrainMesh);
+        terrainMesh = manager.loadTerrainMesh(terrainMesh.getGridCellBounds());
+        assertEquals(4 + 4, terrainMesh.points.size(), "points");
+        assertEquals(5 + 4, terrainMesh.lines.size(), "lines");
+
+    }
+
+    @Test
     public void testTestData2024() {
+
+        meshLineRepository.deleteAll();
+        meshNodeRepository.deleteAll();
 
         TestData testData = TestData.build2024(manager);
 

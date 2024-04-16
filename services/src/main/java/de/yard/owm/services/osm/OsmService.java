@@ -12,6 +12,7 @@ import de.yard.threed.osm2scenery.SceneryConversionFacade;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
+import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -114,9 +115,12 @@ public class OsmService {
         // step by step approach istead of previous "all-in-one".
         for (MapWay mapWay : mapData.getMapWays()) {
             // 1 Scenery Objekte erstellen. WayConnector werden hier auch schon erstellt.
+            try {
             sceneryMesh.sceneryObjects.objects.addAll(osmElementService.process(mapWay,
                     SceneryModule.getRelevant(worldModules, mapWay),terrainMesh, SceneryContext.getInstance()));
-
+            } catch (OsmProcessException e) {
+                throw new RuntimeException(e);
+            }
 
 
 

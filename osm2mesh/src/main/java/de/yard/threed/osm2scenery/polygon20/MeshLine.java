@@ -10,7 +10,7 @@ import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 public interface MeshLine {
 
 
-     int length();
+    int length();
 
      Coordinate get(int i);
      int size();
@@ -71,4 +71,12 @@ public interface MeshLine {
     boolean isBoundary();
 
     LineString getLine();
+
+    int getType();
+
+    static boolean isBackgroundTriangulation(int type) {
+        return type == 2;
+    }
+
+    void setType(int type);
 }

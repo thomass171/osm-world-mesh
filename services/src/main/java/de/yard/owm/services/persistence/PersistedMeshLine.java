@@ -25,22 +25,25 @@ import javax.persistence.Transient;
 import java.util.*;
 
 @Entity
-@Table(name="meshline")
+@Table(name = "meshline")
 public class PersistedMeshLine implements MeshLine {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshline_id_generator")
     @SequenceGenerator(name = "meshline_id_generator", sequenceName = "meshline_seq", allocationSize = 1)
     private Long id;
 
+    @Column(name = "type")
+    private int type;
+
     @Transient
     Logger logger = Logger.getLogger(PersistedMeshLine.class);
 
     @ManyToOne
-    @JoinColumn(name="from_node", nullable=false)
+    @JoinColumn(name = "from_node", nullable = false)
     private PersistedMeshNode fromNode;
 
     @ManyToOne
-    @JoinColumn(name="to_node", nullable=false)
+    @JoinColumn(name = "to_node", nullable = false)
     private PersistedMeshNode toNode;
     @Transient
     public boolean isBoundary = false;
@@ -96,10 +99,17 @@ public class PersistedMeshLine implements MeshLine {
         return "" + fromNode.getCoordinate() + "->" + toNode.getCoordinate();
     }
 
+    @Override
+    public int getType() {
+        return type;
+    }
+
+    @Override
     public MeshNode getFrom() {
         return fromNode;
     }
 
+    @Override
     public MeshNode getTo() {
         return toNode;
     }
@@ -236,6 +246,11 @@ public class PersistedMeshLine implements MeshLine {
 
     @Override
     public LineString getLine() {
-        return null;
+        return JtsUtil.createLine(new Coordinate[]{fromNode.getCoordinate(), toNode.getCoordinate()});
+    }
+
+    @Override
+    public void setType(int type) {
+        this.type = type;
     }
 }

@@ -9,7 +9,10 @@ import java.util.List;
 
 public interface MeshFactory {
    MeshNode  buildMeshNode(Coordinate coordinate);
+   MeshLine  buildMeshLine(MeshNode from, MeshNode to);
    List<MeshLine> buildMeshLines(Coordinate[] coordinates, LineString line);
+
+   void deleteMeshLine(MeshLine line);
 
    public static List<MeshLine> buildMeshLines(Coordinate[] coordinates) {
       LineString line = JtsUtil.createLine(coordinates);
@@ -19,5 +22,6 @@ public interface MeshFactory {
       }
       return TerrainMesh.meshFactoryInstance.buildMeshLines(coordinates, line);
    }
+
 
 }

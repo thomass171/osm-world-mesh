@@ -359,7 +359,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * Das muessen die ableitenden Klassen schon selber machen. Das hier ist zum Check.
      * Jetzt mal per Component.
      */
-    public void addToTerrainMesh(TerrainMesh tm) {
+    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException {
         if (!isCut || !isClipped) {
             // DB style neither cuts nor clips.
             if (tm.getGridCellBounds().isPreDbStyle()) {

@@ -3,6 +3,7 @@ package de.yard.threed.osm2scenery.scenery.components;
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
+import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -29,7 +30,7 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
     }
 
     @Override
-    public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) {
+    public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) throws OsmProcessException {
 
         if (areas[0].isEmpty(tm)) {
             return;

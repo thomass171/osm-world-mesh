@@ -29,6 +29,11 @@ public class PersistedMeshFactory implements MeshFactory {
     }
 
     @Override
+    public MeshLine buildMeshLine(MeshNode from, MeshNode to) {
+        return new PersistedMeshLine((PersistedMeshNode) from, (PersistedMeshNode) to);
+    }
+
+    @Override
     public List<MeshLine> buildMeshLines(Coordinate[] coordinates, LineString line) {
         //List<PersistedMeshNode> nodes = new ArrayList<>();
         PersistedMeshNode lastNode = null;
@@ -44,5 +49,10 @@ public class PersistedMeshFactory implements MeshFactory {
             lastNode = existingNode;
         }
         return lines;
+    }
+
+    @Override
+    public void deleteMeshLine(MeshLine line) {
+        terrainMeshManager.deleteMeshLine((PersistedMeshLine) line);
     }
 }

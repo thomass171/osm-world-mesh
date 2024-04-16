@@ -38,6 +38,7 @@ create sequence meshnode_seq start with 1;
 -- There is not database model that keeps the mesh consistent per se. Thats just impossible.
 -- So represent area just by left/right areas of lines for now. That way isn't better/worse than a list of lines
 -- mapped to area. At least is makes sure a line cannot belong to more than two areas.
+-- And for now we define that sea and background are no areas
 create table mesharea (
     id bigint not null,
     -- material is bit encoded
@@ -52,6 +53,8 @@ create sequence mesharea_seq start with 1;
 
 create table meshline (
     id bigint not null,
+    -- 1=Boundary(coast line), 2=BG triangulation (left/right are null)
+    type int not null,
     from_node bigint not null references meshnode,
     to_node bigint not null references meshnode,
     -- left/right from 'from_node' viewpoint

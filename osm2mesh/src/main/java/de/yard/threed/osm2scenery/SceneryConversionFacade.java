@@ -8,6 +8,7 @@ import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
+import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -339,11 +340,14 @@ public class SceneryConversionFacade {
             sceneryMesh.terrainMesh = TerrainMesh.init(targetBounds);
             //sonst geht waytoarea filler nicht if (SceneryBuilder.FTR_SMARTBG) {
             //erst die Ways, danach areas, um Komplkationen zu vermeiden.
+            try{
             logger.info("adding ways to terrain mesh");
             sceneryMesh.terrainMesh.addWays(sceneryMesh.sceneryObjects.objects);
             logger.info("adding areas to terrain mesh");
             sceneryMesh.terrainMesh.addAreas(sceneryMesh.sceneryObjects.objects);
-            //}
+            } catch (OsmProcessException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         //Supplements anlegen und verarbeiten
@@ -376,7 +380,11 @@ public class SceneryConversionFacade {
                 comment + ").Start adding to mesh.");
 
         // Supplements muessen auch ins TerrainMesh
-        sceneryMesh.terrainMesh.addSupplements(SceneryObjectList.findObjectsByCycle(sceneryMesh.sceneryObjects.objects,SUPPLEMENT));
+        try {
+            sceneryMesh.terrainMesh.addSupplements(SceneryObjectList.findObjectsByCycle(sceneryMesh.sceneryObjects.objects, SUPPLEMENT));
+        } catch (OsmProcessException e) {
+            throw new RuntimeException(e);
+        }
         boolean meshValid = sceneryMesh.terrainMesh.isValid(true);
         //gap filler sind zwar auch supplements. Aber die haengen sich schon selber ins mesh.
         logger.info("Supplements added to terrain mesh (mesh " + ((meshValid) ? "valid" : "invalid") + "). Creating gap filler");

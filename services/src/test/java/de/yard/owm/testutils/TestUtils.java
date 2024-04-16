@@ -3,8 +3,11 @@ package de.yard.owm.testutils;
 import de.yard.owm.services.persistence.PersistedMeshLine;
 import de.yard.owm.services.persistence.PersistedMeshNode;
 import de.yard.threed.core.LatLon;
+import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2world.EarClippingTriangulationUtil;
 import de.yard.threed.osm2world.MetricMapProjection;
+import de.yard.threed.osm2world.TriangleXZ;
 import de.yard.threed.traffic.geodesy.GeoCoordinate;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -85,7 +89,7 @@ public class TestUtils {
         assertTrue(duration.abs().getSeconds() < 10);
     }
 
-    public static void writeTmpSvg(String svg){
+    public static void writeTmpSvg(String svg) {
 
         // string -> bytes
         try {
@@ -96,9 +100,10 @@ public class TestUtils {
 
     }
 
-    public static void addTerrainMeshBoundary(TerrainMesh terrainMesh, double centerLat, double centerLon, double widthInDegrees, double heightInDegrees, MetricMapProjection baseProjection) {
+    public static void addTerrainMeshBoundary(TerrainMesh terrainMesh, double centerLat, double centerLon, double widthInDegrees,
+                                              double heightInDegrees, MetricMapProjection baseProjection, double marginInDegrees) {
         // mesh boundary
-        double margin = 0.01;
+        double margin = marginInDegrees;//0.01;
         PersistedMeshNode topLeft = new PersistedMeshNode(GeoCoordinate.fromLatLon(
                 LatLon.fromDegrees(centerLat + heightInDegrees / 2 - margin, centerLon - widthInDegrees / 2 + margin), 0),
                 baseProjection);
@@ -119,5 +124,11 @@ public class TestUtils {
         terrainMesh.lines.add(new PersistedMeshLine(topRight, bottomRight));
         terrainMesh.lines.add(new PersistedMeshLine(bottomRight, bottomLeft));
         terrainMesh.lines.add(new PersistedMeshLine(bottomLeft, topLeft));
+
+        // for now do a manual triangulation
+        //List<TriangleXZ> trianglesXZ = EarClippingTriangulationUtil.triangulate(outerPolygon, holes);
+        MeshLine triLine = new PersistedMeshLine(bottomRight, topLeft);
+        triLine.setType(2);
+        terrainMesh.lines.add(triLine);
     }
 }

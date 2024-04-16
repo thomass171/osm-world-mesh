@@ -1,6 +1,7 @@
 package de.yard.owm.services.persistence;
 
 import de.yard.threed.osm2graph.osm.GridCellBounds;
+import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,5 +30,9 @@ public class TerrainMeshManager {
     public void persist(TerrainMesh terrainMesh) {
         terrainMesh.points.forEach(p-> meshNodeRepository.save((PersistedMeshNode) p));
         terrainMesh.lines.forEach(p-> meshLineRepository.save((PersistedMeshLine) p));
+    }
+
+    public void deleteMeshLine(PersistedMeshLine line) {
+        meshLineRepository.delete(line);
     }
 }

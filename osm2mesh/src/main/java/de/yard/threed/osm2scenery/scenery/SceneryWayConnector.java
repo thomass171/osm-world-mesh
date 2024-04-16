@@ -695,7 +695,7 @@ public boolean isCrossing;
      * Vom Connector kommen die inner lines ins Mesh. Obwohl die eigentlich nicht gebraucht werden, nur für die Konsistenz.
      */
     @Override
-    public void addToTerrainMesh(TerrainMesh tm) {
+    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException {
         super.addToTerrainMesh(tm);
         // flatcomponent might be null
         if (node.getOsmId() == 2345485946L) {

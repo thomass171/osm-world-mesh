@@ -3,9 +3,12 @@ package de.yard.threed.osm2scenery.scenery;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
+import de.yard.threed.core.Degree;
 import de.yard.threed.core.Pair;
 import de.yard.threed.core.Util;
+import de.yard.threed.core.Vector2;
 import de.yard.threed.osm2graph.SceneryBuilder;
+import de.yard.threed.osm2graph.osm.CoordinateList;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
@@ -23,6 +26,7 @@ import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2world.VectorXZ;
 import de.yard.threed.traffic.geodesy.ElevationProvider;
+import de.yard.threed.traffic.geodesy.GeoCoordinate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -197,6 +201,9 @@ public class TerrainMesh {
         return polygon;
     }
 
+    /**
+     * Build a polygon by traversing lines of the mesh.
+     */
     public MeshPolygon traversePolygon(MeshLine startline, AbstractArea/*SceneryFlatObject*/ area, boolean left) {
         int abortcounter = 0;
         MeshLine line = startline;
@@ -321,7 +328,7 @@ public class TerrainMesh {
      * Ways and WayConnector.
      * 5.8.19: Not for areas.
      */
-    public void addWays(List<SceneryObject> sceneryObjects) {
+    public void addWays(List<SceneryObject> sceneryObjects) throws OsmProcessException {
         if (step != 1) {
             throw new RuntimeException("invalid step");
         }
@@ -353,7 +360,7 @@ public class TerrainMesh {
         }
     }
 
-    public void addAreas(List<SceneryObject> sceneryObjects) {
+    public void addAreas(List<SceneryObject> sceneryObjects) throws OsmProcessException {
         if (step != 2) {
             throw new RuntimeException("invalid step");
         }
@@ -385,7 +392,7 @@ public class TerrainMesh {
      * GapFiller sind hier noch nicht dabei. Die registrieren sich spaeter selber.
      * Die Liste enthält nur Supplements.
      */
-    public void addSupplements(List<SceneryObject> supplements) {
+    public void addSupplements(List<SceneryObject> supplements) throws OsmProcessException {
         if (step != 3) {
             throw new RuntimeException("invalid step");
         }
@@ -438,7 +445,7 @@ public class TerrainMesh {
         return meshLine;
     }
 
-    private List<MeshLine> registerLineNonPreDB(List<Coordinate> line, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right                                ) {
+    private List<MeshLine> registerLineNonPreDB(List<Coordinate> line, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right) {
         //logger.debug("new line with " + line.size() + " coordinates");
         List<MeshLine> meshLines = buildMeshLinesFromList(line);
         for (MeshLine meshLine : meshLines) {
@@ -446,7 +453,7 @@ public class TerrainMesh {
             meshLine.setRight(right);
             registerLine(meshLine);
         }
-        return lines;
+        return meshLines;
     }
 
     /**
@@ -474,14 +481,129 @@ public class TerrainMesh {
      * connector might be null, otherwise the connecting part must have been created before.
      * 6.4.24: Well, maybe its easier to keep existing registerLine for a while?
      */
-    public void registerWay(Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) {
-        AbstractArea/*SceneryFlatObject*/ leftArea=null;
-        AbstractArea/*SceneryFlatObject*/ rightArea=null;
-        registerLineNonPreDB(leftLine,leftArea ,  rightArea);
-        registerLineNonPreDB(rightLine,leftArea ,  rightArea);
-        registerLineNonPreDB(JtsUtil.toList(leftLine.get(0), rightLine.get(0)), null, null);
-        registerLineNonPreDB(JtsUtil.toList(leftLine.get(leftLine.size()-1), rightLine.get(rightLine.size()-1)), null, null);
+    public void registerWay(Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws OsmProcessException {
 
+        Polygon polygon = JtsUtil.createPolygonFromWayOutlines(new CoordinateList(rightLine), new CoordinateList(leftLine));
+
+        List<MeshLine> linesToDelete = new ArrayList<>();
+        for (MeshLine line : lines) {
+            if (crosses(line, polygon)) {
+                // intersection found. If it is not a BG line, this is a failure
+                if (!MeshLine.isBackgroundTriangulation(line.getType())) {
+                    throw new OsmProcessException("polygon crosses unremovable line");
+                }
+                linesToDelete.add(line);
+            }
+        }
+        linesToDelete.forEach(l -> deleteLineFromMesh(l));
+
+        AbstractArea/*SceneryFlatObject*/ leftArea = null;
+        AbstractArea/*SceneryFlatObject*/ rightArea = null;
+
+        List<MeshLine> newLines = new ArrayList<>();
+        MeshNode n = meshFactoryInstance.buildMeshNode(leftLine.get(0));
+        points.add(n);
+        MeshLine l;
+        for (int i = 1; i < leftLine.size(); i++) {
+            l = addLine(n, leftLine.get(i));
+            n = l.getTo();
+            newLines.add(l);
+        }
+        //List<MeshLine> lines = registerLineNonPreDB(leftLine, leftArea, rightArea);
+        //lines.addAll(registerLineNonPreDB(JtsUtil.toList(leftLine.get(leftLine.size() - 1), rightLine.get(rightLine.size() - 1)), null, null));
+        l = addLine(n, rightLine.get(rightLine.size() - 1));
+        n = l.getTo();
+        newLines.add(l);
+
+        //List<MeshLine> tmpLines = registerLineNonPreDB(rightLine, leftArea, rightArea);
+        //Collections.reverse(tmpLines);
+        //lines.addAll(tmpLines);
+        for (int i = rightLine.size() - 2; i>=0; i--) {
+            l = addLine(n, rightLine.get(i));
+            n = l.getTo();
+            newLines.add(l);
+        }
+
+       // lines.addAll(registerLineNonPreDB(JtsUtil.toList(leftLine.get(0), rightLine.get(0)), null, null));
+        l = meshFactoryInstance.buildMeshLine(n, newLines.get(0).getFrom());
+        newLines.add(l);
+        lines.addAll(newLines);
+
+        MeshPolygon newArea = new MeshPolygon(newLines);
+
+        MeshLine someLine = findSomeEnclosingLine(newArea);
+        // the new area has no connection to the mesh yet.
+        MeshPolygon enclosingPolygon = null;//traversePolygon();
+    }
+
+    private MeshLine addLine(MeshNode from, Coordinate to) {
+        MeshNode existingNode = null;//TODO find
+        if (existingNode == null) {
+            existingNode = meshFactoryInstance.buildMeshNode(to);
+            points.add(existingNode);
+        }
+        return meshFactoryInstance.buildMeshLine(from, existingNode);
+    }
+
+    /**
+     * Find a line that is part of the polygon that encloses newArea.
+     * Done just by probing.
+     */
+    private MeshLine findSomeEnclosingLine(MeshPolygon newArea) {
+        // probe from just the first for now
+        LineString probingLine = getProbingLineFromNode(newArea, 0, 100000);
+        for (MeshLine line : lines) {
+            if (JtsUtil.isIntersectingLine(probingLine, List.of(line.getLine()))) {
+                return line;
+            }
+        }
+        logger.warn("no enclosing line");
+        return null;
+    }
+
+    /**
+     * Build a probing line pointing from a area point to outside.
+     */
+    private LineString getProbingLineFromNode(MeshPolygon area, int lineIndex, double length) {
+        MeshNode node = area.lines.get(lineIndex).getFrom();
+        if (node.getLineCount() != 2) {
+            Util.notyet();
+        }
+        List<Vector2> lineDirections = getDirectionsOfLines(node);
+        Degree angle = Degree.buildFromRadians(Vector2.getAngleBetween(lineDirections.get(0), lineDirections.get(1)));
+        // Not sure this calc is correct. Needs unit testing. TODO
+        Vector2 probingDir = lineDirections.get(0).rotate(angle).normalize();
+
+        LineString line = JtsUtil.createLine(node.getCoordinate(), JtsUtil.add(node.getCoordinate(), probingDir.multiply(length)));
+        if (!JtsUtil.isIntersecting(line, List.of(area.getPolygon()))) {
+            return line;
+        }
+        // try opposite
+        probingDir = probingDir.rotate(new Degree(180)).normalize();
+        line = JtsUtil.createLine(node.getCoordinate(), JtsUtil.add(node.getCoordinate(), probingDir.multiply(length)));
+        if (!JtsUtil.isIntersecting(line, List.of(area.getPolygon()))) {
+            return line;
+        }
+        logger.warn("no probing line");
+        return null;
+    }
+
+    /**
+     * Like in math with 0-degree pointing right (+x).
+     */
+    private static List<Vector2> getDirectionsOfLines(MeshNode node) {
+
+        List<Vector2> directions = new ArrayList<>();
+        for (MeshLine line : node.getLines()) {
+            Vector2 lineDirection;
+            if (line.getFrom().equals(node)) {
+                lineDirection = JtsUtil.getDirection(line.getFrom().getCoordinate(), line.getTo().getCoordinate());
+            } else {
+                lineDirection = JtsUtil.getDirection(line.getTo().getCoordinate(), line.getFrom().getCoordinate());
+            }
+            directions.add(lineDirection);
+        }
+        return directions;
     }
 
     public void registerConnector() {
@@ -963,7 +1085,7 @@ public class TerrainMesh {
      */
     public MeshLine[] split(MeshLineSplitCandidate meshLineSplit) {
 
-        if (!isPreDbStyle()){
+        if (!isPreDbStyle()) {
             Util.notyet();
         }
 
@@ -1500,6 +1622,21 @@ public class TerrainMesh {
         svg += "</g>";
         svg += "</svg>";
         return svg;
+    }
+
+    private boolean crosses(MeshLine line, Polygon polygon) {
+        LineString lineString = JtsUtil.createLine(line.getFrom().getCoordinate(), line.getTo().getCoordinate());
+        return lineString.crosses(polygon);
+    }
+
+    /**
+     * Remove line from all nodes an finally delete it.
+     */
+    void deleteLineFromMesh(MeshLine line) {
+        line.getFrom().removeLine(line);
+        line.getTo().removeLine(line);
+        meshFactoryInstance.deleteMeshLine(line);
+        lines.remove(line);
     }
 }
 

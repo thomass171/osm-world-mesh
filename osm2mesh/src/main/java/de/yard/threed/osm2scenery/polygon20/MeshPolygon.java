@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ein Objekt dieser Klasse ist flüchtig, weil sich Lines ändern koennen!
+ * A transient temporary representation, because lines might change!
  */
 public class MeshPolygon {
     Logger logger = Logger.getLogger(MeshPolygon.class);
@@ -31,6 +31,7 @@ public class MeshPolygon {
         this.lines = TerrainMesh.sort(lines);
         //Konsistenzprüfung
         if (getPolygon() == null) {
+            // TODO 16.4.24: throw MeshInconsistency
             //throw new RuntimeException("invalid MeshPolygon");
             logger.warn("invalid mesh polygon");
             //leeren, weil es sonst nur Folgefehler gibt

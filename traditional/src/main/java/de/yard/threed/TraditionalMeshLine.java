@@ -205,4 +205,14 @@ public class TraditionalMeshLine implements MeshLine {
     public LineString getLine() {
         return line;
     }
+
+    @Override
+    public int getType() {
+        return -1;
+    }
+
+    @Override
+    public void setType(int type) {
+
+    }
 }

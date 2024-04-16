@@ -345,8 +345,8 @@ public class GridCellBounds /*implements TargetBounds*/ {
 
     public static GridCellBounds buildFromGeos(double top, double bottom, double left, double right) {
 
-        // Surrounding is needed for ...??
-        double offset = 0.01;
+        // Surrounding is needed for ...?? 16.4.24: No longer use it. Always causes confusion
+        double offset = 0.0;//0.01;
         top = top + offset;
         bottom = bottom - offset;
         left = left - offset;

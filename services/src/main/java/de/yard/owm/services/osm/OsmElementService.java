@@ -8,6 +8,7 @@ import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
+import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -30,7 +31,7 @@ import static de.yard.threed.osm2scenery.scenery.SceneryObject.Cycle.WAY;
 public class OsmElementService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<SceneryObject> process(MapWay mapWay, List<? extends SceneryModule> modules, TerrainMesh tm, SceneryContext sceneryContext){
+    public List<SceneryObject> process(MapWay mapWay, List<? extends SceneryModule> modules, TerrainMesh tm, SceneryContext sceneryContext) throws OsmProcessException {
 
         List<SceneryObject> sceneryObjects = new ArrayList<>();
 
