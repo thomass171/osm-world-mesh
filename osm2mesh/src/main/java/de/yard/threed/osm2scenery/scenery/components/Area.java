@@ -14,6 +14,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupFinder;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshLineSplitCandidate;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
@@ -469,7 +470,11 @@ public class Area extends AbstractArea {
             }
             segments = newsegments;
         }
-        tm.createMeshPolygon(segments, existingShares, polygonOfArea, abstractArea);
+        try {
+            tm.createMeshPolygon(segments, existingShares, polygonOfArea, abstractArea);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

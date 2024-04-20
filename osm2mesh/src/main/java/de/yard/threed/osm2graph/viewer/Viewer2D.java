@@ -28,6 +28,7 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryConversionFacade;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
 import de.yard.threed.osm2scenery.scenery.SceneryNodeObject;
@@ -234,7 +235,7 @@ public class Viewer2D extends JFrame {
 
         processor.reinitConfig(materialconfigfilesuffix,lodconfigfilesuffix/*getConfigfileSuffix(processor.dataSet.getName())*/, customconfig);
         //5.4.19: Terrain? Wofuer? Gilt das noch? 25.4.19: BG soll aber ja optional sein/werden.
-        Config.getCurrentConfiguration().setProperty("createTerrain", new Boolean(mainPanel.nodepanel.cbo_emptyTerrain.isSelected()));
+        Config.getCurrentConfiguration().setProperty("createTerrain", Boolean.valueOf(mainPanel.nodepanel.cbo_emptyTerrain.isSelected()));
 
         mainPanel.drawPanel.getGridLayer().setGridCellBounds(gridCellBounds);
         try {
@@ -1970,11 +1971,15 @@ class TerrainMeshLayer extends Layer {
             for (MeshLine line : terrainMesh.lines) {
                 //blau ist vor road hintergrund schlecht sichtbar
                 boolean broken = false;
-                if (line.getLeft() != null && terrainMesh.getPolygon(line.getLeft()) == null) {
-                    broken = true;
-                }
-                if (line.getRight() != null && terrainMesh.getPolygon(line.getRight()) == null) {
-                    broken = true;
+                try {
+                    if (line.getLeft() != null && terrainMesh.getPolygon(line.getLeft()) == null) {
+                        broken = true;
+                    }
+                    if (line.getRight() != null && terrainMesh.getPolygon(line.getRight()) == null) {
+                        broken = true;
+                    }
+                }catch (MeshInconsistencyException e){
+                    throw new RuntimeException(e);
                 }
                 double width = Math.max(4, 4 / tileProjection.getScale());
                 double len = Math.max(8, 8 / tileProjection.getScale());

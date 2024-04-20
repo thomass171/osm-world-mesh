@@ -12,11 +12,11 @@ import de.yard.threed.osm2graph.osm.CoordinateList;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
-import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.WayMap;
 import de.yard.threed.osm2scenery.elevation.ElevationCalculator;
 import de.yard.threed.osm2scenery.modules.AerowayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshFactory;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshLineSplitCandidate;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
@@ -26,7 +26,6 @@ import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2world.VectorXZ;
 import de.yard.threed.traffic.geodesy.ElevationProvider;
-import de.yard.threed.traffic.geodesy.GeoCoordinate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -142,7 +141,10 @@ public class TerrainMesh {
                 }
             }
         }
-        throw new RuntimeException("inconsistent mesh polygon");
+        if (point.getClass().getName().contains("ersisted")) {
+            throw new RuntimeException("inconsistent mesh polygon");
+        }
+        return null;
     }
 
     /**
@@ -151,7 +153,7 @@ public class TerrainMesh {
      * @param area
      * @return
      */
-    public MeshPolygon getPolygon(AbstractArea/*SceneryFlatObject*/ area) {
+    public MeshPolygon getPolygon(AbstractArea/*SceneryFlatObject*/ area) throws MeshInconsistencyException {
         for (MeshLine startline : lines) {
             if (startline.getLeft() == area || startline.getRight() == area) {
                 return getPolygon(startline, area);
@@ -181,7 +183,7 @@ public class TerrainMesh {
      * @param area
      * @return
      */
-    public MeshPolygon getPolygon(MeshLine startline, AbstractArea/*SceneryFlatObject*/ area) {
+    public MeshPolygon getPolygon(MeshLine startline, AbstractArea/*SceneryFlatObject*/ area) throws MeshInconsistencyException {
         if (area == null) {
             logger.error("invalid use");
             return null;
@@ -202,9 +204,12 @@ public class TerrainMesh {
     }
 
     /**
-     * Build a polygon by traversing lines of the mesh.
+     * Build a polygon by traversing lines of the mesh. If we know the area, its easier to traverse by that area.
+     * If we don't know it we traverse by line angles (left/right).
+     * 19.4.24: Returns null if no such polygon exists. MeshInconsistencyException is only thrown when there really was an inconsistency(?? is that possible?).
+     * a pure outer polygon might be the 'wrong' result of going (C)CW. But difficult to detect.
      */
-    public MeshPolygon traversePolygon(MeshLine startline, AbstractArea/*SceneryFlatObject*/ area, boolean left) {
+    public MeshPolygon traversePolygon(MeshLine startline, AbstractArea/*SceneryFlatObject*/ area, boolean leftOrCCW) throws MeshInconsistencyException {
         int abortcounter = 0;
         MeshLine line = startline;
         MeshNode next = line.getTo();
@@ -213,12 +218,12 @@ public class TerrainMesh {
         do {
             result.add(line);
             if (line.getTo() == line.getFrom()) {
-                // Sonderfall closed line
+                // special case closed line
                 break;
             }
-            MeshLine nextline = getSuccessor(next, area, left, line);
+            MeshLine nextline = getSuccessor(next, area, leftOrCCW, line);
             if (nextline == null) {
-                logger.error("traversePolygon: inconsistency?");
+                logger.error("traversePolygon: no successor. inconsistency?");
                 return null;
             }
             next = getOpposite(nextline, next);
@@ -241,44 +246,51 @@ public class TerrainMesh {
     }
 
     /**
-     * Eine line der Area area an einem point liefern.
+     * Find the line of area that connects at "meshNode" to "origin".
      * Mit origin laesst sich ein moeglicher Origin ausschliessen um nicht im Kreis zu laufen.
      * 9.9.19: Das ist doch bei Ways so nicht eindeutig wegen innerer Querverbindungen? Oder gibt es sowas nicht?
+     * 18.4.24: If we know the area, its easier to find successor by that area. Otherwise we traverse by line angles (left/right).
      */
-    public MeshLine getSuccessor(MeshNode meshNode, AbstractArea area, boolean left, MeshLine origin) {
+    public MeshLine getSuccessor(MeshNode meshNode, AbstractArea area, boolean left, MeshLine origin) throws MeshInconsistencyException {
         List<MeshLine> candidates = new ArrayList();
 
-        for (MeshLine line : meshNode.getLines()) {
-            if (line != origin) {
-                boolean skipLine = false;
-                AbstractArea areaToCheck = null;
-                if (line.getFrom() == meshNode) {
-                    if (left) {
-                        areaToCheck = line.getLeft();
-                    } else {
-                        areaToCheck = line.getRight();
-                        //bei der Suche nach Leerflächen keine BoundaryLine beachten mit left != null, denn right ist immer 0
-                        if (line.isBoundary() && area == null) {
-                            skipLine = true;
-                        }
-                    }
-                } else {
-                    if (left) {
-                        areaToCheck = line.getRight();
-                        //bei der Suche nach Leerflächen keine BoundaryLine beachten mit left != null, denn right ist immer 0
-                        if (line.isBoundary() && area == null) {
-                            skipLine = true;
+        if (area == null) {
+            // find by angles
+            MeshNodeDetails details = new MeshNodeDetails(meshNode);
+            candidates.add(details.getNeighborLine(origin, left));
+        } else {
+            for (MeshLine line : meshNode.getLines()) {
+                if (line != origin) {
+                    boolean skipLine = false;
+                    AbstractArea areaToCheck = null;
+                    if (line.getFrom() == meshNode) {
+                        if (left) {
+                            areaToCheck = line.getLeft();
+                        } else {
+                            areaToCheck = line.getRight();
+                            //bei der Suche nach Leerflächen keine BoundaryLine beachten mit left != null, denn right ist immer 0
+                            if (line.isBoundary() && area == null) {
+                                skipLine = true;
+                            }
                         }
                     } else {
-                        areaToCheck = line.getLeft();
+                        if (left) {
+                            areaToCheck = line.getRight();
+                            //bei der Suche nach Leerflächen keine BoundaryLine beachten mit left != null, denn right ist immer 0
+                            if (line.isBoundary() && area == null) {
+                                skipLine = true;
+                            }
+                        } else {
+                            areaToCheck = line.getLeft();
+                        }
                     }
-                }
-                if (!skipLine) {
-                    if (left && areaToCheck == area) {
-                        candidates.add(line);
-                    }
-                    if (!left && areaToCheck == area) {
-                        candidates.add(line);
+                    if (!skipLine) {
+                        if (left && areaToCheck == area) {
+                            candidates.add(line);
+                        }
+                        if (!left && areaToCheck == area) {
+                            candidates.add(line);
+                        }
                     }
                 }
             }
@@ -488,7 +500,7 @@ public class TerrainMesh {
         List<MeshLine> linesToDelete = new ArrayList<>();
         for (MeshLine line : lines) {
             if (crosses(line, polygon)) {
-                // intersection found. If it is not a BG line, this is a failure
+                // intersection found. If it is not a BG line, this is a failure. Either the way overlaps some existing area or the (sub)mesh is too small.
                 if (!MeshLine.isBackgroundTriangulation(line.getType())) {
                     throw new OsmProcessException("polygon crosses unremovable line");
                 }
@@ -518,22 +530,34 @@ public class TerrainMesh {
         //List<MeshLine> tmpLines = registerLineNonPreDB(rightLine, leftArea, rightArea);
         //Collections.reverse(tmpLines);
         //lines.addAll(tmpLines);
-        for (int i = rightLine.size() - 2; i>=0; i--) {
+        for (int i = rightLine.size() - 2; i >= 0; i--) {
             l = addLine(n, rightLine.get(i));
             n = l.getTo();
             newLines.add(l);
         }
 
-       // lines.addAll(registerLineNonPreDB(JtsUtil.toList(leftLine.get(0), rightLine.get(0)), null, null));
+        // lines.addAll(registerLineNonPreDB(JtsUtil.toList(leftLine.get(0), rightLine.get(0)), null, null));
         l = meshFactoryInstance.buildMeshLine(n, newLines.get(0).getFrom());
         newLines.add(l);
         lines.addAll(newLines);
 
-        MeshPolygon newArea = new MeshPolygon(newLines);
+        MeshPolygon newArea = null;
+        try {
+            newArea = new MeshPolygon(newLines);
 
-        MeshLine someLine = findSomeEnclosingLine(newArea);
-        // the new area has no connection to the mesh yet.
-        MeshPolygon enclosingPolygon = null;//traversePolygon();
+            // the new area has no connection to the mesh yet.
+            MeshLine someLine = findSomeEnclosingLine(newArea);
+            if (someLine == null) {
+                throw new OsmProcessException("no enclosing line");
+            }
+            MeshPolygon enclosingPolygon = traversePolygon(someLine, null, true);
+            if (enclosingPolygon == null) {
+                throw new OsmProcessException("no enclosingPolygon");
+            }
+        } catch (MeshInconsistencyException e) {
+            throw new OsmProcessException(e);
+        }
+
     }
 
     private MeshLine addLine(MeshNode from, Coordinate to) {
@@ -546,15 +570,17 @@ public class TerrainMesh {
     }
 
     /**
-     * Find a line that is part of the polygon that encloses newArea.
+     * Find a line that is part of a/the polygon that encloses newArea.
      * Done just by probing.
      */
     private MeshLine findSomeEnclosingLine(MeshPolygon newArea) {
         // probe from just the first for now
         LineString probingLine = getProbingLineFromNode(newArea, 0, 100000);
-        for (MeshLine line : lines) {
-            if (JtsUtil.isIntersectingLine(probingLine, List.of(line.getLine()))) {
-                return line;
+        if (probingLine != null) {
+            for (MeshLine line : lines) {
+                if (JtsUtil.isIntersectingLine(probingLine, List.of(line.getLine()))) {
+                    return line;
+                }
             }
         }
         logger.warn("no enclosing line");
@@ -569,7 +595,7 @@ public class TerrainMesh {
         if (node.getLineCount() != 2) {
             Util.notyet();
         }
-        List<Vector2> lineDirections = getDirectionsOfLines(node);
+        List<Vector2> lineDirections = new MeshNodeDetails(node).directions;
         Degree angle = Degree.buildFromRadians(Vector2.getAngleBetween(lineDirections.get(0), lineDirections.get(1)));
         // Not sure this calc is correct. Needs unit testing. TODO
         Vector2 probingDir = lineDirections.get(0).rotate(angle).normalize();
@@ -578,7 +604,7 @@ public class TerrainMesh {
         if (!JtsUtil.isIntersecting(line, List.of(area.getPolygon()))) {
             return line;
         }
-        // try opposite
+        // try opposite direction
         probingDir = probingDir.rotate(new Degree(180)).normalize();
         line = JtsUtil.createLine(node.getCoordinate(), JtsUtil.add(node.getCoordinate(), probingDir.multiply(length)));
         if (!JtsUtil.isIntersecting(line, List.of(area.getPolygon()))) {
@@ -586,24 +612,6 @@ public class TerrainMesh {
         }
         logger.warn("no probing line");
         return null;
-    }
-
-    /**
-     * Like in math with 0-degree pointing right (+x).
-     */
-    private static List<Vector2> getDirectionsOfLines(MeshNode node) {
-
-        List<Vector2> directions = new ArrayList<>();
-        for (MeshLine line : node.getLines()) {
-            Vector2 lineDirection;
-            if (line.getFrom().equals(node)) {
-                lineDirection = JtsUtil.getDirection(line.getFrom().getCoordinate(), line.getTo().getCoordinate());
-            } else {
-                lineDirection = JtsUtil.getDirection(line.getTo().getCoordinate(), line.getFrom().getCoordinate());
-            }
-            directions.add(lineDirection);
-        }
-        return directions;
     }
 
     public void registerConnector() {
@@ -675,7 +683,13 @@ public class TerrainMesh {
             }
         }
         for (AbstractArea abstractArea : areas.keySet()) {
-            MeshPolygon meshPolygon = getPolygon(abstractArea);
+            MeshPolygon meshPolygon = null;
+            try {
+                meshPolygon = getPolygon(abstractArea);
+            } catch (MeshInconsistencyException e) {
+                logger.error("polygon exception");
+                return false;
+            }
             if (meshPolygon == null) {
                 logger.error("polygon not found");
                 return false;
@@ -1449,7 +1463,11 @@ public class TerrainMesh {
         int cntr = 0;
         MeshLine line = null;
         while (point != to && cntr++ < 100) {
-            line = getSuccessor(point, wayArea, left, line);
+            try {
+                line = getSuccessor(point, wayArea, left, line);
+            } catch (MeshInconsistencyException e) {
+                throw new RuntimeException(e);
+            }
             if (line == null) {
                 logger.error("inconsistent way?");
                 return lines;
@@ -1544,7 +1562,7 @@ public class TerrainMesh {
     /**
      * Die segments werden neu registriert, die existingShares bekommen nur left/right.
      */
-    public void createMeshPolygon(List<LineString> segments, List<MeshLine> existingShares, Polygon polygonOfArea, AbstractArea abstractArea) {
+    public void createMeshPolygon(List<LineString> segments, List<MeshLine> existingShares, Polygon polygonOfArea, AbstractArea abstractArea) throws MeshInconsistencyException {
         List<MeshLine> lines = new ArrayList<>();
         for (LineString segment : segments) {
             if (segment == null) {

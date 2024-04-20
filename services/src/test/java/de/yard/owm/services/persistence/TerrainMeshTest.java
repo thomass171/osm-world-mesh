@@ -1,8 +1,7 @@
 package de.yard.owm.services.persistence;
 
 import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
@@ -13,6 +12,8 @@ import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MetricMapProjection;
@@ -95,14 +96,25 @@ public class TerrainMeshTest {
 
     @Test
     @Sql({"classpath:meshDesdorf.sql"})
-    public void testDesdorf() {
+    public void testDesdorf() throws MeshInconsistencyException {
 
-        // minlat="50.9455" minlon="6.59" maxlat="50.950" maxlon="6.596
-        GridCellBounds gridCellBounds = GridCellBounds.buildFromGeos(50.96, 50.94, 6.59, 6.6);
-        TerrainMesh terrainMesh = manager.loadTerrainMesh(gridCellBounds);
+        TerrainMesh terrainMesh = TestData.prepareDesdorf(manager);
         assertNotNull(terrainMesh);
         assertEquals(3, terrainMesh.points.size());
         assertEquals(3, terrainMesh.lines.size());
+
+        TestUtils.writeTmpSvg(terrainMesh.toSvg());
+
+        // test some Basic Operations
+        // a pure outer polygon might be the 'wrong' result of going (C)CW. But difficult to detect
+        for (int i = 0; i < 3; i++) {
+            MeshPolygon meshPolygon = terrainMesh.traversePolygon(terrainMesh.lines.get(i), null, true);
+            assertNotNull(meshPolygon);
+            assertEquals(3, meshPolygon.lines.size());
+            meshPolygon = terrainMesh.traversePolygon(terrainMesh.lines.get(i), null, false);
+            assertNotNull(meshPolygon);
+            assertEquals(3, meshPolygon.lines.size());
+        }
     }
 
     @Test
@@ -112,15 +124,21 @@ public class TerrainMeshTest {
                 .andExpect(content().string(containsString("##")));*/
     }
 
+    /**
+     * Scetch 3??
+     *
+     * @throws OsmProcessException
+     * @throws MeshInconsistencyException
+     */
     @Test
-    public void testSimpleRegisterWay() throws OsmProcessException {
+    public void testSimpleRegisterWay() throws OsmProcessException, MeshInconsistencyException {
         meshLineRepository.deleteAll();
         meshNodeRepository.deleteAll();
 
         double centerLat = (51);
         double centerLon = (7.0);
-        double widthInDegrees = 0.002;
-        double heightInDegrees = 0.002;
+        double widthInDegrees = 0.001;
+        double heightInDegrees = 0.001;
         TestData testData = TestData.build2024(manager, centerLat, centerLon, widthInDegrees, heightInDegrees, 0.0001, false);
 
         TerrainMesh terrainMesh = testData.terrainMesh;
@@ -128,13 +146,22 @@ public class TerrainMeshTest {
         assertEquals(4, terrainMesh.points.size());
         assertEquals(5, terrainMesh.lines.size());
 
+        // test some Basic Operations
+        // a pure outer polygon might be the 'wrong' result of going (C)CW. But difficult to detect
+        MeshPolygon meshPolygon = terrainMesh.traversePolygon(terrainMesh.lines.get(0), null, true);
+        assertNotNull(meshPolygon);
+        assertEquals(4, meshPolygon.lines.size());
+        meshPolygon = terrainMesh.traversePolygon(terrainMesh.lines.get(0), null, false);
+        assertNotNull(meshPolygon);
+        assertEquals(3, meshPolygon.lines.size());
+
         // create way not intersecting triangulation line
         List<Coordinate> leftLine = new ArrayList<>();
-        leftLine.add(new Coordinate(50, 10));
-        leftLine.add(new Coordinate(60, 10));
+        leftLine.add(new Coordinate(10, 10));
+        leftLine.add(new Coordinate(20, 10));
         List<Coordinate> rightLine = new ArrayList<>();
-        rightLine.add(new Coordinate(50, 9));
-        rightLine.add(new Coordinate(60, 9));
+        rightLine.add(new Coordinate(10, 9));
+        rightLine.add(new Coordinate(20, 9));
         terrainMesh.registerWay(null, leftLine, rightLine, null, 1);
 
         String svg = terrainMesh.toSvg();

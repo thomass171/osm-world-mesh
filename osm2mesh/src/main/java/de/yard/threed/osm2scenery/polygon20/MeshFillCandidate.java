@@ -98,6 +98,10 @@ public class MeshFillCandidate {
     }
 
     public MeshPolygon getMeshPolygon() {
-        return new MeshPolygon(lines);
+        try {
+            return new MeshPolygon(lines);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

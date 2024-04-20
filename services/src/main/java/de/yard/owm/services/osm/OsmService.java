@@ -1,6 +1,7 @@
 package de.yard.owm.services.osm;
 
 import com.vividsolutions.jts.triangulate.ConstraintEnforcementException;
+import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
@@ -55,6 +56,9 @@ public class OsmService {
     @Autowired
     OsmElementService osmElementService;
 
+    @Autowired
+    TerrainMeshManager terrainMeshManager;
+
     /**
      * Use this when all data isType already
      * in memory, for example with editor applications.
@@ -103,7 +107,7 @@ public class OsmService {
             sceneryMesh.setBackgroundMesh(targetBounds);
         }
 
-        TerrainMesh terrainMesh = TerrainMesh.init(targetBounds);
+        TerrainMesh terrainMesh = terrainMeshManager.loadTerrainMesh(targetBounds);
 
         //handle posible old instances.
 
@@ -116,13 +120,11 @@ public class OsmService {
         for (MapWay mapWay : mapData.getMapWays()) {
             // 1 Scenery Objekte erstellen. WayConnector werden hier auch schon erstellt.
             try {
-            sceneryMesh.sceneryObjects.objects.addAll(osmElementService.process(mapWay,
-                    SceneryModule.getRelevant(worldModules, mapWay),terrainMesh, SceneryContext.getInstance()));
+                sceneryMesh.sceneryObjects.objects.addAll(osmElementService.process(mapWay,
+                        SceneryModule.getRelevant(worldModules, mapWay), terrainMesh, SceneryContext.getInstance()));
             } catch (OsmProcessException e) {
                 throw new RuntimeException(e);
             }
-
-
 
 
         }
@@ -245,7 +247,6 @@ public class OsmService {
         }
 
     }
-
 
 
     /**

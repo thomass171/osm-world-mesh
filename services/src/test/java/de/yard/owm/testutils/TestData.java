@@ -78,6 +78,16 @@ public class TestData {
     }
 
     /**
+     * For tests using meshDesdorf.sql
+     */
+    public static TerrainMesh prepareDesdorf(TerrainMeshManager manager){
+        // minlat="50.9455" minlon="6.59" maxlat="50.950" maxlon="6.596
+        GridCellBounds gridCellBounds = GridCellBounds.buildFromGeos(50.965, 50.94, 6.585, 6.6 + 0.001);
+        TerrainMesh terrainMesh = manager.loadTerrainMesh(gridCellBounds);
+        return terrainMesh;
+    }
+
+    /**
      * U-shape
      */
     private OSMWay createUshapedWay(LatLon origin, double lenInDegrees) {

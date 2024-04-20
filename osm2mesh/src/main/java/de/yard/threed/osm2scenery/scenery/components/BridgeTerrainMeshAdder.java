@@ -5,6 +5,7 @@ import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
 import de.yard.threed.osm2scenery.scenery.BridgeGap;
@@ -64,7 +65,11 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
                     return;
                 }
                 LineString[] result = JtsUtil.removeCoordinatesFromLine(gapLine, fromto);
-                tm.createMeshPolygon(new ArrayList(Arrays.asList(result)), head.sharesForGap, gapArea.getPolygon(tm), gapArea);
+                try {
+                    tm.createMeshPolygon(new ArrayList(Arrays.asList(result)), head.sharesForGap, gapArea.getPolygon(tm), gapArea);
+                } catch (MeshInconsistencyException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
@@ -72,7 +77,12 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
     private void addRamps(BridgeModule.BridgeHead head, TerrainMesh tm) {
         head.sharesForGap = new ArrayList<>();
         // die left und right line des Ways an diesem Head.
-        MeshLine[] lines = head.getConnectedWayLines(tm);
+        MeshLine[] lines = new MeshLine[0];
+        try {
+            lines = head.getConnectedWayLines(tm);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         if (lines == null || lines.length != 2) {
             logger.error("inconsistent bridgehead");
             return;

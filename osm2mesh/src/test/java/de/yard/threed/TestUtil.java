@@ -12,6 +12,7 @@ import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
@@ -132,12 +133,12 @@ public class TestUtil {
         }
     }
 
-    public static void validateConnector(long osmid, SceneryObjectList sceneryObjects, SceneryWayConnector.WayConnectorType expectedType, Boolean expectedminorHitsLeft, TerrainMesh tm) {
+    public static void validateConnector(long osmid, SceneryObjectList sceneryObjects, SceneryWayConnector.WayConnectorType expectedType, Boolean expectedminorHitsLeft, TerrainMesh tm) throws MeshInconsistencyException {
         SceneryWayConnector swc = (SceneryWayConnector) sceneryObjects.findObjectByOsmId(osmid);
         validateConnector(swc, expectedType, expectedminorHitsLeft, tm);
     }
 
-    public static void validateConnector(SceneryWayConnector swc, SceneryWayConnector.WayConnectorType expectedType, Boolean expectedminorHitsLeft, TerrainMesh tm) {
+    public static void validateConnector(SceneryWayConnector swc, SceneryWayConnector.WayConnectorType expectedType, Boolean expectedminorHitsLeft, TerrainMesh tm) throws MeshInconsistencyException {
         assertNotNull(swc);
         assertEquals(expectedType, swc.getType(), swc.getOsmIdsAsString() + ".type==" + expectedType);
         if (expectedminorHitsLeft != null) {
@@ -204,7 +205,7 @@ public class TestUtil {
 
     }
 
-    public static void validateSupplement(String label, ScenerySupplementAreaObject supplement, TerrainMesh tm) {
+    public static void validateSupplement(String label, ScenerySupplementAreaObject supplement, TerrainMesh tm) throws MeshInconsistencyException {
 
         if (!supplement.isEmpty(tm)) {
             if (supplement.isTerrainProvider()) {

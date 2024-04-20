@@ -9,6 +9,7 @@ import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.common.BridgeOrTunnel;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.BridgeGap;
@@ -380,7 +381,7 @@ public class BridgeModule extends SceneryModule {
          *
          * @return
          */
-        public MeshLine[] getConnectedWayLines(TerrainMesh tm) {
+        public MeshLine[] getConnectedWayLines(TerrainMesh tm) throws MeshInconsistencyException {
             if (connectedWayAtNode == null || connectedWayAtNode.getWayArea() == null) {
                 logger.error("huch");
                 return null;

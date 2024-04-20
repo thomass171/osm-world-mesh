@@ -20,16 +20,33 @@ public class TerrainMeshManager {
 
     public TerrainMesh loadTerrainMesh(GridCellBounds gridCellBounds) {
         TerrainMesh terrainMesh = TerrainMesh.init(gridCellBounds);
+
+        // Reading nodes independent from lines leads to doubled instances. Strange(?).
         // TODO filter mesh inside grid
-        meshNodeRepository.findAll().forEach(n->terrainMesh.points.add(n));
-        meshLineRepository.findAll().forEach(l->terrainMesh.lines.add(l));
+        /*meshNodeRepository.findAll().forEach(n -> {
+            n.projection = gridCellBounds.getProjection().getBaseProjection();
+            terrainMesh.points.add(n);
+        });*/
+        meshLineRepository.findAll().forEach(l -> {
+            terrainMesh.lines.add(l);
+            ((PersistedMeshNode)l.getFrom()).linesOfPoint.add(l);
+            if (!terrainMesh.points.contains(l.getFrom())){
+                terrainMesh.points.add(l.getFrom());
+                ((PersistedMeshNode)l.getFrom()).projection=gridCellBounds.getProjection().getBaseProjection();
+            }
+            ((PersistedMeshNode)l.getTo()).linesOfPoint.add(l);
+            if (!terrainMesh.points.contains(l.getTo())){
+                terrainMesh.points.add(l.getTo());
+                ((PersistedMeshNode)l.getTo()).projection=gridCellBounds.getProjection().getBaseProjection();
+            }
+        });
         // TODO make sure to have full outline in mesh
         return terrainMesh;
     }
 
     public void persist(TerrainMesh terrainMesh) {
-        terrainMesh.points.forEach(p-> meshNodeRepository.save((PersistedMeshNode) p));
-        terrainMesh.lines.forEach(p-> meshLineRepository.save((PersistedMeshLine) p));
+        terrainMesh.points.forEach(p -> meshNodeRepository.save((PersistedMeshNode) p));
+        terrainMesh.lines.forEach(p -> meshLineRepository.save((PersistedMeshLine) p));
     }
 
     public void deleteMeshLine(PersistedMeshLine line) {

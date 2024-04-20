@@ -27,12 +27,15 @@ public class MeshPolygon {
      *
      * @param lines
      */
-    public MeshPolygon(List<MeshLine> lines) {
+    public MeshPolygon(List<MeshLine> lines) throws MeshInconsistencyException {
         this.lines = TerrainMesh.sort(lines);
         //Konsistenzprüfung
         if (getPolygon() == null) {
-            // TODO 16.4.24: throw MeshInconsistency
-            //throw new RuntimeException("invalid MeshPolygon");
+            // 16.4.24: throw
+            if (lines.get(0).getClass().getName().contains("ersisted")) {
+
+                throw new MeshInconsistencyException("invalid MeshPolygon");
+            }
             logger.warn("invalid mesh polygon");
             //leeren, weil es sonst nur Folgefehler gibt
             this.lines = new ArrayList<>();

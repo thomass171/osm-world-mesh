@@ -14,6 +14,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroupFinder;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.elevation.ElevationCalculator;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
@@ -346,7 +347,11 @@ public abstract class AbstractArea {
      * @return
      */
     final public MeshPolygon getMeshPolygon(TerrainMesh tm) {
-        return tm.getPolygon(this);
+        try {
+            return tm.getPolygon(this);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

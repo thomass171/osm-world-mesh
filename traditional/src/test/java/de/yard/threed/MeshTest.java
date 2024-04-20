@@ -10,6 +10,7 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.SurfaceAreaModule;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
@@ -49,7 +50,7 @@ public class MeshTest {
      * @throws IOException
      */
     @Test
-    public void testDesdorf() throws IOException, OsmProcessException {
+    public void testDesdorf() throws IOException, OsmProcessException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Desdorf.osm.xml", "Desdorf", "superdetailed");
 
         SurfaceAreaModule surfaceAreaModule = new SurfaceAreaModule();

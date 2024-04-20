@@ -14,6 +14,7 @@ import de.yard.threed.osm2scenery.elevation.ElevationCalculator;
 import de.yard.threed.osm2scenery.elevation.SimpleEleConnectorGroupFinder;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshFillCandidate;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.Background;
@@ -526,7 +527,12 @@ public class SceneryMesh {
         //logger.debug("found open mesh line " + meshLine);
         TerrainMesh tm = terrainMesh;
         boolean left = meshLine.getLeft() == null;
-        MeshPolygon meshPolygon = tm.traversePolygon(meshLine, null, left);
+        MeshPolygon meshPolygon = null;
+        try {
+            meshPolygon = tm.traversePolygon(meshLine, null, left);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         if (meshPolygon == null || meshPolygon.lines.size() == 0) {
             logger.error("createBackground: MeshPolygon not found. Aborting");
             return false;

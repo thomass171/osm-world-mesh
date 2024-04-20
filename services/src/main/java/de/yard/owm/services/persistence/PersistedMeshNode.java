@@ -47,7 +47,7 @@ public class PersistedMeshNode implements MeshNode {
     private double lon;
 
     @Transient
-    private List<PersistedMeshLine> linesOfPoint = new ArrayList();
+    public List<PersistedMeshLine> linesOfPoint = new ArrayList();
     @Transient
     MetricMapProjection projection;
 
