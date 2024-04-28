@@ -79,4 +79,9 @@ public interface MeshLine {
     }
 
     void setType(int type);
+
+    LineSegment getLineSegment();
+
+    // 28.4.24 wierd, no good idea . Only the caller knows what a good label is
+    String getLabel();
 }

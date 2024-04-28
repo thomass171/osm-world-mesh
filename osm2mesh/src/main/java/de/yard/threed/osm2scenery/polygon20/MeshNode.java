@@ -22,4 +22,7 @@ public interface MeshNode {
     int getLineCount();
 
     List<MeshLine> getLines();
+
+    // 28.4.24 wierd, no good idea . Only the caller knows what a good label is
+    String getLabel();
 }

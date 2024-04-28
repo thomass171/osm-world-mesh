@@ -188,7 +188,7 @@ public class TestUtil {
 
     }
 
-    public static void validateResult(SceneryMesh sceneryMesh, Logger logger, int toleratedWarnings, int expectedBgFiller, TerrainMesh tm) {
+    public static void validateResult(SceneryMesh sceneryMesh, Logger logger, int toleratedWarnings, int expectedBgFiller, TerrainMesh tm) throws MeshInconsistencyException {
         assertTrue(tm.isValid(true), "TerrainMesh.valid");
         assertEquals(0, SceneryContext.getInstance().unresolvedoverlaps, "unresolvedoverlaps");
         assertEquals(0, SceneryContext.getInstance().overlappingways, "overlappingways");

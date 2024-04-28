@@ -410,8 +410,55 @@ public class JtsUtil {
         return GF.createPolygon(new Coordinate[]{c0, c1, c2, c0});
     }
 
+    /**
+     * The triangle spans from first to second CCW.
+     */
+    public static Polygon createTriangleForSector(Coordinate origin, Degree first, Degree second, double len) {
+        Degree f = first, s = second;
+        if (getSectorSize(first, second) > 179) {
+            // no problem, might just happen. But this will be no usabel triangle?
+            // Might not lead to a triangle or be one the 'wrong' side.
+            //logger.warn("angle not consistent");
+            //return Collections.EMPTY_LIST;
+            if (360 - (first.getDegree() - second.getDegree()) > 179) {
+                // Might not lead to a triangle or be one the 'wrong' side.
+                logger.warn("sector to wide");
+                return null;
+            }
+        }
+        // build triangle for sector
+        Polygon sectorTriangle = createTriangle(origin,
+                JtsUtil.add(origin, new Vector2(1, 0).rotate(f).normalize().multiply(len)),
+                JtsUtil.add(origin, new Vector2(1, 0).rotate(s).normalize().multiply(len)));
+
+        if (!sectorTriangle.isValid()) {
+            logger.warn("sectorTriangle not valid");
+            return null;
+        }
+        return sectorTriangle;
+    }
+
+    public static double getSectorSize(Degree first, Degree second) {
+        if (first.getDegree() > second.getDegree()) {
+            return 360 - (first.getDegree() - second.getDegree());
+        } else {
+            return second.getDegree() - first.getDegree();
+        }
+    }
+
+    public static Pair<Degree, Degree> reduceSector(Pair<Degree, Degree> sector, Degree destinationAngle) {
+        double span = JtsUtil.getSectorSize(sector.getFirst(), sector.getSecond());
+        double toClip = (span - destinationAngle.getDegree()) / 2.0;
+
+        return new Pair(sector.getFirst().add(new Degree(toClip)).normalize(), sector.getSecond().subtract(new Degree(toClip)).normalize());
+    }
+
     public static LineString createLine(Coordinate c0, Coordinate c1) {
         return createLine(new Coordinate[]{c0, c1});
+    }
+
+    public static LineString createLineInDirection(Coordinate c, Vector2 dir, double len) {
+        return JtsUtil.createLine(c, add(c, dir.normalize().multiply(len)));
     }
 
     /**
@@ -583,6 +630,24 @@ public class JtsUtil {
                 return true;
             }
         }
+        return false;
+    }
+
+    /**
+     * @return true if it really intersects/crosses, not only touches.
+     */
+    public static boolean isReallyIntersectingLine(LineSegment line, LineSegment line1) {
+        Coordinate intersection;
+
+        if ((intersection = line.intersection(line1)) != null) {
+
+            // check if intersect is only touch at end point. Unclear what a good tolerance is
+            double tolerance = 0.1;
+            if (!((intersection.equals2D(line.p0,tolerance) || intersection.equals2D(line.p1,tolerance)) &&
+                    (intersection.equals2D(line1.p0,tolerance) || intersection.equals2D(line1.p1,tolerance))))
+                return true;
+        }
+
         return false;
     }
 
@@ -1336,6 +1401,10 @@ public class JtsUtil {
 
     public static boolean contains(Geometry geometry, Vector2 point) {
         Coordinate c = toCoordinate(point);
+        return geometry.contains(GF.createPoint(c));
+    }
+
+    public static boolean contains(Geometry geometry, Coordinate c) {
         return geometry.contains(GF.createPoint(c));
     }
 

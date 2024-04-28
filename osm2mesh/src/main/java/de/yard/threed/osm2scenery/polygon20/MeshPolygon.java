@@ -82,7 +82,7 @@ public class MeshPolygon {
         }
         Polygon p = JtsUtil.createPolygon(coors);
         if (p == null || !p.isValid()) {
-            logger.error("invalid:p="+p);
+            logger.error("invalid:p=" + p);
             return null;
         }
         return p;
@@ -126,5 +126,21 @@ public class MeshPolygon {
             }
         }
         return null;
+    }
+
+    /**
+     * Unique but not sorted.
+     */
+    public List<MeshNode> getNodes() {
+        List<MeshNode> result = new ArrayList<>();
+        for (MeshLine l : lines) {
+            if (!result.contains(l.getFrom())) {
+                result.add(l.getFrom());
+            }
+            if (!result.contains(l.getTo())) {
+                result.add(l.getTo());
+            }
+        }
+        return result;
     }
 }

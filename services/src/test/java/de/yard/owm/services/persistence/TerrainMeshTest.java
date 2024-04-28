@@ -57,12 +57,12 @@ public class TerrainMeshTest {
     @Autowired
     private WebApplicationContext context;
 
-    MetricMapProjection projection = new MetricMapProjection(TestUtils.DESDORF_SW);
+    MetricMapProjection projectionDESDORF_SW = new MetricMapProjection(TestUtils.DESDORF_SW);
 
     @BeforeEach
     void setUp() {
-        // SQL script already deletes
-        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(projection, manager);
+        // SQL script already deletes. Setting this here might be fatal as projection might change
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(projectionDESDORF_SW, manager);
     }
 
     @AfterEach
@@ -79,7 +79,7 @@ public class TerrainMeshTest {
 
         assertEquals(3, meshNodeRepository.count());
 
-        Coordinate c = projection.project(TestUtils.DESDORF_SW);
+        Coordinate c = projectionDESDORF_SW.project(TestUtils.DESDORF_SW);
         PersistedMeshNode meshNode = (PersistedMeshNode) TerrainMesh.meshFactoryInstance.buildMeshNode(c);
         //meshNode.setLat(2.0);
         //meshNode.setLon(5.0);
@@ -125,26 +125,15 @@ public class TerrainMeshTest {
     }
 
     /**
-     * Scetch 3??
+     * Sketch 3??
      *
      * @throws OsmProcessException
      * @throws MeshInconsistencyException
      */
     @Test
     public void testSimpleRegisterWay() throws OsmProcessException, MeshInconsistencyException {
-        meshLineRepository.deleteAll();
-        meshNodeRepository.deleteAll();
 
-        double centerLat = (51);
-        double centerLon = (7.0);
-        double widthInDegrees = 0.001;
-        double heightInDegrees = 0.001;
-        TestData testData = TestData.build2024(manager, centerLat, centerLon, widthInDegrees, heightInDegrees, 0.0001, false);
-
-        TerrainMesh terrainMesh = testData.terrainMesh;
-        assertNotNull(terrainMesh);
-        assertEquals(4, terrainMesh.points.size());
-        assertEquals(5, terrainMesh.lines.size());
+        TerrainMesh terrainMesh = buildSimpleTestMesh();
 
         // test some Basic Operations
         // a pure outer polygon might be the 'wrong' result of going (C)CW. But difficult to detect
@@ -162,24 +151,24 @@ public class TerrainMeshTest {
         List<Coordinate> rightLine = new ArrayList<>();
         rightLine.add(new Coordinate(10, 9));
         rightLine.add(new Coordinate(20, 9));
-        terrainMesh.registerWay(null, leftLine, rightLine, null, 1);
+        MeshPolygon wayPolygon = terrainMesh.registerWay(null, leftLine, rightLine, null, 1);
 
-        String svg = terrainMesh.toSvg();
+        TestUtils.writeTmpSvg(terrainMesh.toSvg());
 
-        TestUtils.writeTmpSvg(svg);
-
+        // Has 4 connector instead of 3 with sector angle 150 instead of 90
+        int connector = 4;
         assertEquals(4 + 4, terrainMesh.points.size(), "points");
-        assertEquals(5 + 4, terrainMesh.lines.size(), "lines");
-
+        assertEquals(5 + 4 + connector, terrainMesh.lines.size(), "lines");
         manager.persist(terrainMesh);
         terrainMesh = manager.loadTerrainMesh(terrainMesh.getGridCellBounds());
         assertEquals(4 + 4, terrainMesh.points.size(), "points");
-        assertEquals(5 + 4, terrainMesh.lines.size(), "lines");
-
+        assertEquals(5 + 4 + connector, terrainMesh.lines.size(), "lines");
+        terrainMesh.validate();
+        assertTrue(terrainMesh.isValid(true));
     }
 
     @Test
-    public void testTestData2024() {
+    public void testTestData2024() throws MeshInconsistencyException {
 
         meshLineRepository.deleteAll();
         meshNodeRepository.deleteAll();
@@ -190,4 +179,31 @@ public class TerrainMeshTest {
 
         TestUtils.writeTmpSvg(svg);
     }
+
+    /**
+     * Sketch 3??
+     *
+     * @throws OsmProcessException
+     * @throws MeshInconsistencyException
+     */
+    private TerrainMesh buildSimpleTestMesh() throws MeshInconsistencyException {
+        meshLineRepository.deleteAll();
+        meshNodeRepository.deleteAll();
+
+        double centerLat = (51);
+        double centerLon = (7.0);
+        double widthInDegrees = 0.001;
+        double heightInDegrees = 0.001;
+        TestData testData = TestData.build2024(manager, centerLat, centerLon, widthInDegrees, heightInDegrees, 0.0001, false);
+
+        assertNotNull(testData.terrainMesh);
+        assertEquals(4, testData.terrainMesh.points.size());
+        assertEquals(5, testData.terrainMesh.lines.size());
+
+        ((PersistedMeshFactory)TerrainMesh.meshFactoryInstance).projection = testData.terrainMesh.getGridCellBounds().getProjection().getBaseProjection();
+
+        return testData.terrainMesh;
+
+    }
+
 }

@@ -15,7 +15,7 @@ import java.util.List;
 
 public class PersistedMeshFactory implements MeshFactory {
 
-    MetricMapProjection projection;
+    public MetricMapProjection projection;
     TerrainMeshManager terrainMeshManager;
 
     public PersistedMeshFactory(MetricMapProjection projection, TerrainMeshManager terrainMeshManager) {
@@ -25,7 +25,10 @@ public class PersistedMeshFactory implements MeshFactory {
 
     @Override
     public MeshNode buildMeshNode(Coordinate coordinate) {
-        return new PersistedMeshNode(coordinate, projection);
+        PersistedMeshNode newNode = new PersistedMeshNode(coordinate, projection.unproject(coordinate));
+        // persist it to give it an id which is needed for equals.
+        terrainMeshManager.persistNode(newNode);
+        return newNode;
     }
 
     @Override
@@ -41,7 +44,7 @@ public class PersistedMeshFactory implements MeshFactory {
         for (Coordinate c : coordinates) {
             PersistedMeshNode existingNode = null;//TODO find
             if (existingNode == null) {
-                existingNode = new PersistedMeshNode(GeoCoordinate.fromLatLon(projection.unproject(c), c.z), projection);
+                existingNode = new PersistedMeshNode(c,GeoCoordinate.fromLatLon(projection.unproject(c), c.z)/*, projection*/);
             }
             if (lastNode != null) {
                 lines.add(new PersistedMeshLine(lastNode, existingNode));

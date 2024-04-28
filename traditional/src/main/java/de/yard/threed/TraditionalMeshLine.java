@@ -215,4 +215,14 @@ public class TraditionalMeshLine implements MeshLine {
     public void setType(int type) {
 
     }
+
+    @Override
+    public LineSegment getLineSegment() {
+       throw new RuntimeException("not possible");
+    }
+
+    @Override
+    public String getLabel() {
+        return "?";
+    }
 }

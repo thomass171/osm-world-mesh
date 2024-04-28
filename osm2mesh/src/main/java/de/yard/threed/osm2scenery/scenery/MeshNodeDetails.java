@@ -5,6 +5,7 @@ import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
+import de.yard.threed.osm2scenery.polygon20.Sector;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -54,6 +55,15 @@ public class MeshNodeDetails {
             }
         }
         throw new MeshInconsistencyException("no neighbor for line " + origin);
+    }
+
+    public  Sector getNeighborSector(MeshLine origin, boolean ccw) throws MeshInconsistencyException {
+        MeshLine neighbor = getNeighborLine(origin, ccw);
+        if (ccw){
+            return new Sector(node, getDirection(origin).angle(),getDirection(neighbor).angle());
+        }else{
+            return new Sector(node, getDirection(neighbor).angle(),getDirection(origin).angle());
+        }
     }
 
     /**

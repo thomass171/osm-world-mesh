@@ -80,4 +80,9 @@ public class TraditionalMeshNode implements MeshNode {
     public List<MeshLine> getLines() {
         return Collections.unmodifiableList(linesOfPoint);
     }
+
+    @Override
+    public String getLabel() {
+        return "?";
+    }
 }

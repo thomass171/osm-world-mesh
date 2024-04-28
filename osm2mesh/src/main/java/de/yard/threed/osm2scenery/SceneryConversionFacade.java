@@ -8,6 +8,7 @@ import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
@@ -385,7 +386,12 @@ public class SceneryConversionFacade {
         } catch (OsmProcessException e) {
             throw new RuntimeException(e);
         }
-        boolean meshValid = sceneryMesh.terrainMesh.isValid(true);
+        boolean meshValid = false;
+        try {
+            meshValid = sceneryMesh.terrainMesh.isValid(true);
+        } catch (MeshInconsistencyException e) {
+            meshValid=false;
+        }
         //gap filler sind zwar auch supplements. Aber die haengen sich schon selber ins mesh.
         logger.info("Supplements added to terrain mesh (mesh " + ((meshValid) ? "valid" : "invalid") + "). Creating gap filler");
         int cnt = sceneryMesh.createWayToAreaFiller();

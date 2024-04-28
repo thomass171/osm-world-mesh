@@ -104,18 +104,24 @@ public class TestUtils {
                                               double heightInDegrees, MetricMapProjection baseProjection, double marginInDegrees) {
         // mesh boundary
         double margin = marginInDegrees;//0.01;
-        PersistedMeshNode topLeft = new PersistedMeshNode(GeoCoordinate.fromLatLon(
+        PersistedMeshNode topLeft = PersistedMeshNode.build(GeoCoordinate.fromLatLon(
                 LatLon.fromDegrees(centerLat + heightInDegrees / 2 - margin, centerLon - widthInDegrees / 2 + margin), 0),
                 baseProjection);
-        PersistedMeshNode topRight = new PersistedMeshNode(GeoCoordinate.fromLatLon(
+        PersistedMeshNode topRight = PersistedMeshNode.build(GeoCoordinate.fromLatLon(
                 LatLon.fromDegrees(centerLat + heightInDegrees / 2 - margin, centerLon + widthInDegrees / 2 - margin), 0),
                 baseProjection);
-        PersistedMeshNode bottomRight = new PersistedMeshNode(GeoCoordinate.fromLatLon(
+        PersistedMeshNode bottomRight = PersistedMeshNode.build(GeoCoordinate.fromLatLon(
                 LatLon.fromDegrees(centerLat - heightInDegrees / 2 + margin, centerLon + widthInDegrees / 2 - margin), 0),
                 baseProjection);
-        PersistedMeshNode bottomLeft = new PersistedMeshNode(GeoCoordinate.fromLatLon(
+        PersistedMeshNode bottomLeft = PersistedMeshNode.build(GeoCoordinate.fromLatLon(
                 LatLon.fromDegrees(centerLat - heightInDegrees / 2 + margin, centerLon - widthInDegrees / 2 + margin), 0),
                 baseProjection);
+        if (topLeft.getLon() > topRight.getLon()){
+            throw new RuntimeException("left > right");
+        }
+        if (bottomLeft.getLat() > topRight.getLat()){
+            throw new RuntimeException("left > right");
+        }
         terrainMesh.points.add(topLeft);
         terrainMesh.points.add(topRight);
         terrainMesh.points.add(bottomRight);

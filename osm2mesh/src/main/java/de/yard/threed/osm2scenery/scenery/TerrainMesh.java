@@ -1,6 +1,7 @@
 package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.Degree;
@@ -21,6 +22,7 @@ import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshLineSplitCandidate;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.Sector;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
@@ -367,7 +369,11 @@ public class TerrainMesh {
             }
         }
         step = 2;
-        if (!isValid(true)) {
+        try {
+            if (!isValid(true)) {
+                logger.error("invalid after adding ways and way connector");
+            }
+        } catch (MeshInconsistencyException e) {
             logger.error("invalid after adding ways and way connector");
         }
     }
@@ -395,7 +401,11 @@ public class TerrainMesh {
             }
         }
         step = 3;
-        if (!isValid(true)) {
+        try {
+            if (!isValid(true)) {
+                logger.error("invalid after adding areas");
+            }
+        } catch (MeshInconsistencyException e) {
             logger.error("invalid after adding areas");
         }
     }
@@ -492,8 +502,10 @@ public class TerrainMesh {
      * lanes is used leter to detect ways for triangulateAndTexturize
      * connector might be null, otherwise the connecting part must have been created before.
      * 6.4.24: Well, maybe its easier to keep existing registerLine for a while?
+     *
+     * @return
      */
-    public void registerWay(Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws OsmProcessException {
+    public MeshPolygon registerWay(Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws OsmProcessException {
 
         Polygon polygon = JtsUtil.createPolygonFromWayOutlines(new CoordinateList(rightLine), new CoordinateList(leftLine));
 
@@ -521,15 +533,10 @@ public class TerrainMesh {
             n = l.getTo();
             newLines.add(l);
         }
-        //List<MeshLine> lines = registerLineNonPreDB(leftLine, leftArea, rightArea);
-        //lines.addAll(registerLineNonPreDB(JtsUtil.toList(leftLine.get(leftLine.size() - 1), rightLine.get(rightLine.size() - 1)), null, null));
         l = addLine(n, rightLine.get(rightLine.size() - 1));
         n = l.getTo();
         newLines.add(l);
 
-        //List<MeshLine> tmpLines = registerLineNonPreDB(rightLine, leftArea, rightArea);
-        //Collections.reverse(tmpLines);
-        //lines.addAll(tmpLines);
         for (int i = rightLine.size() - 2; i >= 0; i--) {
             l = addLine(n, rightLine.get(i));
             n = l.getTo();
@@ -554,10 +561,30 @@ public class TerrainMesh {
             if (enclosingPolygon == null) {
                 throw new OsmProcessException("no enclosingPolygon");
             }
+
+            // connect ot background mesh
+            MeshLine startConnectingLine = newLines.get(newLines.size() - 1);
+            connectAreaNodeToPolygon(newLines.get(0), newLines.get(0).getFrom(), newArea, enclosingPolygon);
+            MeshLine endConnectingLine = newLines.get(leftLine.size() - 1);
+            connectAreaNodeToPolygon(endConnectingLine, endConnectingLine.getFrom(), newArea, enclosingPolygon);
+            connectAreaNodeToPolygon(endConnectingLine, endConnectingLine.getTo(), newArea, enclosingPolygon);
+            connectAreaNodeToPolygon(startConnectingLine, startConnectingLine.getFrom(), newArea, enclosingPolygon);
+            // the caller should call validate before persist. Don't remember the reason.
+            return newArea;
         } catch (MeshInconsistencyException e) {
             throw new OsmProcessException(e);
         }
+    }
 
+    private void connectAreaNodeToPolygon(MeshLine rline, MeshNode connectNode, MeshPolygon newArea, MeshPolygon enclosingPolygon) throws MeshInconsistencyException {
+        MeshNodeDetails details = new MeshNodeDetails(connectNode);
+        Sector sector = details.getNeighborSector(rline, rline.getFrom().equals(connectNode));
+        // ometimes, 90 is too small.
+        sector = sector.reduce(new Degree(150/*90*/));
+        MeshLine connectingLine = connectNodeToPolygon(connectNode, sector, newArea, enclosingPolygon);
+        if (connectingLine != null) {
+            lines.add(connectingLine);
+        }
     }
 
     private MeshLine addLine(MeshNode from, Coordinate to) {
@@ -606,7 +633,7 @@ public class TerrainMesh {
         }
         // try opposite direction
         probingDir = probingDir.rotate(new Degree(180)).normalize();
-        line = JtsUtil.createLine(node.getCoordinate(), JtsUtil.add(node.getCoordinate(), probingDir.multiply(length)));
+        line = JtsUtil.createLineInDirection(node.getCoordinate(), probingDir, length);
         if (!JtsUtil.isIntersecting(line, List.of(area.getPolygon()))) {
             return line;
         }
@@ -622,17 +649,30 @@ public class TerrainMesh {
 
     }
 
+    public void validate() throws MeshInconsistencyException {
+        if (!isValid(true)) {
+            throw new MeshInconsistencyException("not valid");
+        }
+    }
+
     public boolean isValid() {
-        return isValid(false);
+        try {
+            return isValid(false);
+        } catch (MeshInconsistencyException e) {
+            logger.error(e.getMessage());
+            return false;
+        }
     }
 
     /**
      * Ob points mir nur zwei lines wirklich invalid sind?? eigentlich doch nicht. Für manche Tests ist es aber brauchbar.
+     * 24.4.24 Until full triangulation there might be nodes with only two lines.
+     * 25.4.24: Might also throw MeshInconsistencyException
      *
      * @param ignoretwoliner
      * @return
      */
-    public boolean isValid(boolean ignoretwoliner) {
+    public boolean isValid(boolean ignoretwoliner) throws MeshInconsistencyException {
         boolean valid = true;
         for (int i = 0; i < points.size(); i++) {
             MeshNode point = points.get(i);
@@ -654,8 +694,9 @@ public class TerrainMesh {
                         //bei Way junctions gibt es auch mal 4, darum > 4.
                         if (point.getLineCount() > 4) {
                             //21.8.19:aber da ist doch was faul
-                            logger.warn("too many lines at point " + points.get(i).getCoordinate() + "(" + i + "): " + point.getLineCount());
-                            valid = false;
+                            // 26.4.24: Should be nor problem anymore
+                            //logger.warn("too many lines at point " + points.get(i).getCoordinate() + "(" + i + "): " + point.getLineCount());
+                            //valid = false;
                         }
                     }
                 }
@@ -704,7 +745,32 @@ public class TerrainMesh {
             logger.error("errorCounter=" + errorCounter);
             return false;
         }
+        // No line might intersect any other line.
+        if (!isPreDbStyle()) {
+            for (MeshLine l0 : lines) {
+                for (MeshLine l1 : lines) {
+                    if (!l0.equals(l1)) {
+                        if (JtsUtil.isReallyIntersectingLine(l0.getLineSegment(), l1.getLineSegment())) {
+                            throw new MeshInconsistencyException("line " + l0 + " intersects " + l1);
+                            //logger.error("line " + l0 + " intersects " + l1);
+                        }
+                    }
+                }
+            }
+        }
         return valid;
+    }
+
+    /**
+     * The LineSegment might not be a derival from an existing line!
+     */
+    private boolean isReallyIntersectingAnyLine(LineSegment lineSegment) {
+        for (MeshLine l : lines) {
+            if (JtsUtil.isReallyIntersectingLine(l.getLineSegment(), lineSegment)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public GridCellBounds getGridCellBounds() {
@@ -1607,8 +1673,9 @@ public class TerrainMesh {
 
     public String toSvg() {
 
+        // should have same sizes to make scaling successful in both span cases?
         int width = 800;
-        int height = 600;
+        int height = 800;
         String svg = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" baseProfile=\"full\" width=\"" + width + "px\" height=\"" + height + "px\" viewBox=\"0 0 " + width + " " + height + "\">\n";
 
@@ -1630,16 +1697,36 @@ public class TerrainMesh {
             scale = (double) height / spanY;
         }
 
+        String fontSize10px = "10px";
+        String fontSize6px = "6px";
+        String fontSize4px = "4px";
+
         for (MeshLine line : lines) {
             int x1 = (int) (line.getFrom().getCoordinate().x * scale);
             int y1 = -(int) (line.getFrom().getCoordinate().y * scale);
             int x2 = (int) (line.getTo().getCoordinate().x * scale);
             int y2 = -(int) (line.getTo().getCoordinate().y * scale);
             svg += " <line x1=\"" + x1 + "\" y1=\"" + y1 + "\" x2=\"" + x2 + "\" y2=\"" + y2 + "\" stroke=\"black\"/>\n";
+            int tx = x1 + (x2 - x1) / 2;
+            int ty = y1 + (y2 - y1) / 2;
+            // line label
+            svg += svgText(tx,ty,line.getLabel(),fontSize10px);
+        }
+        for (MeshNode node:points){
+            int x = (int) (node.getCoordinate().x * scale);
+            int y = -(int) (node.getCoordinate().y * scale);
+            svg += svgText(x,y,node.getLabel(),fontSize6px);
         }
         svg += "</g>";
         svg += "</svg>";
         return svg;
+    }
+
+    private String svgText(int x, int y, String text, String fontSize){
+        // text scale also applies to position
+        return " <text x=\"" + x + "\" y=\"" + y + "\" font-size=\"" + fontSize + "\" fill=\"" + "black" + "\" transform=\"" + "scale(1.0)" + "\">"
+                + text+ "</text>\n";
+
     }
 
     private boolean crosses(MeshLine line, Polygon polygon) {
@@ -1656,6 +1743,33 @@ public class TerrainMesh {
         meshFactoryInstance.deleteMeshLine(line);
         lines.remove(line);
     }
+
+    /**
+     * Connect a node to a polygon. The node must reside inside the polygon, (not even on the outline?).
+     * Returns null when no connection cannot be build.
+     */
+    public MeshLine connectNodeToPolygon(MeshNode node, Sector sector, MeshPolygon origin, MeshPolygon polygonToConnectTo) {
+
+        // MeshNodeDetails details = new MeshNodeDetails(node);
+        //Sector sector = details.getNeighborSector(nod);
+
+        for (MeshNode n : sector.getNodesOfPolygonInSector(polygonToConnectTo)) {
+            @Deprecated // should use LineSegment
+            LineString line = JtsUtil.createLine(node.getCoordinate(), n.getCoordinate());
+            LineSegment lineSegment = JtsUtil.createLineSegment(node.getCoordinate(), n.getCoordinate());
+            // TODO check its completely in polygon
+            // should neither interect the origin polygon, ...
+            if (!JtsUtil.isIntersecting(line, List.of(origin.getPolygon()))) {
+                // ... nor any other line except 'polygonToConnectTo'
+                if (!isReallyIntersectingAnyLine(lineSegment)) {
+                    return meshFactoryInstance.buildMeshLine(node, n);
+                }
+            }
+        }
+        return null;
+    }
+
+
 }
 
 

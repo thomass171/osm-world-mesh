@@ -6,6 +6,7 @@ import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.threed.core.Degree;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.TagHelper;
 import de.yard.threed.osm2world.OSMData;
@@ -51,7 +52,7 @@ public class TestData {
 
     }
 
-    public static TestData build2024(TerrainMeshManager manager) {
+    public static TestData build2024(TerrainMeshManager manager) throws MeshInconsistencyException {
         double centerLat = (51);
         double centerLon = (7.0);
         double widthInDegrees = 0.1;
@@ -59,7 +60,7 @@ public class TestData {
         return build2024(manager, centerLat, centerLon, widthInDegrees, heightInDegrees, 0.01, true);
     }
 
-    public static TestData build2024(TerrainMeshManager manager, double centerLat, double centerLon, double widthInDegrees, double heightInDegrees, double marginInDegrees, boolean addRoad) {
+    public static TestData build2024(TerrainMeshManager manager, double centerLat, double centerLon, double widthInDegrees, double heightInDegrees, double marginInDegrees, boolean addRoad) throws MeshInconsistencyException {
 
         GridCellBounds gridCellBounds = GridCellBounds.buildFromGeos(
                 centerLat + heightInDegrees / 2, centerLat - heightInDegrees / 2,

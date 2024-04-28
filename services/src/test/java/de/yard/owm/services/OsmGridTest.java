@@ -282,7 +282,7 @@ public class OsmGridTest {
 
     @Test
     @Disabled // 2.4.24
-    public void testDesdorfK41SegmentGrid2D() throws IOException {
+    public void testDesdorfK41SegmentGrid2D() throws IOException, MeshInconsistencyException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider");
         customconfig.setProperty("modules.HighwayModule.tagfilter", "highway=secondary");
@@ -291,14 +291,14 @@ public class OsmGridTest {
 
     @Test
     @Disabled // 2.4.24
-    public void testDesdorfK41SegmentGrid2DE() throws IOException {
+    public void testDesdorfK41SegmentGrid2DE() throws IOException, MeshInconsistencyException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider68");
         customconfig.setProperty("modules.HighwayModule.tagfilter", "highway=secondary");
         dotestDesdorfK41SegmentGrid(customconfig, true, "poc");
     }
 
-    private void dotestDesdorfK41SegmentGrid(Configuration customconfig, boolean elevated, String configsuffix) throws IOException {
+    private void dotestDesdorfK41SegmentGrid(Configuration customconfig, boolean elevated, String configsuffix) throws IOException, MeshInconsistencyException {
         String desdorfk41 = SceneryBuilder.osmdatadir + "/K41-segment.osm.xml";
         SceneryBuilder sb = new SceneryBuilder();
         SceneryBuilder.FTR_SMARTGRID = true;
@@ -717,7 +717,7 @@ public class OsmGridTest {
 
     @Test
     @Disabled // 2.4.24
-    public void testTestData() throws IOException {
+    public void testTestData() throws IOException, MeshInconsistencyException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider68");
         String testdataOSM = SceneryBuilder.osmdatadir + "/TestData-Simplified.osm.xml";

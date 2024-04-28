@@ -54,6 +54,13 @@ public class PersistedMeshLine implements MeshLine {
     @Transient
     public LineString line;
 
+    /**
+     * Optional index for better testing/debugging
+     28.4.24 wierd, no good idea
+    @Transient
+    private int lineIndex = uniqueIndex++;
+    private static int uniqueIndex = 0;*/
+
     public PersistedMeshLine() {
 
     }
@@ -96,7 +103,7 @@ public class PersistedMeshLine implements MeshLine {
 
     @Override
     public String toString() {
-        return "" + fromNode.getCoordinate() + "->" + toNode.getCoordinate();
+        return "" + ":" + fromNode.getCoordinate() + "->" + toNode.getCoordinate();
     }
 
     @Override
@@ -253,4 +260,18 @@ public class PersistedMeshLine implements MeshLine {
     public void setType(int type) {
         this.type = type;
     }
+
+    @Override
+    public LineSegment getLineSegment() {
+        return JtsUtil.createLineSegment(fromNode.getCoordinate(), toNode.getCoordinate());
+    }
+
+    @Override
+    public String getLabel() {
+        return "?";
+    }
+
+    /*28.4.24 wierd, no good idea public static void resetIndex() {
+        uniqueIndex=0;
+    }*/
 }
