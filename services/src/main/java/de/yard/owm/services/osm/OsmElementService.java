@@ -1,5 +1,6 @@
 package de.yard.owm.services.osm;
 
+import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
@@ -8,6 +9,7 @@ import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
@@ -16,6 +18,7 @@ import de.yard.threed.osm2scenery.Phase;
 
 import de.yard.threed.osm2world.MapWay;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +33,16 @@ import static de.yard.threed.osm2scenery.scenery.SceneryObject.Cycle.WAY;
 @Slf4j
 public class OsmElementService {
 
+    @Autowired
+    TerrainMeshManager terrainMeshManager;
+
+    /**
+     * Building TerrainMesh here every time might be more consistent, but is also a waste of resources.
+     * Currently we consider OsmService to be the master service creating and maintaining TerrainMesh and SceneryContext.
+     * However, this is the TX.
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<SceneryObject> process(MapWay mapWay, List<? extends SceneryModule> modules, TerrainMesh tm, SceneryContext sceneryContext) throws OsmProcessException {
+    public List<SceneryObject> process(MapWay mapWay, List<? extends SceneryModule> modules, TerrainMesh tm, SceneryContext sceneryContext) throws OsmProcessException, MeshInconsistencyException {
 
         List<SceneryObject> sceneryObjects = new ArrayList<>();
 
@@ -180,6 +191,8 @@ public class OsmElementService {
             //sceneryMesh.connectElevationGroups();
             end of TODO */
 
+        // persisting is not really needed (because its done by entity manager at TX end), but also does a final consistency check.
+        terrainMeshManager.persist(tm);
         return sceneryObjects;
     }
 

@@ -22,13 +22,17 @@ import org.openstreetmap.osmosis.core.domain.v0_6.WayNode;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.openstreetmap.osmosis.xml.common.SaxParserFactory;
 import org.openstreetmap.osmosis.xml.v0_6.impl.OsmHandler;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.SAXParser;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringBufferInputStream;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -239,9 +243,11 @@ public class OsmXmlParser implements OSMDataReader {
 
         InputStream inputStream = null;
         try {
-            inputStream = new StringBufferInputStream(xmlInput);
+            InputSource source = new InputSource(new StringReader(xmlInput));
+            // explicitly set a encoding
+            source.setEncoding(StandardCharsets.UTF_8.displayName());
             SAXParser parser = SaxParserFactory.createParser();
-            parser.parse(inputStream, new OsmHandler(sink, enableDateParsing));
+            parser.parse(source, new OsmHandler(sink, enableDateParsing));
             sink.complete();
         } catch (SAXParseException var12) {
             throw new OsmosisRuntimeException("Unable to parse xml file " + ".  publicId=(" + var12.getPublicId() + "), systemId=(" + var12.getSystemId() + "), lineNumber=" + var12.getLineNumber() + ", columnNumber=" + var12.getColumnNumber() + ".", var12);

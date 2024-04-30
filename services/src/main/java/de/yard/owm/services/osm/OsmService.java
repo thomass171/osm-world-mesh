@@ -13,6 +13,7 @@ import de.yard.threed.osm2scenery.SceneryConversionFacade;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
@@ -122,8 +123,8 @@ public class OsmService {
             try {
                 sceneryMesh.sceneryObjects.objects.addAll(osmElementService.process(mapWay,
                         SceneryModule.getRelevant(worldModules, mapWay), terrainMesh, SceneryContext.getInstance()));
-            } catch (OsmProcessException e) {
-                throw new RuntimeException(e);
+            } catch (OsmProcessException | MeshInconsistencyException e) {
+                log.error("Adding way failed",e);
             }
 
 

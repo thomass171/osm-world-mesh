@@ -343,8 +343,15 @@ public class TerrainMesh {
      * 5.8.19: Not for areas.
      */
     public void addWays(List<SceneryObject> sceneryObjects) throws OsmProcessException {
-        if (step != 1) {
-            throw new RuntimeException("invalid step");
+        if (isPreDbStyle()) {
+            if (step != 1) {
+                throw new RuntimeException("invalid step");
+            }
+        } else {
+            if (sceneryObjects.size() != 1) {
+                // not sure this is an exception. A single OSM way might result in several mesh ways??
+                //throw new RuntimeException("should only add one way in one call/cycle");
+            }
         }
         for (SceneryObject obj : sceneryObjects) {
            /*doofe pruefung  if (!obj.isCut || !obj.isClipped) {
@@ -514,7 +521,7 @@ public class TerrainMesh {
             if (crosses(line, polygon)) {
                 // intersection found. If it is not a BG line, this is a failure. Either the way overlaps some existing area or the (sub)mesh is too small.
                 if (!MeshLine.isBackgroundTriangulation(line.getType())) {
-                    throw new OsmProcessException("polygon crosses unremovable line");
+                    throw new OsmProcessException("polygon crosses unremovable line " + line);
                 }
                 linesToDelete.add(line);
             }

@@ -1,12 +1,18 @@
 package de.yard.owm.testutils;
 
+import de.yard.owm.services.persistence.PersistedMeshFactory;
 import de.yard.owm.services.persistence.PersistedMeshLine;
 import de.yard.owm.services.persistence.PersistedMeshNode;
+import de.yard.owm.services.util.OsmXmlParser;
 import de.yard.threed.core.LatLon;
+import de.yard.threed.osm2graph.osm.GridCellBounds;
+import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.EarClippingTriangulationUtil;
+import de.yard.threed.osm2world.MapData;
 import de.yard.threed.osm2world.MetricMapProjection;
+import de.yard.threed.osm2world.OSMData;
 import de.yard.threed.osm2world.TriangleXZ;
 import de.yard.threed.traffic.geodesy.GeoCoordinate;
 import org.springframework.http.MediaType;

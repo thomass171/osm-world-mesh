@@ -6,6 +6,7 @@ import de.yard.owm.services.osm.OsmElementService;
 import de.yard.owm.services.persistence.PersistedMeshFactory;
 import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.owm.services.util.OsmXmlParser;
+import de.yard.owm.testutils.ServicesTestUtil;
 import de.yard.owm.testutils.TestData;
 import de.yard.owm.testutils.TestUtils;
 import de.yard.threed.TestUtil;
@@ -32,6 +33,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
@@ -90,14 +92,32 @@ public class HighwayModuleTest {
      *
      * @throws IOException
      */
-    /*3.4.24 @Test
-    public void testDesdorf() throws IOException {
-        SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Desdorf.osm.xml", "Desdorf", "superdetailed");
+    @Test
+    public void testDesdorf() throws Exception {
+        //SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Desdorf.osm.xml", "Desdorf", "superdetailed");
+        ServicesTestUtil stu = new ServicesTestUtil("Desdorf.osm.xml", terrainMeshManager);
 
         HighwayModule roadModule = new HighwayModule();
-        SceneryObjectList roads = roadModule.applyTo(SceneryTestUtil.mapData);
-        roadModule.classify(SceneryTestUtil.mapData);
 
+        List<SceneryObject> sceneryObjects = new ArrayList<>();
+        for (MapWay mapWay : stu.mapData.getMapWays()) {
+            log.debug("Adding way {}", mapWay.getOsmId());
+            //SceneryObjectList roads = roadModule.applyTo(SceneryTestUtil.mapData);
+            //roadModule.classify(SceneryTestUtil.mapData);
+            try {
+                List<SceneryObject> objs = osmElementService.process(mapWay, List.of(roadModule), stu.terrainMesh, stu.sceneryContext);
+                sceneryObjects.addAll(objs);
+            }
+            catch (OsmProcessException e){
+                // this might be a regular exception. Some ways might just fail and wil be ignored
+                log.warn("Adding way {} failed.", mapWay.getOsmId());
+            }
+        }
+
+        TestUtils.writeTmpSvg(stu.terrainMesh.toSvg());
+
+
+/*3.4.24
         List<SceneryObject> knownobjects = new ArrayList<>();
 
         // List<RoadModule.Road> roads = roadModule.getRoads();
@@ -362,8 +382,8 @@ public class HighwayModuleTest {
         Assertions.assertEquals( -183, Math.round(vertexData.vertices.get(2).x),"v.x[2]");
         Assertions.assertEquals( -181, Math.round(vertexData.vertices.get(3).x),"v.x[3]");
 
-        assertEquals(0, SceneryContext.getInstance().warnings.size(), "warnings");
-    }*/
+        assertEquals(0, SceneryContext.getInstance().warnings.size(), "warnings");*/
+    }
 
     /**
      * @throws IOException
@@ -472,54 +492,48 @@ public class HighwayModuleTest {
     }*/
 
     /**
+     * Test roads in "Desdorf.osm.xml"
      * Test not existing in traditional
      */
     @Test
-    public void testDesdorfK41SegmentGrid2DE() throws Exception {
+    public void testDesdorfRoadsSegmentGrid2DE() throws Exception {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider68");
         customconfig.setProperty("modules.HighwayModule.tagfilter", "highway=secondary");
-        dotestDesdorfK41SegmentGrid(customconfig, true, "poc");
+        dotestDesdorfRoadsSegmentGrid(customconfig, true, "poc");
     }
 
-    private void dotestDesdorfK41SegmentGrid(Configuration customconfig, boolean elevated, String configsuffix) throws Exception {
-        String xml = loadFileFromClasspath("K41-segment.osm.xml");
-        OsmXmlParser parser = new OsmXmlParser(xml);
-        OSMData osmData = parser.getData();
+    private void dotestDesdorfRoadsSegmentGrid(Configuration customconfig, boolean elevated, String configsuffix) throws Exception {
+        ServicesTestUtil stu = new ServicesTestUtil("Desdorf.osm.xml", terrainMeshManager);
 
-        GridCellBounds gridCellBounds = GridCellBounds.buildFromOsmData(osmData);
-        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(gridCellBounds.getProjection().getBaseProjection(), terrainMeshManager);
-
-        OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
-        MapData mapData = converter.createMapData(osmData);
-
-        SceneryBuilder.FTR_SMARTGRID = true;
-        SceneryBuilder.FTR_SMARTBG = true;
-
-        SceneryContext sceneryContext = new SceneryContext();
-
-        MapWay k41 = mapData.findMapWays(24927839).get(0);
-        TerrainMesh tm = TerrainMesh.init(gridCellBounds);
-        TestUtils.addTerrainMeshBoundary(tm, gridCellBounds.getOrigin().getLatDeg().getDegree(), gridCellBounds.getOrigin().getLonDeg().getDegree(),
-                gridCellBounds.degwidth, gridCellBounds.degheight, gridCellBounds.getProjection().getBaseProjection(), 0.0001);
+        // first the lower part of K41
+        MapWay k41Low = stu.mapData.findMapWays(24927839).get(0);
 
         //Processor processor = sb.execute(desdorfk41, configsuffix, "Desdorf", false, customconfig, MATERIAL_FLIGHT).processor;
         HighwayModule roadModule = new HighwayModule();
-        List<SceneryObject> sceneryObjects = osmElementService.process(k41, List.of(roadModule), tm, sceneryContext);
+        List<SceneryObject> sceneryObjects = osmElementService.process(k41Low, List.of(roadModule), stu.terrainMesh, stu.sceneryContext);
 
-        TestUtils.writeTmpSvg(tm.toSvg());
+        TestUtils.writeTmpSvg(stu.terrainMesh.toSvg());
 
         // 5 echte und eine durch gridnode. 13.8.19 jetzt nur innerhalb
         //3.4.24 assertEquals(2 + 1, SceneryContext.getInstance().getGraph(SceneryObject.Category.ROAD).getNodeCount(), "edges");
 
         //SceneryMesh sceneryMesh = processor.getResults().sceneryresults.sceneryMesh;
-        // only K41 und einen Background.
-        assertEquals(1, sceneryContext.highways.size(), "sceneryContext.highways");
-        assertEquals(1, sceneryObjects.size(), "scenery.areas");
+        // only k41Low und einen Background.
+        assertEquals(1, stu.sceneryContext.highways.size(), "sceneryContext.highways");
+        assertEquals(1, sceneryObjects.size(), "scenery.objects");
 
         // 24.4.24:  Apparently only two connection to enclosing polygon
         int connector = 2;
-        assertEquals(4 + 1 + 2 * 4 + 2 + connector, tm.lines.size(), "TerrainMesh.lines");
+        assertEquals(4 + 1 + 2 * 4 + 2 + connector, stu.terrainMesh.lines.size(), "TerrainMesh.lines");
+
+        // now add upper part of K41
+     /*not yet possible  MapWay k41Upper = stu.mapData.findMapWays(182152619).get(0);
+
+        sceneryObjects = osmElementService.process(k41Upper, List.of(roadModule), stu.terrainMesh, stu.sceneryContext);
+
+        TestUtils.writeTmpSvg(stu.terrainMesh.toSvg());
+        assertEquals(1, sceneryObjects.size(), "scenery.objects");*/
 
 
         /*3.4.24 if (SceneryBuilder.FTR_SMARTBG) {
