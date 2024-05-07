@@ -438,7 +438,7 @@ public class Area extends AbstractArea {
 
                     if (existingShare == null) {
                         //share Segment neu anlegen
-                        existingShare = tm.addSegmentToTerrainMesh(shareCandidate, polygonOfArea, abstractArea);
+                        existingShare = null;//2.5.24tm.addSegmentToTerrainMesh(shareCandidate, polygonOfArea, abstractArea);
 
                         areaSeam.meshLine = existingShare;
                         //waere vielleicht besser, in newsegments aufzunehmen statt direkt anzulegen. Naja
@@ -452,9 +452,9 @@ public class Area extends AbstractArea {
                             areaIsLeft = false;
                         }
                         if (areaIsLeft) {
-                            existingShare.setLeft(abstractArea);
+                            //2.5.24existingShare.setLeft(abstractArea);
                         } else {
-                            existingShare.setRight(abstractArea);
+                            //2.5.24existingShare.setRight(abstractArea);
                         }
                         if (existingShare.getLeft() == null || existingShare.getRight() == null) {
                             logger.error("inconsistent?");
@@ -470,11 +470,11 @@ public class Area extends AbstractArea {
             }
             segments = newsegments;
         }
-        try {
+      /*2.5.24  try {
             tm.createMeshPolygon(segments, existingShares, polygonOfArea, abstractArea);
         } catch (MeshInconsistencyException e) {
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
 

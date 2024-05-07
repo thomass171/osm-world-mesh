@@ -3,6 +3,7 @@ package de.yard.owm.testutils;
 import de.yard.owm.services.persistence.PersistedMeshFactory;
 import de.yard.owm.services.persistence.PersistedMeshLine;
 import de.yard.owm.services.persistence.PersistedMeshNode;
+import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.owm.services.util.OsmXmlParser;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;

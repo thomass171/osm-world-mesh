@@ -1,6 +1,7 @@
 package de.yard.owm.services.osm;
 
 import com.vividsolutions.jts.triangulate.ConstraintEnforcementException;
+import de.yard.owm.services.persistence.OsmWayRepository;
 import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
@@ -80,7 +81,8 @@ public class OsmService {
 
         OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(mapProjection, targetBounds);
         MapData mapData = converter.createMapData(osmData);
-        SceneryContext.init(mapData);
+
+        SceneryContext sceneryContext = SceneryContext.buildFromDatabase(terrainMeshManager.findOsmWays());
 
         Phase.updatePhase(Phase.OBJECTS);
 
@@ -122,7 +124,7 @@ public class OsmService {
             // 1 Scenery Objekte erstellen. WayConnector werden hier auch schon erstellt.
             try {
                 sceneryMesh.sceneryObjects.objects.addAll(osmElementService.process(mapWay,
-                        SceneryModule.getRelevant(worldModules, mapWay), terrainMesh, SceneryContext.getInstance()));
+                        SceneryModule.getRelevant(worldModules, mapWay), terrainMesh, sceneryContext));
             } catch (OsmProcessException | MeshInconsistencyException e) {
                 log.error("Adding way failed",e);
             }
@@ -176,7 +178,7 @@ public class OsmService {
         if (ElevationMap.hasInstance()) {
             //26.9.18: einfach alles cathen ist doch wohl doof.
             //try {
-            sceneryMesh.calculateElevations(elevationProvider);
+            sceneryMesh.calculateElevations(elevationProvider, sceneryContext);
             //} catch (Exception e) {
             //    e.printStackTrace();
             //}

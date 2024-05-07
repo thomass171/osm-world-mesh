@@ -6,21 +6,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import de.yard.owm.testutils.TestServices;
 import de.yard.owm.testutils.TestData;
 import de.yard.owm.testutils.TestUtils;
-import de.yard.threed.core.LatLon;
-import de.yard.threed.osm2graph.osm.GridCellBounds;
-import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MetricMapProjection;
-import de.yard.threed.osm2world.O2WOriginMapProjection;
-import de.yard.threed.osm2world.VectorXZ;
-import de.yard.threed.traffic.geodesy.GeoCoordinate;
-import de.yard.threed.traffic.geodesy.MapProjection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,15 +24,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Also for MeshNode, MeshLine and repositories
+ * Also for MeshNode, MeshLine, MeshArea, OsmNode, OsmWay and repositories
  */
-@SpringBootTest
+@SpringBootTest(classes = {TestServices.class})
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
@@ -50,6 +44,21 @@ public class TerrainMeshTest {
 
     @Autowired
     private MeshLineRepository meshLineRepository;
+
+    @Autowired
+    private MeshAreaRepository meshAreaRepository;
+
+    @Autowired
+    private OsmWayRepository osmWayRepository;
+
+    @Autowired
+    private OsmNodeRepository osmNodeRepository;
+
+    @Autowired
+    private OsmWayNodeRepository osmWayNodeRepository;
+
+    @Autowired
+    private TestServices testServices;
 
     @Autowired
     private TerrainMeshManager manager;
@@ -85,13 +94,6 @@ public class TerrainMeshTest {
         //meshNode.setLon(5.0);
         meshNode = meshNodeRepository.save(meshNode);
 
-     /*
-        Maze foundMaze = mazeRepository.findById(maze1.getId()).get();
-        assertEquals("name", foundMaze.getName());
-        assertEquals("aa", foundMaze.getGrid());
-        assertEquals("sec", foundMaze.getSecret());
-        assertEquals("bb", foundMaze.getDescription());
-        assertEquals("P", foundMaze.getType());*/
     }
 
     @Test
@@ -117,11 +119,49 @@ public class TerrainMeshTest {
         }
     }
 
+    /**
+     *
+     */
     @Test
-    //@Sql({"classpath:testGrids.sql"})
-    public void testFindByName() throws Exception {
-      /*  this.mockMvc.perform(get("/mazes/mazes/search/findByName?name=Sokoban Wikipedia")).andDo(print())
-                .andExpect(content().string(containsString("##")));*/
+    public void testOsmNodesSorted() {
+
+        testServices.cleanup();
+
+        int nodeCount = 7;
+        int osmId = 100;
+        int[] indexes = new int[]{3, 6, 2, 5, 1, 4, 0};
+
+        PersistedOsmWay  osmWay = new PersistedOsmWay();
+        osmWay.setOsmId(osmId++);
+        osmWayRepository.save(osmWay);
+
+        List<PersistedOsmNode> osmNodes = new ArrayList<>();
+        for (int i = 0; i < nodeCount; i++) {
+            PersistedOsmNode osmNode = new PersistedOsmNode();
+            osmNode.setOsmId(osmId++);
+            osmNodeRepository.save(osmNode);
+            osmNodes.add(osmNode);
+
+            PersistedOsmWayNode osmWayNode = new PersistedOsmWayNode();
+            osmWayNode.setId(new PersistedOsmWayNodeKey());
+            osmWayNode.getId().setOsmWayId(osmWay.getId());
+            osmWayNode.getId().setOsmNodeId(osmNode.getId());
+            osmWayNode.setIndex(indexes[i]);
+            osmWayNodeRepository.save(osmWayNode);
+            //osmWay.getOsmNodes().add(osmNode);
+            //osmWayRepository.save(osmWay);
+        }
+        assertEquals(7, osmWayNodeRepository.count());
+        PersistedOsmWayNode h = osmWayNodeRepository.findAll().get(0);
+        h.getOsmWay().getOsmWayNodes();
+
+        osmWay = testServices.loadOsmWay();
+        assertEquals(7, osmWay.getOsmWayNodes().size());
+        for (int i = 0; i < nodeCount; i++) {
+            assertEquals(i, osmWay.getOsmWayNodes().get(i).getIndex());
+        }
+
+
     }
 
     /**
@@ -132,6 +172,8 @@ public class TerrainMeshTest {
      */
     @Test
     public void testSimpleRegisterWay() throws OsmProcessException, MeshInconsistencyException {
+
+        testServices.cleanup();
 
         TerrainMesh terrainMesh = buildSimpleTestMesh();
 
@@ -151,7 +193,7 @@ public class TerrainMeshTest {
         List<Coordinate> rightLine = new ArrayList<>();
         rightLine.add(new Coordinate(10, 9));
         rightLine.add(new Coordinate(20, 9));
-        MeshPolygon wayPolygon = terrainMesh.registerWay(null, leftLine, rightLine, null, 1);
+        MeshPolygon wayPolygon = terrainMesh.registerWay(null/*200, List.of(100L, 101L)*/, null, leftLine, rightLine, null, 1);
 
         TestUtils.writeTmpSvg(terrainMesh.toSvg());
 
@@ -160,6 +202,12 @@ public class TerrainMeshTest {
         assertEquals(4 + 4, terrainMesh.points.size(), "points");
         assertEquals(5 + 4 + connector, terrainMesh.lines.size(), "lines");
         manager.persist(terrainMesh);
+
+        assertEquals(1, meshAreaRepository.count());
+        assertEquals(4 + 4, meshNodeRepository.count());
+        assertEquals(5 + 4 + connector, meshLineRepository.count());
+        //SceneryWayObject
+
         terrainMesh = manager.loadTerrainMesh(terrainMesh.getGridCellBounds());
         assertEquals(4 + 4, terrainMesh.points.size(), "points");
         assertEquals(5 + 4 + connector, terrainMesh.lines.size(), "lines");
@@ -170,8 +218,7 @@ public class TerrainMeshTest {
     @Test
     public void testTestData2024() throws MeshInconsistencyException {
 
-        meshLineRepository.deleteAll();
-        meshNodeRepository.deleteAll();
+        testServices.cleanup();
 
         TestData testData = TestData.build2024(manager);
 
@@ -181,14 +228,13 @@ public class TerrainMeshTest {
     }
 
     /**
+     * Test test data?
      * Sketch 3??
      *
      * @throws OsmProcessException
      * @throws MeshInconsistencyException
      */
     private TerrainMesh buildSimpleTestMesh() throws MeshInconsistencyException {
-        meshLineRepository.deleteAll();
-        meshNodeRepository.deleteAll();
 
         double centerLat = (51);
         double centerLon = (7.0);
@@ -200,7 +246,7 @@ public class TerrainMeshTest {
         assertEquals(4, testData.terrainMesh.points.size());
         assertEquals(5, testData.terrainMesh.lines.size());
 
-        ((PersistedMeshFactory)TerrainMesh.meshFactoryInstance).projection = testData.terrainMesh.getGridCellBounds().getProjection().getBaseProjection();
+        ((PersistedMeshFactory) TerrainMesh.meshFactoryInstance).projection = testData.terrainMesh.getGridCellBounds().getProjection().getBaseProjection();
 
         return testData.terrainMesh;
 

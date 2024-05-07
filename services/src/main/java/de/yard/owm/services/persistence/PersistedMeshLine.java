@@ -6,10 +6,12 @@ import com.vividsolutions.jts.geom.LineString;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
+import de.yard.threed.osm2scenery.polygon20.MeshArea;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.log4j.Logger;
 
 import javax.persistence.Column;
@@ -45,11 +47,18 @@ public class PersistedMeshLine implements MeshLine {
     @ManyToOne
     @JoinColumn(name = "to_node", nullable = false)
     private PersistedMeshNode toNode;
+
+    @ManyToOne
+    @JoinColumn(name = "left_area")
+    private PersistedMeshArea leftArea;
+
+    @ManyToOne
+    @JoinColumn(name = "right_area")
+    private PersistedMeshArea rightArea;
+
     @Transient
     public boolean isBoundary = false;
-    //Bei Boundary always "left" isType set, because gridbounds are CCW.
-    @Transient
-    private AbstractArea left, right;
+
     //zur Visualisierung und Validierung
     @Transient
     public LineString line;
@@ -187,33 +196,33 @@ public class PersistedMeshLine implements MeshLine {
         toNode = (PersistedMeshNode) p;*/
     }
 
-    public AbstractArea getLeft() {
-        return left;
+    public MeshArea getLeft() {
+        return leftArea;
     }
 
-    public AbstractArea getRight() {
-        return right;
+    public MeshArea getRight() {
+        return rightArea;
     }
 
-    public void setLeft(AbstractArea area) {
+    public void setLeft(MeshArea area) {
         if (area != null && area.toString().contains("23696494")) {
             int h = 9;
         }
-        if (left != null) {
+        if (leftArea != null) {
             logger.warn("overriding left?");
         }
-        left = area;
+        leftArea = (PersistedMeshArea) area;
     }
 
-    public void setRight(AbstractArea area) {
+    public void setRight(MeshArea area) {
         if (area != null && area.toString().contains("23696494")) {
             int h = 9;
         }
-        if (right != null) {
+        if (rightArea != null) {
             logger.warn("overriding right?");
         }
 
-        right = area;
+        rightArea = (PersistedMeshArea) area;
 
     }
 

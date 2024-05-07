@@ -20,13 +20,13 @@ import static de.yard.owm.testutils.TestUtils.loadFileFromClasspath;
  */
 public class ServicesTestUtil {
 
-    public  MapData mapData;
-    public  GridCellBounds gridCellBounds;
-    public  TerrainMesh terrainMesh;
-public SceneryContext sceneryContext;
+    public MapData mapData;
+    public GridCellBounds gridCellBounds;
+    public TerrainMesh terrainMesh;
+    public SceneryContext sceneryContext;
 
-    public  ServicesTestUtil(String osmfile/*, String gridname, String materialconfigsuffix, String lodconfigsuffix*/,
-                                   TerrainMeshManager terrainMeshManager) throws Exception {
+    public ServicesTestUtil(String osmfile/*, String gridname, String materialconfigsuffix, String lodconfigsuffix*/,
+                            TerrainMeshManager terrainMeshManager) throws Exception {
         String xml = loadFileFromClasspath(osmfile);
         OsmXmlParser parser = new OsmXmlParser(xml);
         OSMData osmData = parser.getData();

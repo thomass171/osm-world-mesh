@@ -10,6 +10,10 @@ import java.util.List;
 public interface MeshFactory {
    MeshNode  buildMeshNode(Coordinate coordinate);
    MeshLine  buildMeshLine(MeshNode from, MeshNode to);
+   MeshArea  buildMeshArea();
+   OsmNode  buildOsmNode(long osmId);
+   OsmWay  buildOsmWay(long osmId, List<Long> osmnodeIds);
+
    List<MeshLine> buildMeshLines(Coordinate[] coordinates, LineString line);
 
    void deleteMeshLine(MeshLine line);

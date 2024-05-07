@@ -151,11 +151,11 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
         for (MeshLine line : roadpoint.getLines()) {
             if (line.getTo() == roadpoint && line.getFrom() == backpoint) {
                 if (line.getLeft() == null) {
-                    line.setLeft(area);
+                    //2.5.24line.setLeft(area);
                     share = tm.registerLine(JtsUtil.createLine(ramp.roadpoint, ramp.outerpoint), area, null);
                     tm.registerLine(JtsUtil.createLine(ramp.outerpoint, ramp.backpoint), area, null);
                 } else {
-                    line.setRight(area);
+                    //2.5.24line.setRight(area);
                     share = tm.registerLine(JtsUtil.createLine(ramp.roadpoint, ramp.outerpoint), null, area);
                     tm.registerLine(JtsUtil.createLine(ramp.outerpoint, ramp.backpoint), null, area);
                 }
@@ -163,11 +163,11 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
             }
             if (line.getFrom() == roadpoint && line.getTo() == backpoint) {
                 if (line.getLeft() == null) {
-                    line.setLeft(area);
+                    //2.5.24line.setLeft(area);
                     share = tm.registerLine(JtsUtil.createLine(ramp.roadpoint, ramp.outerpoint), null, area);
                     tm.registerLine(JtsUtil.createLine(ramp.outerpoint, ramp.backpoint), null, area);
                 } else {
-                    line.setRight(area);
+                    //2.5.24line.setRight(area);
                     share = tm.registerLine(JtsUtil.createLine(ramp.roadpoint, ramp.outerpoint), area, null);
                     tm.registerLine(JtsUtil.createLine(ramp.outerpoint, ramp.backpoint), area, null);
                 }

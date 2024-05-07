@@ -128,9 +128,9 @@ public class SceneryMesh {
      * Fuer die Objects Elevation echt ermitteln. Der Background kann sich sein dann aus der
      * ElevationMap suchen.
      */
-    public void calculateElevations(ElevationProvider elevationProvider) {
+    public void calculateElevations(ElevationProvider elevationProvider, SceneryContext sceneryContext) {
         //Zuerst die Elevation der EleGroups setzen
-        ElevationCalculator.fixElevationGroups(sceneryObjects, elevationProvider);
+        ElevationCalculator.fixElevationGroups(sceneryObjects, elevationProvider, sceneryContext);
         //13.8.19: Die Berechnung im TerrainMesh ersetzt eigentlich die im Objekt, aber nicht das Anheben fuer Overlays z.B., auch nicht die VertexData.
         //TerrainMesh tm = TerrainMesh.getInstance();
         terrainMesh.calculateElevations(elevationProvider);
@@ -551,7 +551,7 @@ public class SceneryMesh {
         Area bgfiller = new Area(meshPolygon, Materials.TERRAIN_DEFAULT, true);
         bgfiller.parentInfo = "BG filler";
         for (MeshLine ml : meshPolygon.lines) {
-            tm.completeLine(ml, bgfiller);
+            //2.5.24tm.completeLine(ml, bgfiller);
         }
         background.addFiller(bgfiller);
         //logger.debug("resolved open mesh line to" + meshPolygon);

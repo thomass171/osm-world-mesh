@@ -16,12 +16,14 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.WayMap;
 import de.yard.threed.osm2scenery.elevation.ElevationCalculator;
 import de.yard.threed.osm2scenery.modules.AerowayModule;
+import de.yard.threed.osm2scenery.polygon20.MeshArea;
 import de.yard.threed.osm2scenery.polygon20.MeshFactory;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshLineSplitCandidate;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.OsmWay;
 import de.yard.threed.osm2scenery.polygon20.Sector;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
@@ -59,14 +61,14 @@ public class TerrainMesh {
     GridCellBounds gridCellBounds;
     public List<MeshNode> points = new ArrayList();
     public List<MeshLine> lines = new ArrayList();
+    public List<MeshArea> areas = new ArrayList();
     //public Map<Integer, List<Integer>> linesOfPoint = new HashMap();
     List<Integer> knowntwoedger = new ArrayList<>();
     //geht nicht, weil durch split noch welche dazukommen private int lastboundaryindex;
     int step = 0;
     //so einer kann nicht mehr valid sein
+    // 2.5.24 aren't hasDuplicates and warnings deprecated here?
     private boolean hasDuplicates = false;
-    // 29.3.24: Taken from SceneryContext
-    public WayMap wayMap = new WayMap();
     public List<String> warnings = new ArrayList<>();
 
     /**
@@ -155,9 +157,9 @@ public class TerrainMesh {
      * @param area
      * @return
      */
-    public MeshPolygon getPolygon(AbstractArea/*SceneryFlatObject*/ area) throws MeshInconsistencyException {
+    public MeshPolygon getPolygon(MeshArea /*AbstractArea/*SceneryFlatObject*/ area) throws MeshInconsistencyException {
         for (MeshLine startline : lines) {
-            if (startline.getLeft() == area || startline.getRight() == area) {
+            if (area.equals(startline.getLeft()) || area.equals(startline.getRight())) {
                 return getPolygon(startline, area);
             }
         }
@@ -185,7 +187,7 @@ public class TerrainMesh {
      * @param area
      * @return
      */
-    public MeshPolygon getPolygon(MeshLine startline, AbstractArea/*SceneryFlatObject*/ area) throws MeshInconsistencyException {
+    public MeshPolygon getPolygon(MeshLine startline, MeshArea/*AbstractArea/*SceneryFlatObject*/ area) throws MeshInconsistencyException {
         if (area == null) {
             logger.error("invalid use");
             return null;
@@ -201,7 +203,8 @@ public class TerrainMesh {
                 return null;
             }
         }
-        MeshPolygon polygon = traversePolygon(startline, area, left);
+        // 2.5.24 by direction instead of area
+        MeshPolygon polygon = traversePolygon(startline, /*area*/null, left);
         return polygon;
     }
 
@@ -211,7 +214,7 @@ public class TerrainMesh {
      * 19.4.24: Returns null if no such polygon exists. MeshInconsistencyException is only thrown when there really was an inconsistency(?? is that possible?).
      * a pure outer polygon might be the 'wrong' result of going (C)CW. But difficult to detect.
      */
-    public MeshPolygon traversePolygon(MeshLine startline, AbstractArea/*SceneryFlatObject*/ area, boolean leftOrCCW) throws MeshInconsistencyException {
+    public MeshPolygon traversePolygon(MeshLine startline, MeshArea/*AbstractArea/*SceneryFlatObject*/ area, boolean leftOrCCW) throws MeshInconsistencyException {
         int abortcounter = 0;
         MeshLine line = startline;
         MeshNode next = line.getTo();
@@ -253,7 +256,7 @@ public class TerrainMesh {
      * 9.9.19: Das ist doch bei Ways so nicht eindeutig wegen innerer Querverbindungen? Oder gibt es sowas nicht?
      * 18.4.24: If we know the area, its easier to find successor by that area. Otherwise we traverse by line angles (left/right).
      */
-    public MeshLine getSuccessor(MeshNode meshNode, AbstractArea area, boolean left, MeshLine origin) throws MeshInconsistencyException {
+    public MeshLine getSuccessor(MeshNode meshNode, MeshArea/*AbstractArea*/ area, boolean left, MeshLine origin) throws MeshInconsistencyException {
         List<MeshLine> candidates = new ArrayList();
 
         if (area == null) {
@@ -264,7 +267,7 @@ public class TerrainMesh {
             for (MeshLine line : meshNode.getLines()) {
                 if (line != origin) {
                     boolean skipLine = false;
-                    AbstractArea areaToCheck = null;
+                    MeshArea areaToCheck = null;
                     if (line.getFrom() == meshNode) {
                         if (left) {
                             areaToCheck = line.getLeft();
@@ -467,22 +470,11 @@ public class TerrainMesh {
         if (endOnGrid) {
             MeshNode p = getMeshNode(line.get(line.size() - 1));
         }
-        meshLine.setLeft(left);
-        meshLine.setRight(right);
+        /*2.5.24 no longer fits meshLine.setLeft(left);
+        meshLine.setRight(right);*/
         //return /*lines.get(*/registerLine(meshLine/*, startPoint, endPoint*/);
         registerLine(meshLine);
         return meshLine;
-    }
-
-    private List<MeshLine> registerLineNonPreDB(List<Coordinate> line, AbstractArea/*SceneryFlatObject*/ left, AbstractArea/*SceneryFlatObject*/ right) {
-        //logger.debug("new line with " + line.size() + " coordinates");
-        List<MeshLine> meshLines = buildMeshLinesFromList(line);
-        for (MeshLine meshLine : meshLines) {
-            meshLine.setLeft(left);
-            meshLine.setRight(right);
-            registerLine(meshLine);
-        }
-        return meshLines;
     }
 
     /**
@@ -498,8 +490,8 @@ public class TerrainMesh {
         TerrainMesh.validateMeshLine(meshLine, warnings);
         meshLine.setTo(p1);
         TerrainMesh.validateMeshLine(meshLine, warnings);
-        meshLine.setLeft(left);
-        meshLine.setRight(right);
+        /*2.5.24 no longer fits meshLine.setLeft(left);
+        meshLine.setRight(right);*/
         registerLine(meshLine);
         return meshLine;
     }
@@ -512,7 +504,7 @@ public class TerrainMesh {
      *
      * @return
      */
-    public MeshPolygon registerWay(Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws OsmProcessException {
+    public MeshPolygon registerWay(OsmWay osmWay, Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws OsmProcessException {
 
         Polygon polygon = JtsUtil.createPolygonFromWayOutlines(new CoordinateList(rightLine), new CoordinateList(leftLine));
 
@@ -531,6 +523,9 @@ public class TerrainMesh {
         AbstractArea/*SceneryFlatObject*/ leftArea = null;
         AbstractArea/*SceneryFlatObject*/ rightArea = null;
 
+        MeshArea meshArea = addArea();
+        meshArea.setOsmWay(osmWay);
+
         List<MeshLine> newLines = new ArrayList<>();
         MeshNode n = meshFactoryInstance.buildMeshNode(leftLine.get(0));
         points.add(n);
@@ -539,6 +534,7 @@ public class TerrainMesh {
             l = addLine(n, leftLine.get(i));
             n = l.getTo();
             newLines.add(l);
+            l.setRight(meshArea);
         }
         l = addLine(n, rightLine.get(rightLine.size() - 1));
         n = l.getTo();
@@ -548,6 +544,8 @@ public class TerrainMesh {
             l = addLine(n, rightLine.get(i));
             n = l.getTo();
             newLines.add(l);
+            // polygon continues, so 'right' is correct.
+            l.setRight(meshArea);
         }
 
         // lines.addAll(registerLineNonPreDB(JtsUtil.toList(leftLine.get(0), rightLine.get(0)), null, null));
@@ -601,6 +599,12 @@ public class TerrainMesh {
             points.add(existingNode);
         }
         return meshFactoryInstance.buildMeshLine(from, existingNode);
+    }
+
+    private MeshArea addArea() {
+        MeshArea meshArea = meshFactoryInstance.buildMeshArea();
+        areas.add(meshArea);
+        return meshArea;
     }
 
     /**
@@ -721,7 +725,7 @@ public class TerrainMesh {
         }
 
         // fuer jede Area muss es einen konsistenten Polygon geben.
-        Map<AbstractArea, Void> areas = new HashMap<>();
+        Map<MeshArea, Void> areas = new HashMap<>();
         for (MeshLine line : lines) {
             if (line.getLeft() != null) {
                 areas.put(line.getLeft(), null);
@@ -730,7 +734,7 @@ public class TerrainMesh {
                 areas.put(line.getRight(), null);
             }
         }
-        for (AbstractArea abstractArea : areas.keySet()) {
+        for (MeshArea abstractArea : areas.keySet()) {
             MeshPolygon meshPolygon = null;
             try {
                 meshPolygon = getPolygon(abstractArea);
@@ -1376,7 +1380,7 @@ public class TerrainMesh {
                     logger.debug("Overriding with same value.why?");
                 }
             }
-            meshLine.setLeft(area);
+            //2.5.24 meshLine.setLeft(area);
             return;
         }
         if (meshLine.getLeft() == null && meshLine.getRight() == null) {
@@ -1388,10 +1392,10 @@ public class TerrainMesh {
         }
 
         if (meshLine.getLeft() == null) {
-            meshLine.setLeft(area);
+            //2.5.24 meshLine.setLeft(area);
         } else {
             if (meshLine.getRight() == null) {
-                meshLine.setRight(area);
+                //2.5.24 meshLine.setRight(area);
             }
         }
 
@@ -1494,9 +1498,9 @@ public class TerrainMesh {
         List<MeshLine> result = new ArrayList<>();
         for (MeshLine meshLine : lines) {
             if (meshLine.getLeft() != null && meshLine.getRight() != null) {
-                if (!StringUtils.contains(meshLine.getLeft().parentInfo, "BG") && !StringUtils.contains(meshLine.getRight().parentInfo, "BG")) {
+                /*2.5.24 if (!StringUtils.contains(meshLine.getLeft().parentInfo, "BG") && !StringUtils.contains(meshLine.getRight().parentInfo, "BG")) {
                     result.add(meshLine);
-                }
+                }*/
             }
         }
         return result;
@@ -1537,7 +1541,7 @@ public class TerrainMesh {
         MeshLine line = null;
         while (point != to && cntr++ < 100) {
             try {
-                line = getSuccessor(point, wayArea, left, line);
+                line = getSuccessor(point,null /*2.5.24wayArea*/, left, line);
             } catch (MeshInconsistencyException e) {
                 throw new RuntimeException(e);
             }
@@ -1653,15 +1657,15 @@ public class TerrainMesh {
         //lines sind nicht sortiert. Das macht der Konstruktor. Und es fehlen noch die shared Segmente, die gab es ja
         //schon vorher.
         lines.addAll(existingShares);
-        abstractArea.isPartOfMesh = true;
+        //2.5.24 abstractArea.isPartOfMesh = true;
         //MeshPolygon meshPolygon = new MeshPolygon(lines);
         //((Area) flatComponent[index]).setMeshPolygon(/*index,*/meshPolygon);
         //index++;
 
         //Gegenprobe
-        if (getPolygon(abstractArea) == null) {
+        /*2.5.24 if (getPolygon(abstractArea) == null) {
             logger.error("Gegenprobe failed");
-        }
+        }*/
     }
 
     public MeshLine addSegmentToTerrainMesh(LineString segment, Polygon polygon, AbstractArea abstractArea) {
@@ -1670,7 +1674,7 @@ public class TerrainMesh {
             logger.error("doing kappes");
             areaIsLeft = true;
         }
-        MeshLine meshLine = registerLine(segment, (areaIsLeft) ? abstractArea : null, (areaIsLeft) ? null : abstractArea);
+        MeshLine meshLine = null;//2.5.24 registerLine(segment, (areaIsLeft) ? abstractArea : null, (areaIsLeft) ? null : abstractArea);
         return meshLine;
     }
 
@@ -1717,22 +1721,22 @@ public class TerrainMesh {
             int tx = x1 + (x2 - x1) / 2;
             int ty = y1 + (y2 - y1) / 2;
             // line label
-            svg += svgText(tx,ty,line.getLabel(),fontSize10px);
+            svg += svgText(tx, ty, line.getLabel(), fontSize10px);
         }
-        for (MeshNode node:points){
+        for (MeshNode node : points) {
             int x = (int) (node.getCoordinate().x * scale);
             int y = -(int) (node.getCoordinate().y * scale);
-            svg += svgText(x,y,node.getLabel(),fontSize6px);
+            svg += svgText(x, y, node.getLabel(), fontSize6px);
         }
         svg += "</g>";
         svg += "</svg>";
         return svg;
     }
 
-    private String svgText(int x, int y, String text, String fontSize){
+    private String svgText(int x, int y, String text, String fontSize) {
         // text scale also applies to position
         return " <text x=\"" + x + "\" y=\"" + y + "\" font-size=\"" + fontSize + "\" fill=\"" + "black" + "\" transform=\"" + "scale(1.0)" + "\">"
-                + text+ "</text>\n";
+                + text + "</text>\n";
 
     }
 

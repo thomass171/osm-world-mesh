@@ -27,6 +27,7 @@ public class WayMap {
     //MapNode->alle Ways dazu. Von einem Way werden aber nur Start/End registriert. NeeNee, sehr haufig
     //gibt es eine junction auf einer Zwischennode. Darum müssen alle rein.
     //24.8.18: die logische Trennung hatte was statt alles in einer map, evtl. ueber Category?
+    //3.5.24: The key is the osmId of a node where the way starts/ends.
     public Map<SceneryObject.Category, Map<Long, List<SceneryWayObject>>> wayMap = new HashMap<>();
     //a node may only have one NodeObject
     public Map<SceneryObject.Category, Map<Long, SceneryWayConnector>> wayConnectorMap = new HashMap<>();

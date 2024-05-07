@@ -3,12 +3,16 @@ package de.yard.owm.services.persistence;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.polygon20.MeshArea;
 import de.yard.threed.osm2scenery.polygon20.MeshFactory;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
+import de.yard.threed.osm2scenery.polygon20.OsmNode;
+import de.yard.threed.osm2scenery.polygon20.OsmWay;
 import de.yard.threed.osm2world.MetricMapProjection;
 import de.yard.threed.osm2world.O2WOriginMapProjection;
 import de.yard.threed.traffic.geodesy.GeoCoordinate;
+import org.springframework.security.core.parameters.P;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +38,36 @@ public class PersistedMeshFactory implements MeshFactory {
     @Override
     public MeshLine buildMeshLine(MeshNode from, MeshNode to) {
         return new PersistedMeshLine((PersistedMeshNode) from, (PersistedMeshNode) to);
+    }
+
+    @Override
+    public MeshArea buildMeshArea() {
+        return new PersistedMeshArea();
+    }
+
+    @Override
+    public OsmNode buildOsmNode(long osmId) {
+        PersistedOsmNode osmNode = new PersistedOsmNode();
+        osmNode.setOsmId(osmId);
+        return null;//osmNode;
+    }
+
+    @Override
+    public OsmWay buildOsmWay(long osmId, List<Long> osmnodeIds) {
+        PersistedOsmWay osmWay = new PersistedOsmWay();
+        osmWay.setOsmId(osmId);
+        // save early enogh to have id for FKs
+        terrainMeshManager.persist(osmWay);
+        int index = 0;
+        for (long osmNodeId : osmnodeIds) {
+            PersistedOsmNode osmNode = terrainMeshManager.findOsmNode(osmNodeId);
+            if (osmNode == null) {
+                osmNode = new PersistedOsmNode(osmNodeId);
+                terrainMeshManager.persist(osmNode);
+            }
+            osmWay.add(osmNode, index++);
+        }
+        return osmWay;
     }
 
     @Override

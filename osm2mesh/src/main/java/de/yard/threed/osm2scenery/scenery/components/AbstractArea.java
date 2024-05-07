@@ -14,6 +14,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroupFinder;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.elevation.ElevationCalculator;
+import de.yard.threed.osm2scenery.polygon20.MeshArea;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
@@ -45,6 +46,8 @@ import org.apache.log4j.Logger;
  * 9.8.19: Zunehmend basierend auf TerrainMesh und damit nur noch fuer Terrain, nicht mehr für irgendwelche Flächen, z.B. (Decorations??).
  * Fuer Overlays aber auch, dann doch als Polygon? Vielleicht muss es bis zum Register auch immer erstmal ein Polygon bleiben?
  * Als TerrainProvider Teil des Mesh, als Overlay z.B. aber nicht.
+ *
+ * 2.5.24: Should be, contain or extend MeshArea??(a wrapper?). Component looks quite good
  */
 public abstract class AbstractArea {
     public static final AbstractArea EMPTYAREA = AbstractArea.createEmpty();
@@ -69,6 +72,9 @@ public abstract class AbstractArea {
     public boolean isPartOfMesh = false;
     //Flag, ob wirklich ein Cut gemacht wurde.
     public boolean wasCut;
+
+    // 2.5.24: Now referencing mesharea
+    public MeshArea meshArea;
 
     public AbstractArea() {
         empty = true;
@@ -348,8 +354,8 @@ public abstract class AbstractArea {
      */
     final public MeshPolygon getMeshPolygon(TerrainMesh tm) {
         try {
-            return tm.getPolygon(this);
-        } catch (MeshInconsistencyException e) {
+            return null;//2.5.24tm.getPolygon(this);
+        } catch (/*MeshInconsistency*/Exception e) {
             throw new RuntimeException(e);
         }
     }

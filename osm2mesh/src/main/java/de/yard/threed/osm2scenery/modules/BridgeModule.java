@@ -390,7 +390,7 @@ public class BridgeModule extends SceneryModule {
                 int h = 9;
             }
             //mal eine Konsistenzpruefung eingestreut.
-            MeshPolygon mp = tm.getPolygon(connectedWayAtNode.getWayArea());
+            MeshPolygon mp = null;//2.5.24tm.getPolygon(connectedWayAtNode.getWayArea());
             if (mp == null) {
                 logger.error("inconsistent way?");
             }

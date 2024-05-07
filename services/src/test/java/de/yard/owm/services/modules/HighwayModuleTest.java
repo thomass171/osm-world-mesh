@@ -6,8 +6,10 @@ import de.yard.owm.services.osm.OsmElementService;
 import de.yard.owm.services.persistence.PersistedMeshFactory;
 import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.owm.services.util.OsmXmlParser;
+import de.yard.owm.testutils.DesdorfTestUtil;
 import de.yard.owm.testutils.ServicesTestUtil;
 import de.yard.owm.testutils.TestData;
+import de.yard.owm.testutils.TestServices;
 import de.yard.owm.testutils.TestUtils;
 import de.yard.threed.TestUtil;
 import de.yard.threed.core.Pair;
@@ -51,6 +53,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +78,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * 11.4.19: Tests on module (OsmElementService) level (no Processor und ConversionFacade)
  * 3.4.24: Derived from traditional HighwayModuleTest
  */
-@SpringBootTest
+@SpringBootTest(classes = {TestServices.class})
 @Slf4j
 public class HighwayModuleTest {
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
@@ -86,6 +89,14 @@ public class HighwayModuleTest {
 
     @Autowired
     TerrainMeshManager terrainMeshManager;
+
+    @Autowired
+    TestServices testServices;
+
+    @BeforeEach
+    void setup() {
+        testServices.cleanup();
+    }
 
     /**
      * Den clip() hier nicht testen, da haengt zu viel dran? Connector clippen jetzt aber teilweise in createPolygon()?
@@ -107,8 +118,7 @@ public class HighwayModuleTest {
             try {
                 List<SceneryObject> objs = osmElementService.process(mapWay, List.of(roadModule), stu.terrainMesh, stu.sceneryContext);
                 sceneryObjects.addAll(objs);
-            }
-            catch (OsmProcessException e){
+            } catch (OsmProcessException e) {
                 // this might be a regular exception. Some ways might just fail and wil be ignored
                 log.warn("Adding way {} failed.", mapWay.getOsmId());
             }
@@ -504,36 +514,27 @@ public class HighwayModuleTest {
     }
 
     private void dotestDesdorfRoadsSegmentGrid(Configuration customconfig, boolean elevated, String configsuffix) throws Exception {
-        ServicesTestUtil stu = new ServicesTestUtil("Desdorf.osm.xml", terrainMeshManager);
+        DesdorfTestUtil desdorfTestUtil = new DesdorfTestUtil(terrainMeshManager, osmElementService);
 
         // first the lower part of K41
-        MapWay k41Low = stu.mapData.findMapWays(24927839).get(0);
+        desdorfTestUtil.processK41Low();
 
-        //Processor processor = sb.execute(desdorfk41, configsuffix, "Desdorf", false, customconfig, MATERIAL_FLIGHT).processor;
-        HighwayModule roadModule = new HighwayModule();
-        List<SceneryObject> sceneryObjects = osmElementService.process(k41Low, List.of(roadModule), stu.terrainMesh, stu.sceneryContext);
-
-        TestUtils.writeTmpSvg(stu.terrainMesh.toSvg());
 
         // 5 echte und eine durch gridnode. 13.8.19 jetzt nur innerhalb
         //3.4.24 assertEquals(2 + 1, SceneryContext.getInstance().getGraph(SceneryObject.Category.ROAD).getNodeCount(), "edges");
 
         //SceneryMesh sceneryMesh = processor.getResults().sceneryresults.sceneryMesh;
         // only k41Low und einen Background.
-        assertEquals(1, stu.sceneryContext.highways.size(), "sceneryContext.highways");
-        assertEquals(1, sceneryObjects.size(), "scenery.objects");
+        assertEquals(1, desdorfTestUtil.stu.sceneryContext.highways.size(), "sceneryContext.highways");
+        assertTrue(desdorfTestUtil.stu.sceneryContext.highways.containsKey(desdorfTestUtil.k41Low.getOsmId()), "sceneryContext.highways.osmid");
+
 
         // 24.4.24:  Apparently only two connection to enclosing polygon
         int connector = 2;
-        assertEquals(4 + 1 + 2 * 4 + 2 + connector, stu.terrainMesh.lines.size(), "TerrainMesh.lines");
+        assertEquals(4 + 1 + 2 * 4 + 2 + connector, desdorfTestUtil.stu.terrainMesh.lines.size(), "TerrainMesh.lines");
 
         // now add upper part of K41
-     /*not yet possible  MapWay k41Upper = stu.mapData.findMapWays(182152619).get(0);
-
-        sceneryObjects = osmElementService.process(k41Upper, List.of(roadModule), stu.terrainMesh, stu.sceneryContext);
-
-        TestUtils.writeTmpSvg(stu.terrainMesh.toSvg());
-        assertEquals(1, sceneryObjects.size(), "scenery.objects");*/
+        //not yet possible desdorfTestUtil.processK41Upper();
 
 
         /*3.4.24 if (SceneryBuilder.FTR_SMARTBG) {

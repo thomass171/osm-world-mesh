@@ -8,6 +8,7 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryRenderer;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
+import de.yard.threed.osm2scenery.polygon20.OsmWay;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.VolumeProvider;
 import de.yard.threed.osm2world.MapNode;
@@ -19,6 +20,9 @@ import java.util.List;
 
 /**
  * Everything created from OSM.
+ *
+ * 7.5.24: Now a kind of high level wrapper for terrain mesh?
+ *
  * <p>
  * Created on 25.07.18.
  */

@@ -12,6 +12,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
+import de.yard.threed.osm2scenery.polygon20.OsmWay;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.GraphComponent;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
@@ -38,6 +39,7 @@ import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.ROAD;
  * 4.4.19: Ein Way ist meistens ein "StandardWay" (WayArea), mit immer paarweise links/rechts Coordinates, auch nach einem cut.
  * Und pro einem solchen Pärchen gibt es genau eine EleConnectorgroup.
  *
+ * 7.5.24: Might also be build from DB, so many properties might be null.
  * <p>
  * Created on 26.07.18.
  */
@@ -62,6 +64,8 @@ public class SceneryWayObject extends SceneryFlatObject {
     //logische way position->connector
     public Map<Integer, SceneryWayConnector> innerConnectorMap;
     public List<MapNode> effectiveNodes;
+    // 7.5.24: The persisted OSM way
+    public OsmWay osmWay;
 
     protected SceneryWayObject(String creatortag, MapWay mapWay, Material material, Category category, WidthProvider widthProvider, SceneryContext sceneryContext) {
         super(creatortag, material, category, null/*new WayArea(material)*/);
@@ -121,6 +125,15 @@ public class SceneryWayObject extends SceneryFlatObject {
             effectiveNodes.add(mapWay.getMapNodes().get(i));
         }
         terrainMeshAdder = new WayTerrainMeshAdder(this);
+    }
+
+    /**
+     * 7.5.24: Additional constructor for building from persistence/DB.
+     * Its not yet clear what is needed here.
+     */
+    public SceneryWayObject(OsmWay osmWay){
+        super(""/*creatortag*/, null/*material*/, null/*category*/, null/*new WayArea(material)*/);
+
     }
 
     /**
@@ -630,9 +643,9 @@ public class SceneryWayObject extends SceneryFlatObject {
             coor[1].setOrdinate(Coordinate.Z, 8);*/
     }
 
-    public List<SceneryWayObject> getConnectedRoads() {
-        List<SceneryWayObject> l = HighwayModule.getConnectedWays(mapWay.getStartNode(), true);
-        l.addAll(HighwayModule.getConnectedWays(mapWay.getEndNode(), true));
+    public List<SceneryWayObject> getConnectedRoads(SceneryContext sceneryContext) {
+        List<SceneryWayObject> l = HighwayModule.getConnectedWays(mapWay.getStartNode(), true, sceneryContext);
+        l.addAll(HighwayModule.getConnectedWays(mapWay.getEndNode(), true, sceneryContext));
         return l;
     }
 

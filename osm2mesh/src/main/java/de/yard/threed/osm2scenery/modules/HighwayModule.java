@@ -189,12 +189,12 @@ public class HighwayModule extends SceneryModule {
                 if (road.getOsmIdsAsString().contains("23696494")) {
                     int h = 9;
                 }
-                SceneryWayConnector connector = processConnectionCandidate(road.mapWay.getStartNode(), roadsAndBridges);
+                SceneryWayConnector connector = processConnectionCandidate(road.mapWay.getStartNode(), roadsAndBridges, SceneryContext.getInstance());
                 if (connector != null) {
                     connector.add(road);
                     road.setStartConnector(connector);
                 }
-                connector = processConnectionCandidate(road.mapWay.getEndNode(), roadsAndBridges);
+                connector = processConnectionCandidate(road.mapWay.getEndNode(), roadsAndBridges, SceneryContext.getInstance());
                 if (connector != null) {
                     connector.add(road);
                     road.setEndConnector(connector);
@@ -208,8 +208,12 @@ public class HighwayModule extends SceneryModule {
         return roadsAndBridges;
     }
 
+    /**
+     * Cloned from above applyTo().
+     * The returned list only contains real roads, but no connector. connector are attached to the return road
+     */
     @Override
-    public SceneryObjectList applyTo(MapWay mapway, TerrainMesh terrainMesh, SceneryContext sceneryContext) {
+    public SceneryObjectList applyTo(MapWay mapway, TerrainMesh terrainMeshNotNeeded, SceneryContext sceneryContext) {
         // Also contains Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
 
@@ -228,14 +232,14 @@ public class HighwayModule extends SceneryModule {
                     //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
                     BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, sceneryContext);
                     //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
-                    SceneryContext.getInstance().highways.put(osmid, bridge);
+                    sceneryContext.highways.put(osmid, bridge);
                     roadsAndBridges.add(bridge);
-                    SceneryContext.getInstance().bridges.put(osmid, bridge);
+                    sceneryContext.bridges.put(osmid, bridge);
                     bridge.addToWayMap(ROAD, sceneryContext);
                 } else if (TunnelModule.isTunnel(mapway.getTags())) {
                     //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
                     Highway road = new Highway(mapway, materialmap, sceneryContext);
-                    SceneryContext.getInstance().highways.put(osmid, road);
+                    sceneryContext.highways.put(osmid, road);
                     roadsAndBridges.add(road);
                     road.addToWayMap(ROAD, sceneryContext);
                 } else {
@@ -250,21 +254,21 @@ public class HighwayModule extends SceneryModule {
             }
         }
 
-        // Junctions/RoadConnector erstellen.
+        // Create Junctions/RoadConnector to existing highways.
         //19.4.19: Connector/Junction sind normale SceneryObjects, die vielleich auch eine Darstellung haben
-        //29.3.24: Are now taken from terrain mesh.
+        //29.3.24: Are now taken from terrain mesh. 2.5.24: No, we still have SceneryContext
         //for (List<SceneryWayObject> roads : SceneryContext.getInstance().wayMap.getMapForCategory(ROAD).values()) {
-        for (List<SceneryWayObject> roads : terrainMesh.wayMap.getMapForCategory(ROAD).values()) {
+        for (List<SceneryWayObject> roads : /*terrainMesh*/sceneryContext.wayMap.getMapForCategory(ROAD).values()) {
             for (SceneryWayObject road : roads) {
                 if (road.getOsmIdsAsString().contains("23696494")) {
                     int h = 9;
                 }
-                SceneryWayConnector connector = processConnectionCandidate(road.mapWay.getStartNode(), roadsAndBridges);
+                SceneryWayConnector connector = processConnectionCandidate(road.mapWay.getStartNode(), roadsAndBridges, sceneryContext);
                 if (connector != null) {
                     connector.add(road);
                     road.setStartConnector(connector);
                 }
-                connector = processConnectionCandidate(road.mapWay.getEndNode(), roadsAndBridges);
+                connector = processConnectionCandidate(road.mapWay.getEndNode(), roadsAndBridges, sceneryContext);
                 if (connector != null) {
                     connector.add(road);
                     road.setEndConnector(connector);
@@ -303,24 +307,24 @@ public class HighwayModule extends SceneryModule {
      * Fuer eine MapNode eine Junction oder RoadConnector erstellen, oder eine schon bestehende liefern.
      * Liefert null, wenn es an der Node weder Junction noch Connector gibt (bei nur zwei Ways).
      * <p>
-     * 14.6.19: RoadConnector und Junction vereint in abstrakten WayConnector, der auch eine Flaeche hat.
+     * 14.6.19: RoadConnector and Junction merged in abstract wayConnector, which is an area.
      *
      * @param node
      * @param roadsAndBridges
      * @return
      */
-    private SceneryWayConnector processConnectionCandidate(MapNode node, SceneryObjectList roadsAndBridges) {
+    private SceneryWayConnector processConnectionCandidate(MapNode node, SceneryObjectList roadsAndBridges, SceneryContext sceneryContext) {
         TagGroup tags = node.getOsmNode().tags;
 
         //10.7.19: Don't create connector for outside node
         if (node.location == MapNode.Location.OUTSIDEGRID) {
             return null;
         }
-        SceneryWayConnector connector = SceneryContext.getInstance().wayMap.getConnector(ROAD, node.getOsmId());
+        SceneryWayConnector connector = sceneryContext.wayMap.getConnector(ROAD, node.getOsmId());
         if (connector != null) {
             return connector;
         }
-        List<SceneryWayObject> connectedRoads = getConnectedWays(node, false);
+        List<SceneryWayObject> connectedRoads = getConnectedWays(node, false, sceneryContext);
         if (connectedRoads.size() == 0) {
             // no way? strange.
             return null;
@@ -353,7 +357,7 @@ public class HighwayModule extends SceneryModule {
             // connector.add(road2);
             connector.add(way);
         }
-        SceneryContext.getInstance().wayMap.addConnector(ROAD, node, connector);
+        sceneryContext.wayMap.addConnector(ROAD, node, connector);
         roadsAndBridges.add(connector);
         return connector;
         // }
@@ -363,7 +367,7 @@ public class HighwayModule extends SceneryModule {
         //node.addRepresentation(new RoadJunction(node));
       /*  connector = new RoadJunction(node);
 
-        SceneryContext.getInstance().wayMap.add(ROAD, node, connector);
+        sceneryContext.wayMap.add(ROAD, node, connector);
         roadsAndBridges.add(connector);
         /*23.5.19 marking kein SO mehr if (((RoadJunction) connector).marking != null) {
             roadsAndBridges.add(((RoadJunction) connector).marking);
@@ -379,13 +383,13 @@ public class HighwayModule extends SceneryModule {
      */
     public static void buildBridgeApproaches(/*SceneryObjectList*/List<SceneryObject> roadsAndBridges, SceneryContext sceneryContext) {
         for (BridgeModule.Bridge bridge : sceneryContext.bridges.values()) {
-            List<SceneryWayObject> sroads = getConnectedWays(bridge./*roadorrailway.*/mapWay.getStartNode(), true);
+            List<SceneryWayObject> sroads = getConnectedWays(bridge./*roadorrailway.*/mapWay.getStartNode(), true, sceneryContext);
             sroads.remove(bridge/*.roadorrailway*/);
             if (checkRoadsAtBridge(sroads)) {
                 continue;
             }
             raiseBridgeApproach(sroads, bridge/*.roadorrailway*/.mapWay.getStartNode());
-            List<SceneryWayObject> eroads = getConnectedWays(bridge/*.roadorrailway*/.mapWay.getEndNode(), true);
+            List<SceneryWayObject> eroads = getConnectedWays(bridge/*.roadorrailway*/.mapWay.getEndNode(), true, sceneryContext);
             eroads.remove(bridge/*.roadorrailway*/);
             if (checkRoadsAtBridge(eroads)) {
                 continue;
@@ -417,8 +421,8 @@ public class HighwayModule extends SceneryModule {
         return false;
     }
 
-    public List<Highway> getRoads() {
-        return new ArrayList(SceneryContext.getInstance().highways.values());
+    public List<Highway> getRoads(SceneryContext sceneryContext) {
+        return new ArrayList(sceneryContext.highways.values());
     }
 
     /**
@@ -599,7 +603,7 @@ public class HighwayModule extends SceneryModule {
      * @param requireLanes only include roads that are not paths and have lanes
      */
     public static List<SceneryWayObject> getConnectedWays(MapNode node,
-                                                          boolean requireLanes) {
+                                                          boolean requireLanes, SceneryContext sceneryContext) {
 
 
         List<SceneryWayObject> connectedRoadsWithLanes = new ArrayList<>();
@@ -616,8 +620,8 @@ public class HighwayModule extends SceneryModule {
             }
 
         }*/
-        if (SceneryContext.getInstance().wayMap.get(ROAD, node.getOsmId()) != null) {
-            for (SceneryWayObject way : SceneryContext.getInstance().wayMap.get(ROAD, node.getOsmId())) {
+        if (sceneryContext.wayMap.get(ROAD, node.getOsmId()) != null) {
+            for (SceneryWayObject way : sceneryContext.wayMap.get(ROAD, node.getOsmId())) {
                 connectedRoadsWithLanes.add((Highway) way);
             }
         }

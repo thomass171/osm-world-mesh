@@ -49,13 +49,13 @@ public interface MeshLine {
 
      void setCoordinatesAndTo(Coordinate[] toArray, MeshNode p);
 
-     AbstractArea getLeft();
+    MeshArea getLeft();
 
-     AbstractArea getRight();
+    MeshArea getRight();
 
-     void setLeft(AbstractArea area) ;
+     void setLeft(MeshArea area) ;
 
-     void setRight(AbstractArea area);
+     void setRight(MeshArea area);
 
      boolean isClosed();
 

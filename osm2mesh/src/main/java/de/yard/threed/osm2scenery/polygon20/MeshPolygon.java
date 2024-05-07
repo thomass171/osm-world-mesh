@@ -100,12 +100,12 @@ public class MeshPolygon {
                 if (meshLine.getLeft() != null && meshLine.getLeft() != abstractArea) {
                     logger.error("left already set");
                 }
-                meshLine.setLeft(abstractArea);
+                //2.5.24 meshLine.setLeft(abstractArea);
             } else {
                 if (meshLine.getRight() != null && meshLine.getRight() != abstractArea) {
                     logger.error("right already set");
                 }
-                meshLine.setRight(abstractArea);
+                //2.5.24meshLine.setRight(abstractArea);
             }
         }
     }

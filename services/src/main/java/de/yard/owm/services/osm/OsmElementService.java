@@ -10,9 +10,11 @@ import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.polygon20.OsmWay;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
+import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.Phase;
 
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static de.yard.threed.osm2scenery.scenery.SceneryObject.Cycle.SUPPLEMENT;
 import static de.yard.threed.osm2scenery.scenery.SceneryObject.Cycle.WAY;
@@ -54,6 +57,14 @@ public class OsmElementService {
         }
         // objects are only in sceneryObjects and not yet in TerrainMesh
 
+        // not sure whether persist is good here
+        for (SceneryObject sceneryObject : sceneryObjects) {
+            if (sceneryObject instanceof SceneryWayObject swo) {
+                swo.osmWay = tm.meshFactoryInstance.buildOsmWay(swo.mapWay.getOsmId(),
+                        swo.mapWay.getMapNodes().stream().map(osmNode -> osmNode.getOsmId()).collect(Collectors.toList()));
+            }
+        }
+
         Phase.updatePhase(Phase.ELEGROUPS);
 
         //4.4.19 schon gemacht? sceneryMesh.createConnections();
@@ -76,7 +87,7 @@ public class OsmElementService {
 
         //erst dann, wenn alle Objekte und Verbindungen bekannt sind, die Polygone dazu erstellen
         Phase.updatePhase(Phase.WAYS);
-        processCycle( WAY, tm, sceneryObjects, tm.getGridCellBounds(), sceneryContext);
+        processCycle(WAY, tm, sceneryObjects, tm.getGridCellBounds(), sceneryContext);
 
             /*26.3.24 TODO
 

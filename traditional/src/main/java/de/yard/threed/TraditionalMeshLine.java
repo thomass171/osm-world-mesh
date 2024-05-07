@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.LineString;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
+import de.yard.threed.osm2scenery.polygon20.MeshArea;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -24,7 +25,7 @@ public class TraditionalMeshLine implements MeshLine {
     private MeshNode from, to;
     public boolean isBoundary = false;
     //Bei Boundary always "left" isType set, because gridbounds are CCW.
-    private AbstractArea left, right;
+    private /*AbstractArea*/MeshArea left, right;
     //zur Visualisierung und Validierung
     public LineString line;
 
@@ -138,17 +139,17 @@ public class TraditionalMeshLine implements MeshLine {
     }
 
     @Override
-    public AbstractArea getLeft() {
+    public MeshArea getLeft() {
         return left;
     }
 
     @Override
-    public AbstractArea getRight() {
+    public MeshArea getRight() {
         return right;
     }
 
     @Override
-    public void setLeft(AbstractArea area) {
+    public void setLeft(MeshArea area) {
         if (area != null && area.toString().contains("23696494")) {
             int h = 9;
         }
@@ -159,7 +160,7 @@ public class TraditionalMeshLine implements MeshLine {
     }
 
     @Override
-    public void setRight(AbstractArea area) {
+    public void setRight(MeshArea area) {
         if (area != null && area.toString().contains("23696494")) {
             int h = 9;
         }

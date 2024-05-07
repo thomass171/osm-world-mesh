@@ -2010,7 +2010,7 @@ class TerrainMeshLayer extends Layer {
         Coordinate c = JtsUtil.toCoordinate(mappedClick);
         MeshLine line = terrainMesh.findClosestLine(c);
         if (line != null) {
-            String s = "meshline: " + line + ". left=" + line.getLeft().parentInfo + ",right=" + line.getRight().parentInfo;
+            String s = "??";//2.5.24"meshline: " + line + ". left=" + line.getLeft().parentInfo + ",right=" + line.getRight().parentInfo;
             return s;
         }
 

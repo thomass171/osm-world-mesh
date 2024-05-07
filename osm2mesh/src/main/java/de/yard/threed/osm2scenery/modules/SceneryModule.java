@@ -32,7 +32,10 @@ public abstract class SceneryModule {
     /**
      * Default implementation. TerrainMesh is for knowing
      * the context but not for adding to it. That is done later.
-     * TODO should be sufficint to pass waymaps.
+     * TODO should be sufficint to pass sceneryContext.
+     * 1.5.24: By 2024 design SceneryContext is still used as a container for higl level terrainmesh wrapper.
+     *
+     * Returns the objects to be created(or updated) in the order they should be processed.
      */
     public SceneryObjectList applyTo(MapWay mapWay, TerrainMesh terrainMesh, SceneryContext sceneryContext){
         return new SceneryObjectList();

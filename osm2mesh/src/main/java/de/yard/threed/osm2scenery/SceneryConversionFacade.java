@@ -471,7 +471,7 @@ public class SceneryConversionFacade {
         if (ElevationMap.hasInstance()) {
             //26.9.18: einfach alles cathen ist doch wohl doof.
             //try {
-            sceneryMesh.calculateElevations(elevationProvider);
+            sceneryMesh.calculateElevations(elevationProvider, SceneryContext.getInstance());
             //} catch (Exception e) {
             //    e.printStackTrace();
             //}

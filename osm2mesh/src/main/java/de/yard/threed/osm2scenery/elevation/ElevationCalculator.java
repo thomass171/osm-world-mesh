@@ -49,21 +49,21 @@ import java.util.List;
 public class ElevationCalculator {
     static Logger logger = Logger.getLogger(ElevationCalculator.class);
 
-    public static void fixElevationGroups(SceneryObjectList sceneryObjects, ElevationProvider elevationProvider) {
+    public static void fixElevationGroups(SceneryObjectList sceneryObjects, ElevationProvider elevationProvider, SceneryContext sceneryContext) {
         //1 Gridgrenzen sind schon in ElevationMap
         //1a Alle Grid Enter Ways fixen
         fixGridEnterings(sceneryObjects);
         //2
-        elevateWays(sceneryObjects.findWaysByCategory(SceneryObject.Category.RIVER));
+        elevateWays(sceneryObjects.findWaysByCategory(SceneryObject.Category.RIVER), sceneryContext);
         //4 Railways
         //fixRailways(sceneryObjects);
-        elevateWays(sceneryObjects.findWaysByCategory(SceneryObject.Category.RAILWAY));
+        elevateWays(sceneryObjects.findWaysByCategory(SceneryObject.Category.RAILWAY), sceneryContext);
         //7
         completeBridges();
         //8
-        elevateWays(sceneryObjects.findWaysByCategory(SceneryObject.Category.ROAD));
-        elevateWays(sceneryObjects.findWaysByCategory(SceneryObject.Category.TAXIWAY));
-        elevateWays(sceneryObjects.findWaysByCategory(SceneryObject.Category.RAILWAY));
+        elevateWays(sceneryObjects.findWaysByCategory(SceneryObject.Category.ROAD), sceneryContext);
+        elevateWays(sceneryObjects.findWaysByCategory(SceneryObject.Category.TAXIWAY), sceneryContext);
+        elevateWays(sceneryObjects.findWaysByCategory(SceneryObject.Category.RAILWAY), sceneryContext);
 
         // 9a
         for (SceneryObject obj : sceneryObjects.objects) {
@@ -397,11 +397,11 @@ public class ElevationCalculator {
     /**
      * 8
      */
-    private static void elevateWays(List<SceneryWayObject> ways) {
+    private static void elevateWays(List<SceneryWayObject> ways, SceneryContext sceneryContext) {
         int i = 0;
         do {
             //FixedEleConnectorGroupSet fixedEleConnectorGroupSet = new FixedEleConnectorGroupSet();
-            ElevationArea unfixed = findUnfixedSegement(ways);
+            ElevationArea unfixed = findUnfixedSegement(ways, sceneryContext);
             if (unfixed.unfixed.size() == 0) {
                 //no more way elements without elevation
                 return;
@@ -416,25 +416,25 @@ public class ElevationCalculator {
      * Einen Bereich fuer eine bestimmt Categorie bestimmen, in dem es noch ungefixte EleGroups gibt.
      * Liefert ein Menge von zusammenhaengenden Ways, die noch einen Fix brauchen.
      */
-    private static ElevationArea findUnfixedSegement(List<SceneryWayObject> ways) {
+    private static ElevationArea findUnfixedSegement(List<SceneryWayObject> ways, SceneryContext sceneryContext) {
         ElevationArea elevationArea = new ElevationArea();
 
         for (SceneryWayObject way : ways) {
             if (!way.hasFixedElevationGroups()) {
-                addUnfixedSegement(elevationArea, way);
+                addUnfixedSegement(elevationArea, way, sceneryContext);
             }
         }
         return elevationArea;
     }
 
-    private static void addUnfixedSegement(ElevationArea elevationArea, SceneryWayObject road) {
+    private static void addUnfixedSegement(ElevationArea elevationArea, SceneryWayObject road, SceneryContext sceneryContext) {
 
         elevationArea.addSegment(road);
 
-        List<SceneryWayObject> connected = road.getConnectedRoads();
+        List<SceneryWayObject> connected = road.getConnectedRoads(sceneryContext);
         for (SceneryWayObject r : connected) {
             if (!r.hasFixedElevationGroups() && !elevationArea.unfixed.contains(r)) {
-                addUnfixedSegement(elevationArea, r);
+                addUnfixedSegement(elevationArea, r, sceneryContext);
             }
         }
     }

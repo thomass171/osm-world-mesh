@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Added for adding a way to the TerrainMesh.
@@ -96,7 +97,7 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
                         rightline = new ArrayList<>();
                     }
                 } else {
-                  tm.registerWay(null, leftline, rightline ,null,2);
+                    tm.registerWay(sceneryWayObject.osmWay, null, leftline, rightline, null, 2);
                 }
             }
         }

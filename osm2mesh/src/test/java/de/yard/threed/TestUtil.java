@@ -152,7 +152,7 @@ public class TestUtil {
             SceneryWayObject way = swc.getWay(i);
             //might be eg. a bridge
             if (way.isTerrainProvider()) {
-                MeshPolygon mp = tm.getPolygon(way.getArea()[0]);
+                MeshPolygon mp = null;//2.5.24tm.getPolygon(way.getArea()[0]);
                 if (mp == null) {
                     int h = 9;
                 }
@@ -165,7 +165,7 @@ public class TestUtil {
             case STANDARD_TRI_JUNCTION:
                 break;
             case MOTORWAY_ENTRY_JUNCTION:
-                MeshPolygon mp = tm.getPolygon(swc.getArea()[0]);
+                MeshPolygon mp = null;//2.5.24tm.getPolygon(swc.getArea()[0]);
                 assertEquals(6, mp.lines.size(), "connector.meshpolygon.size");
                 break;
             case SIMPLE_CONNECTOR:
@@ -209,7 +209,7 @@ public class TestUtil {
 
         if (!supplement.isEmpty(tm)) {
             if (supplement.isTerrainProvider()) {
-                MeshPolygon mp = tm.getPolygon(supplement.getArea()[0]);
+                MeshPolygon mp = null;//2.5.24tm.getPolygon(supplement.getArea()[0]);
                 assertNotNull(mp, "MeshPolygon for supplement isType null: " + supplement.getOsmIdsAsString());
             }
         }
