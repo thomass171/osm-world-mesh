@@ -2,7 +2,7 @@ package de.yard.threed.osm2scenery.modules;
 
 import de.yard.threed.osm2world.Material;
 import de.yard.threed.osm2world.*;
-import org.apache.log4j.Logger;
+
 
 
 /**
@@ -13,7 +13,6 @@ import org.apache.log4j.Logger;
  */
 public class BuildingDefaults {
     public BuildingModule.BuildingClassification classification=null;
-    Logger logger = Logger.getLogger(BuildingDefaults.class);
     public int defaultLevels;
     public String defaultRoofShape = "flat";
     Material defaultMaterialWall = Materials.BUILDING_DEFAULT;
@@ -75,7 +74,7 @@ public class BuildingDefaults {
 
 
         //if (area.getBoundaryNodes().size() != 5) {
-        //logger.debug("switching defaultRoofShape to flat due to non simple area");
+        //log.debug("switching defaultRoofShape to flat due to non simple area");
         //defaultRoofShape = "flat";
         //      defaultMaterialRoof = Materials.ROOF_DEFAULT;
         //} else

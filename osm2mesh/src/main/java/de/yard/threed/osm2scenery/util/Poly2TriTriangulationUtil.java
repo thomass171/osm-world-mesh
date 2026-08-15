@@ -7,13 +7,13 @@ import de.yard.threed.osm2world.SimplePolygonXZ;
 import de.yard.threed.osm2world.TriangleXZ;
 import de.yard.threed.osm2world.TriangulationException;
 import de.yard.threed.osm2world.VectorXZ;
-import org.apache.log4j.Logger;
-import org.poly2tri.Poly2Tri;
+
+/*9.2.26 import org.poly2tri.Poly2Tri;
 import org.poly2tri.geometry.polygon.Polygon;
 import org.poly2tri.geometry.polygon.PolygonPoint;
 import org.poly2tri.triangulation.TriangulationPoint;
 import org.poly2tri.triangulation.delaunay.DelaunayTriangle;
-import org.poly2tri.triangulation.point.TPoint;
+import org.poly2tri.triangulation.point.TPoint;*/
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +31,6 @@ import static java.util.Collections.disjoint;
  * Creates a Constrained Delaunay Triangulation, not true Delaunay!
  */
 public final class Poly2TriTriangulationUtil {
-    static Logger logger = Logger.getLogger(Poly2TriTriangulationUtil.class);
 
     private Poly2TriTriangulationUtil() {
     }
@@ -46,13 +45,13 @@ public final class Poly2TriTriangulationUtil {
      *
      * @throws TriangulationException if triangulation fails
      */
-    public static final List<TriangleXZ> triangulate(
+    /*public static final List<TriangleXZ> triangulate(
             SimplePolygonXZ outerPolygon,
             Collection<SimplePolygonXZ> holes,
             Collection<LineSegmentXZ> segments,
             Collection<VectorXZ> points) throws TriangulationException {
         
-		/* remove any problematic data (duplicate points) from the input */
+		/* remove any problematic data (duplicate points) from the input * /
 
         Set<VectorXZ> knownVectors =
                 new HashSet<VectorXZ>(outerPolygon.getVertexCollection());
@@ -85,11 +84,11 @@ public final class Poly2TriTriangulationUtil {
             }
         }
 		
-		/* run the actual triangulation */
+		/* run the actual triangulation * /
 
         return triangulateFast(outerPolygon, filteredHoles, segments, filteredPoints);
 
-    }
+    }*/
 
     /**
      * variant of {@link #triangulate(SimplePolygonXZ, Collection, Collection, Collection)}
@@ -98,14 +97,13 @@ public final class Poly2TriTriangulationUtil {
      *
      * @throws TriangulationException if triangulation fails
      */
-    public static final List<TriangleXZ> triangulateFast(
+   /* public static final List<TriangleXZ> triangulateFast(
             SimplePolygonXZ outerPolygon,
             Collection<SimplePolygonXZ> holes,
             Collection<LineSegmentXZ> segments,
             Collection<VectorXZ> points) throws TriangulationException {
 		
-		/* prepare data for triangulation */
-
+		/* prepare data for triangulation * /
         Polygon triangulationPolygon = toPolygon(outerPolygon);
 
         for (SimplePolygonXZ hole : holes) {
@@ -120,11 +118,11 @@ public final class Poly2TriTriangulationUtil {
 
         try {
 			
-			/* run triangulation */
+			/* run triangulation * /
 
             Poly2Tri.triangulate(triangulationPolygon);
 			
-			/* convert the result to the desired format */
+			/* convert the result to the desired format * /
 
             List<DelaunayTriangle> triangles = triangulationPolygon.getTriangles();
 
@@ -142,9 +140,9 @@ public final class Poly2TriTriangulationUtil {
             throw new TriangulationException(e);
         }
 
-    }
+    }*/
 
-    public static final List<com.vividsolutions.jts.geom.Polygon> triangulate(
+   /* public static final List<com.vividsolutions.jts.geom.Polygon> triangulate(
             com.vividsolutions.jts.geom.Polygon polygon) {
 
 
@@ -162,11 +160,11 @@ public final class Poly2TriTriangulationUtil {
 
         try {
 			
-			/* run triangulation */
+			/* run triangulation * /
 
             Poly2Tri.triangulate(triangulationPolygon);
 			
-			/* convert the result to the desired format */
+			/* convert the result to the desired format * /
 
             List<DelaunayTriangle> triangles = triangulationPolygon.getTriangles();
 
@@ -181,13 +179,13 @@ public final class Poly2TriTriangulationUtil {
         } catch (Exception e) {
             //e.printStackTrace();
             //18.4.19; Kommt schon mal vor, z.B. NPE
-            logger.error("triangulate failed:"+e.getClass().getName()+":"+e.getMessage());
+            log.error("triangulate failed:"+e.getClass().getName()+":"+e.getMessage());
         } catch (StackOverflowError e) {
             e.printStackTrace();
         }
         return null;
-    }
-
+    }*/
+/*
     private static final TPoint toTPoint(VectorXZ v) {
         return new TPoint(v.x, v.z);
     }
@@ -202,9 +200,9 @@ public final class Poly2TriTriangulationUtil {
 
     private static final Coordinate toCoordinate(TriangulationPoint points) {
         return new Coordinate(points.getX(), points.getY(),0);
-    }
+    }*/
 
-    private static final Polygon toPolygon(SimplePolygonXZ polygon) {
+    /*private static final Polygon toPolygon(SimplePolygonXZ polygon) {
 
         List<PolygonPoint> points = new ArrayList<PolygonPoint>(polygon.size());
 
@@ -226,9 +224,9 @@ public final class Poly2TriTriangulationUtil {
         points.remove(points.size()-1);
         return new Polygon(points);
 
-    }
+    }*/
 
-    private static final TriangleXZ toTriangleXZ(DelaunayTriangle triangle) {
+   /* private static final TriangleXZ toTriangleXZ(DelaunayTriangle triangle) {
 
         return new TriangleXZ(
                 toVectorXZ(triangle.points[0]),
@@ -244,5 +242,5 @@ public final class Poly2TriTriangulationUtil {
                 toCoordinate(triangle.points[1]),
                 toCoordinate(triangle.points[2]));
 
-    }
+    }*/
 }

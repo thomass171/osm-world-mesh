@@ -11,7 +11,7 @@ import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.common.BridgeOrTunnel;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonOld;
 import de.yard.threed.osm2scenery.scenery.BridgeGap;
 import de.yard.threed.osm2scenery.scenery.BridgeSideRamp;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
@@ -21,19 +21,9 @@ import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2scenery.util.TagMap;
-import de.yard.threed.osm2world.GeometryUtil;
-import de.yard.threed.osm2world.MapData;
-import de.yard.threed.osm2world.MapNode;
-import de.yard.threed.osm2world.MapWay;
-import de.yard.threed.osm2world.MapWaySegment;
-import de.yard.threed.osm2world.Materials;
-import de.yard.threed.osm2world.TagGroup;
-import de.yard.threed.osm2world.Target;
-import de.yard.threed.osm2world.VectorXYZ;
-import de.yard.threed.osm2world.VectorXYZList;
-import de.yard.threed.osm2world.VectorXZ;
-import de.yard.threed.osm2world.WorldObject;
-import org.apache.log4j.Logger;
+import de.yard.threed.osm2world.*;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,6 +42,7 @@ import static de.yard.threed.osm2world.WorldModuleGeometryUtil.filterWorldObject
  * whatever runs over the bridge.
  * 27.5.19: Bridges werden doch - vorerst - bei Roads mitgemacht.
  */
+@Slf4j
 public class BridgeModule extends SceneryModule {
 
     public static final boolean isBridge(TagGroup tags) {
@@ -88,7 +79,6 @@ public class BridgeModule extends SceneryModule {
     public static class Bridge extends BridgeOrTunnel
             /*implements RenderableToAllTargets*/ {
         //public List<SceneryWayObject> ramps=new ArrayList<>();
-        Logger logger = Logger.getLogger(Bridge.class);
         ScenerySupplementAreaObject groundfiller;
         //13.7.19 Warum sollte eine Brücke den Untergrund kennen. Führt nur zu doofen
         // Abhaengigkeiten private List<SceneryFlatObject> belows;
@@ -96,7 +86,7 @@ public class BridgeModule extends SceneryModule {
         //public MapWay shadowway;
         public BridgeHead startHead, endHead;
 
-        public Bridge(MapWay mapWay, TagMap materialmap/*SceneryWayObject roadorrailway/*MapWay mapWay/*MapWaySegment segment,
+        public Bridge(MapWaySegment2 mapWay, TagMap materialmap/*SceneryWayObject roadorrailway/*MapWay mapWay/*MapWaySegment segment,
                 AbstractNetworkWaySegmentWorldObject primaryWO*/, SceneryContext sceneryContext) {
             //TODO category kann auch Railway sein.
             super("Bridge", mapWay, materialmap, Category.ROAD/*BRIDGE*/, sceneryContext);
@@ -115,9 +105,9 @@ public class BridgeModule extends SceneryModule {
             //bridge heads need clipped ways
             // Ramp. The polygon of the approach road isType primary, so exists.
             SceneryWayObject wayAtNode = getConnectedRoad(getStartNode());
-            startHead = new BridgeHead(this, getStartNode(), wayAtNode,getStartConnector());
+            startHead = null;//9.3.26 new BridgeHead(this, getStartNode(), wayAtNode,getStartConnector());
             wayAtNode = getConnectedRoad(getEndNode());
-            endHead = new BridgeHead(this, getEndNode(), wayAtNode,getEndConnector());
+            endHead = null;//9.3.26 new BridgeHead(this, getEndNode(), wayAtNode,getEndConnector());
 
             gap = closeBridgeGap();
             startHead.ramp0 = new BridgeSideRamp("BridgeSideRamp", startHead, GRASS, this/*roadorrailway*/.mapWay.getStartNode(), true);
@@ -250,7 +240,7 @@ public class BridgeModule extends SceneryModule {
             EleConnectorGroupSet eleConnectorGroupSet = ((RoadModule.Road) roadorrailway).getConnectedElevations();
             for (EleConnectorGroup ramp : eleConnectorGroupSet.eleconnectorgroups) {
                 if (ramp.groundState != GroundState.ABOVE) {
-                    logger.warn("groundstate != ABOVE. Elevation will be wrong");
+                    log.warn("groundstate != ABOVE. Elevation will be wrong");
                 }
                 ramp.setElevation(elevation);
                 ElevationMap.getInstance().fix(ramp);
@@ -323,7 +313,6 @@ public class BridgeModule extends SceneryModule {
         public CoordinatePair roadLine;
         public LineSegment bridgebaseline;
         public CoordinatePair backline;
-        Logger logger = Logger.getLogger(BridgeHead.class);
         public Bridge bridge;
         SceneryWayObject connectedWayAtNode;
         public MapNode headNode;
@@ -334,31 +323,31 @@ public class BridgeModule extends SceneryModule {
             this.headNode = headNode;
             this.connectedWayAtNode = connectedWayAtNode;
             if (connectedWayAtNode == null) {
-                logger.error("no way at node.");
+                log.error("no way at node.");
                 return;// null;
             }
 
-            CoordinatePair[] pairs = connectedWayAtNode.getPairRelatedFromNode(headNode, 0);
-            if (pairs.length > 1) {
+            CoordinatePair/*19.3.26 []*/ pairs = connectedWayAtNode.getPairRelatedFromNode(headNode, 0);
+            /*19.3.26 if (pairs.length > 1) {
                 // minor way direkt am start? strange. Aber wir mchen mal weiter
-                logger.warn("minor way direkt am start? strange.");
-            }
-            roadLine = pairs[0];
+                log.warn("minor way direkt am start? strange.");
+            }*/
+            roadLine = pairs;//[0];
 
             LineSegment ls = new LineSegment(roadLine.left(), roadLine.right());
             bridgebaseline = JtsUtil.extendLineSegment2(ls, 1.5);
             pairs = connectedWayAtNode.getPairRelatedFromNode(headNode, 1);
-            if (pairs.length > 1) {
+            /*19.3.26 if (pairs.length > 1) {
                 // minor way da wo die Ramp starten soll. Naja. mal versuchen.
                 // wenn das auf der anderen Seite ist, dürfte es kein Problem sein.
                 // Auf Seite des minor muesste die ramp später als overlaps empty werden.
-                logger.debug("minor way at ramp start.");
-            }
+                log.debug("minor way at ramp start.");
+            }*/
             //die order ist getauscht, so dass index 0 immer Richtung headnode zeigt.
-            backline = pairs[0];
-            if (connectedWayAtNode.getWayArea().getLength() == 2 && connectedWayAtNode.getOppositeConnector(connector) != null && connectedWayAtNode.getOppositeConnector(connector).hasBridge()) {
+            backline = pairs;//[0];
+            /*9.3.26 if (connectedWayAtNode.getWayArea().getLength() == 2 && connectedWayAtNode.getOppositeConnector(connector) != null && connectedWayAtNode.getOppositeConnector(connector).hasBridge()) {
                 connectedWayTooShortForRamp = true;
-            }
+            }*/
 
         }
 
@@ -383,21 +372,21 @@ public class BridgeModule extends SceneryModule {
          */
         public MeshLine[] getConnectedWayLines(TerrainMesh tm) throws MeshInconsistencyException {
             if (connectedWayAtNode == null || connectedWayAtNode.getWayArea() == null) {
-                logger.error("huch");
+                log.error("huch");
                 return null;
             }
             if (connectedWayAtNode.mapWay.getOsmId() == 225794249) {
                 int h = 9;
             }
             //mal eine Konsistenzpruefung eingestreut.
-            MeshPolygon mp = null;//2.5.24tm.getPolygon(connectedWayAtNode.getWayArea());
+            MeshPolygonOld mp = null;//2.5.24tm.getPolygon(connectedWayAtNode.getWayArea());
             if (mp == null) {
-                logger.error("inconsistent way?");
+                log.error("inconsistent way?");
             }
-            List<MeshLine> rl = connectedWayAtNode.getWayArea().getRightLines(tm);
-            List<MeshLine> ll = connectedWayAtNode.getWayArea().getLeftLines(tm);
+            List<MeshLine> rl = null;//16.4.26 connectedWayAtNode.getWayArea().getRightLines(tm);
+            List<MeshLine> ll = null;//16.4.26 connectedWayAtNode.getWayArea().getLeftLines(tm);
             if (rl == null || ll == null) {
-                logger.error("huch");
+                log.error("huch");
                 return null;
             }
             if (connectedWayAtNode.getStartNode() == headNode) {

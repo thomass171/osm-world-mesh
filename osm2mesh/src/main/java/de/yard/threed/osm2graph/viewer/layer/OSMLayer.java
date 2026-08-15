@@ -19,6 +19,7 @@ import de.yard.threed.osm2world.OSMNode;
 import de.yard.threed.osm2world.OSMWay;
 import de.yard.threed.osm2world.VectorXZ;
 import de.yard.threed.scenery.util.OsmWriter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -41,6 +42,7 @@ import java.util.List;
 /**
  * Erlaubt erstmal nur hinzufügen neuer Nodes in einem Way.
  */
+@Slf4j
 public class OSMLayer extends Layer {
     private OSMData osmData;
     SceneryProjection projection;
@@ -73,7 +75,7 @@ public class OSMLayer extends Layer {
 
         saveMi = new JMenuItem("Save...");
         saveMi.addActionListener(l -> {
-            Viewer2D.logger.debug("Saving file " + fileUsed.getAbsolutePath()+ "to clipboard.");
+            log.debug("Saving file " + fileUsed.getAbsolutePath()+ "to clipboard.");
             //Schreibt bewusst nicht in eine Datei um versehentliches Ueberschreiben zu vermeiden.
             //Jetzt ins Clipboard
             //PrintStream pw = System.out;
@@ -99,7 +101,7 @@ public class OSMLayer extends Layer {
 
     private void addNodeToWayAtPopupLocation() {
         if (mappedpopupLocation == null || linePosition == -1 || popupWay == null) {
-            Viewer2D.logger.error("no pop location");
+            log.error("no pop location");
             return;
         }
         long id = OsmUtil.findHighestId(osmData);
@@ -114,12 +116,12 @@ public class OSMLayer extends Layer {
     private OSMNode createNode(VectorXZ loc, long proposedId) {
         if (OsmUtil.finfWayIndexById(new ArrayList<>(osmData.getWays()), proposedId) != -1 ||
                 OsmUtil.finfNodeIndexById(new ArrayList<>(osmData.getNodes()), proposedId) != -1) {
-            Viewer2D.logger.error("Id already in use:" + proposedId);
+            log.error("Id already in use:" + proposedId);
             return null;
         }
         LatLon latLon = projection.unproject(loc);
         MapBasedTagGroup tags = TagHelper.buildTagGroup();
-        Viewer2D.logger.debug("Creating new node with id " + proposedId);
+        log.debug("Creating new node with id " + proposedId);
         OSMNode newNode = new OSMNode(latLon.getLatDeg().getDegree(), latLon.getLonDeg().getDegree(), tags, proposedId);
         osmData.getNodes().add(newNode);
         return newNode;
@@ -173,7 +175,7 @@ public class OSMLayer extends Layer {
             dataReader = new OSMFileReader(fileUsed);
             osmData = dataReader.getData();
         } catch (Exception e) {
-            Viewer2D.logger.error("Fail to read " + fileUsed.getAbsolutePath());
+            log.error("Fail to read " + fileUsed.getAbsolutePath());
         }
         this.projection = projection;
         this.fileUsed = fileUsed;
@@ -183,12 +185,12 @@ public class OSMLayer extends Layer {
 
     @Override
     public String mousePressed(TileProjection tileProjection, VectorXZ mappedClick) {
-        Viewer2D.logger.debug("pressed in OSM layer at " + mappedClick);
+        log.debug("pressed in OSM layer at " + mappedClick);
 
         nodeDragged = null;
         OSMNode node = getNodeAtLocation(tileProjection, mappedClick);
         if (node != null) {
-            Viewer2D.logger.debug("pressed node " + node);
+            log.debug("pressed node " + node);
             nodeDragged = node;
             return "OSM node " + node.id;
         }
@@ -197,12 +199,12 @@ public class OSMLayer extends Layer {
 
     @Override
     public String mouseReleased(TileProjection tileProjection, VectorXZ mappedClick) {
-        Viewer2D.logger.debug("released in OSM layer at " + mappedClick);
+        log.debug("released in OSM layer at " + mappedClick);
 
         nodeDragged = null;
         OSMNode node = getNodeAtLocation(tileProjection, mappedClick);
         if (node != null) {
-            Viewer2D.logger.debug("released node " + node);
+            log.debug("released node " + node);
             return "OSM node " + node.id;
         }
         return "";
@@ -227,12 +229,12 @@ public class OSMLayer extends Layer {
      */
     @Override
     public void mouseDragged(VectorXZ mappedstartpoint, VectorXZ mappedendpoint) {
-        //Viewer2D.logger.debug("dragged in OSM layer to " + mappedendpoint);
+        //log.debug("dragged in OSM layer to " + mappedendpoint);
         //tile.drawCircle(mappedendpoint, 10, Color.RED);
         //DrawHelper.drawCircle(g,tileProjection.vectorxzToPoint(mappedendpoint), 10, Color.RED);
         if (nodeDragged != null) {
             LatLon latlon = projection.unproject(mappedendpoint);
-            //Viewer2D.logger.debug("dragged node to " + mappedendpoint);
+            //log.debug("dragged node to " + mappedendpoint);
 
             nodeDragged.setLoc(latlon);
         }
@@ -247,7 +249,7 @@ public class OSMLayer extends Layer {
         Object[] res = OsmUtil.findClosestLine(mappedClick, new ArrayList<>(osmData.getWays()), projection);
         popupWay = (OSMWay) res[0];
         linePosition = (int) res[1];
-        Viewer2D.logger.debug("linePosition=" + linePosition);
+        log.debug("linePosition=" + linePosition);
         if (linePosition == -1) {
             addNodeToWayMi.setEnabled(false);
         } else {
@@ -260,7 +262,7 @@ public class OSMLayer extends Layer {
      * Bei closed wird das ein Krei um mappedpopupLocation
      */
     public void addWay(char type, int nodecount, boolean isClosed, double size) {
-        Viewer2D.logger.debug("addWay: type=" + type + ",nodecount=" + nodecount + ",closed=" + isClosed + ",size=" + size);
+        log.debug("addWay: type=" + type + ",nodecount=" + nodecount + ",closed=" + isClosed + ",size=" + size);
 
         MapBasedTagGroup wayTags;
         switch (type) {
@@ -271,7 +273,7 @@ public class OSMLayer extends Layer {
                 wayTags = TagHelper.buildTagGroup("railway", "rail");
                 break;
             default:
-                Viewer2D.logger.error("invalid type " + type);
+                log.error("invalid type " + type);
                 return;
         }
 
@@ -301,7 +303,7 @@ public class OSMLayer extends Layer {
             nodes.add(nodes.get(0));
         }
         long wayId = OsmUtil.findHighestId(osmData) + 1;
-        Viewer2D.logger.debug("Creating new way with id " + wayId);
+        log.debug("Creating new way with id " + wayId);
 
         OSMWay newWay = new OSMWay(wayTags, wayId, nodes);
         osmData.getWays().add(newWay);
@@ -309,6 +311,7 @@ public class OSMLayer extends Layer {
     }
 }
 
+@Slf4j
 class AddWayDialog extends JDialog implements ActionListener {
 
     JPanel mainpanel;
@@ -436,7 +439,7 @@ class AddWayDialog extends JDialog implements ActionListener {
             return;
         }
         type = typegroup.getSelection().getActionCommand();
-        Viewer2D.logger.debug("type=" + type + ",nodecount=" + nodecount + ",size=" + size);
+        log.debug("type=" + type + ",nodecount=" + nodecount + ",size=" + size);
         btn_ok.setEnabled(true);
     }
 

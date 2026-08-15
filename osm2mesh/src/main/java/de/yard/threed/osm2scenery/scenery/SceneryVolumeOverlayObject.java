@@ -12,7 +12,7 @@ package de.yard.threed.osm2scenery.scenery;
  * 3.6.19:Kann das weg?
  */
 /*public abstract class SceneryVolumeOverlayObject extends SceneryObject {
-    Logger logger = Logger.getLogger(SceneryVolumeOverlayObject.class);
+    Logger logger = log.getLogger(SceneryVolumeOverlayObject.class);
     
     public SceneryVolumeOverlayObject(String creatortag,Category category){
         super(creatortag,category);

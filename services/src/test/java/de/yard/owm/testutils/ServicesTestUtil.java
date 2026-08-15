@@ -2,7 +2,8 @@ package de.yard.owm.testutils;
 
 import de.yard.owm.services.persistence.PersistedMeshFactory;
 import de.yard.owm.services.persistence.TerrainMeshManager;
-import de.yard.owm.services.util.OsmXmlParser;
+import de.yard.threed.osm2scenery.util.OsmXmlParser;
+import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
@@ -11,9 +12,8 @@ import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MapData;
 import de.yard.threed.osm2world.OSMData;
 
-import java.io.IOException;
+import static de.yard.threed.TestUtil.loadFileFromClasspath;
 
-import static de.yard.owm.testutils.TestUtils.loadFileFromClasspath;
 
 /**
  * Derived from SceneryTestUtil
@@ -32,7 +32,7 @@ public class ServicesTestUtil {
         OSMData osmData = parser.getData();
 
         gridCellBounds = GridCellBounds.buildFromOsmData(osmData);
-        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(gridCellBounds.getProjection().getBaseProjection(), terrainMeshManager);
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory("xx", gridCellBounds.getProjection().getBaseProjection(), terrainMeshManager);
 
         OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
         mapData = converter.createMapData(osmData);
@@ -42,9 +42,9 @@ public class ServicesTestUtil {
 
         terrainMesh = TerrainMesh.init(gridCellBounds);
 
-        TestUtils.addTerrainMeshBoundary(terrainMesh, gridCellBounds.getOrigin().getLatDeg().getDegree(), gridCellBounds.getOrigin().getLonDeg().getDegree(),
+        TestUtils.getRectangularMeshBoundary(gridCellBounds.getOrigin().getLatDeg().getDegree(), gridCellBounds.getOrigin().getLonDeg().getDegree(),
                 gridCellBounds.degwidth, gridCellBounds.degheight, gridCellBounds.getProjection().getBaseProjection(), 0.0001);
-
+        Util.notyet();
         sceneryContext = new SceneryContext();
     }
 }

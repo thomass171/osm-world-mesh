@@ -3,7 +3,8 @@ package de.yard.threed.osm2scenery.elevation;
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2world.GroundState;
 import de.yard.threed.osm2world.MapNode;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +13,8 @@ import java.util.List;
  * Zunächst mal einfach eine Liste von {@link EleConnectorGroup}
  * Created on 01.08.18.
  */
+@Slf4j
 public class EleConnectorGroupSet {
-    Logger logger = Logger.getLogger(EleConnectorGroupSet.class);
 
     public List<EleConnectorGroup> eleconnectorgroups = new ArrayList<>();
 
@@ -29,14 +30,14 @@ public class EleConnectorGroupSet {
             }
         }
         // should never happen? Doch, doch. Das wird auch aufgerufen um sich die Pruefung zu sparen, ob es eine Node gibt. Also nicht loggen. Schoen ist das natuerlich nicht 
-        //logger.warn("EleConnectorGroup not found");
+        //log.warn("EleConnectorGroup not found");
         return null;
     }
 
     public void add(EleConnectorGroup eleConnectorGroup) {
         if (eleConnectorGroup == null) {
             //convenience. Is there any reason?
-            logger.warn("group isType null");
+            log.warn("group isType null");
             return;
         }
         if (!eleconnectorgroups.contains(eleConnectorGroup)) {
@@ -63,7 +64,7 @@ public class EleConnectorGroupSet {
         if (eleconnectorgroups.size() > 0) {
             average = average / eleconnectorgroups.size();
         }else{
-            logger.warn("getWeightedAverage(): empty FixedEleConnectorGroupSet. no elavation found.");
+            log.warn("getWeightedAverage(): empty FixedEleConnectorGroupSet. no elavation found.");
             return null;
         }
         if (average > 0.1f) {

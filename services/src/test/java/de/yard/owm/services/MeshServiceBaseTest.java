@@ -1,4 +1,4 @@
-package de.yard.owm.services.persistence;
+package de.yard.owm.services;
 
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.*;
@@ -6,11 +6,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import de.yard.owm.services.mesh.MeshService;
+import de.yard.owm.services.persistence.*;
 import de.yard.owm.testutils.TestServices;
 import de.yard.owm.testutils.TestData;
 import de.yard.owm.testutils.TestUtils;
+import de.yard.threed.MeshServiceFactory;
+import de.yard.threed.ValidatorServiceFactory;
+import de.yard.threed.core.GeoCoordinate;
+import de.yard.threed.core.LatLon;
+import de.yard.threed.modules.AbstractWayModuleTest;
+import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
+import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
+import de.yard.threed.osm2scenery.AbstractSceneryWayConnectorTest;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MetricMapProjection;
@@ -21,10 +30,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
@@ -37,13 +44,19 @@ import java.util.List;
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-public class TerrainMeshTest {
+public class MeshServiceBaseTest {
 
     @Autowired
     private MeshNodeRepository meshNodeRepository;
 
     @Autowired
     private MeshLineRepository meshLineRepository;
+
+    @Autowired
+    private MeshPolygonRepository meshPolygonRepository;
+
+    @Autowired
+    private MeshPolygonNodeRepository meshPolygonNodeRepository;
 
     @Autowired
     private MeshAreaRepository meshAreaRepository;
@@ -66,12 +79,17 @@ public class TerrainMeshTest {
     @Autowired
     private WebApplicationContext context;
 
+    @Autowired
+    MeshService meshService;
+
+    @Autowired
+    TerrainMeshManager terrainMeshManager;
+
     MetricMapProjection projectionDESDORF_SW = new MetricMapProjection(TestUtils.DESDORF_SW);
 
     @BeforeEach
     void setUp() {
-        // SQL script already deletes. Setting this here might be fatal as projection might change
-        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory(projectionDESDORF_SW, manager);
+        testServices.cleanup();
     }
 
     @AfterEach
@@ -83,8 +101,14 @@ public class TerrainMeshTest {
      *
      */
     @Test
-    @Sql({"classpath:meshDesdorf.sql"})
-    public void test1() {
+    //@Sql({"classpath:meshDesdorf.sql"})
+    public void testAddNode() throws Exception {
+
+        // OsmServiceTest.setupForDesdorf(meshService, testServices, terrainMeshManager);
+        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(),getValidatorServiceFactory());
+
+        // SQL script already deletes. Setting this here might be fatal as projection might change
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory("Desdorf", projectionDESDORF_SW, manager);
 
         assertEquals(3, meshNodeRepository.count());
 
@@ -93,36 +117,31 @@ public class TerrainMeshTest {
         //meshNode.setLat(2.0);
         //meshNode.setLon(5.0);
         meshNode = meshNodeRepository.save(meshNode);
-
+        assertEquals(4, meshNodeRepository.count());
     }
 
     @Test
-    @Sql({"classpath:meshDesdorf.sql"})
-    public void testDesdorf() throws MeshInconsistencyException {
+    //@Sql({"classpath:meshDesdorf.sql"})
+    public void testDesdorf() throws Exception {
 
-        TerrainMesh terrainMesh = TestData.prepareDesdorf(manager);
+        //OsmServiceTest.setupForDesdorf(meshService, testServices, terrainMeshManager);
+        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(),getValidatorServiceFactory());
+
+        // SQL script already deletes. Setting this here might be fatal as projection might change
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory("Desdorf", projectionDESDORF_SW, manager);
+
+        TerrainMesh terrainMesh = TestData.loadDesdorf(meshService, manager);
         assertNotNull(terrainMesh);
         assertEquals(3, terrainMesh.points.size());
-        assertEquals(3, terrainMesh.lines.size());
+        assertEquals(1, terrainMesh.polygons.size());
 
-        TestUtils.writeTmpSvg(terrainMesh.toSvg());
-
-        // test some Basic Operations
-        // a pure outer polygon might be the 'wrong' result of going (C)CW. But difficult to detect
-        for (int i = 0; i < 3; i++) {
-            MeshPolygon meshPolygon = terrainMesh.traversePolygon(terrainMesh.lines.get(i), null, true);
-            assertNotNull(meshPolygon);
-            assertEquals(3, meshPolygon.lines.size());
-            meshPolygon = terrainMesh.traversePolygon(terrainMesh.lines.get(i), null, false);
-            assertNotNull(meshPolygon);
-            assertEquals(3, meshPolygon.lines.size());
-        }
+        terrainMesh.writeToSvg();
     }
 
     /**
      *
      */
-    @Test
+    /*10.2.26 @Test
     public void testOsmNodesSorted() {
 
         testServices.cleanup();
@@ -162,10 +181,10 @@ public class TerrainMeshTest {
         }
 
 
-    }
+    }*/
 
     /**
-     * Sketch 3??
+     * Sketch 3
      *
      * @throws OsmProcessException
      * @throws MeshInconsistencyException
@@ -173,45 +192,31 @@ public class TerrainMeshTest {
     @Test
     public void testSimpleRegisterWay() throws OsmProcessException, MeshInconsistencyException {
 
-        testServices.cleanup();
+         buildSmall2024();
 
-        TerrainMesh terrainMesh = buildSimpleTestMesh();
+        // create way not intersecting any line
+        List<GeoCoordinate> leftLine = new ArrayList<>();
+        leftLine.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0003, 7.0001)));
+        leftLine.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0003, 7.0003)));
+        List<GeoCoordinate> rightLine = new ArrayList<>();
+        rightLine.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00025, 7.0001)));
+        rightLine.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00025, 7.0003)));
+        TerrainMesh terrainMesh = meshService.addWay("small2024", -1/*200, List.of(100L, 101L)*/, null, leftLine, rightLine, null, 1);
 
-        // test some Basic Operations
-        // a pure outer polygon might be the 'wrong' result of going (C)CW. But difficult to detect
-        MeshPolygon meshPolygon = terrainMesh.traversePolygon(terrainMesh.lines.get(0), null, true);
-        assertNotNull(meshPolygon);
-        assertEquals(4, meshPolygon.lines.size());
-        meshPolygon = terrainMesh.traversePolygon(terrainMesh.lines.get(0), null, false);
-        assertNotNull(meshPolygon);
-        assertEquals(3, meshPolygon.lines.size());
+        terrainMesh.writeToSvg();
 
-        // create way not intersecting triangulation line
-        List<Coordinate> leftLine = new ArrayList<>();
-        leftLine.add(new Coordinate(10, 10));
-        leftLine.add(new Coordinate(20, 10));
-        List<Coordinate> rightLine = new ArrayList<>();
-        rightLine.add(new Coordinate(10, 9));
-        rightLine.add(new Coordinate(20, 9));
-        MeshPolygon wayPolygon = terrainMesh.registerWay(null/*200, List.of(100L, 101L)*/, null, leftLine, rightLine, null, 1);
+        assertEquals(4/*boundary*/ + 4/*way*/, terrainMesh.points.size(), "points");
+        assertEquals(1 + 1, terrainMesh.polygons.size(), "polygons");
+        assertEquals(5, terrainMesh.polygons.get(0).getNodesSortedByIndex().size(), "polygon size");
+        assertEquals(5, terrainMesh.polygons.get(1).getNodesSortedByIndex().size(), "polygon size");
 
-        TestUtils.writeTmpSvg(terrainMesh.toSvg());
-
-        // Has 4 connector instead of 3 with sector angle 150 instead of 90
-        int connector = 4;
-        assertEquals(4 + 4, terrainMesh.points.size(), "points");
-        assertEquals(5 + 4 + connector, terrainMesh.lines.size(), "lines");
-        manager.persist(terrainMesh);
-
-        assertEquals(1, meshAreaRepository.count());
         assertEquals(4 + 4, meshNodeRepository.count());
-        assertEquals(5 + 4 + connector, meshLineRepository.count());
-        //SceneryWayObject
+        assertEquals(2, meshPolygonRepository.count());
+        assertEquals(5+5, meshPolygonNodeRepository.count());
 
-        terrainMesh = manager.loadTerrainMesh(terrainMesh.getGridCellBounds());
+       // terrainMesh = manager.loadTerrainMesh(terrainMesh.getGridCellBounds());
+        terrainMesh = meshService.loadMesh("small2024"/*, terrainMesh.getGridCellBounds()*/);
         assertEquals(4 + 4, terrainMesh.points.size(), "points");
-        assertEquals(5 + 4 + connector, terrainMesh.lines.size(), "lines");
-        terrainMesh.validate();
         assertTrue(terrainMesh.isValid(true));
     }
 
@@ -220,36 +225,51 @@ public class TerrainMeshTest {
 
         testServices.cleanup();
 
-        TestData testData = TestData.build2024(manager);
+        TestData.buildLarge2024(meshService);
+        assertEquals(4, meshNodeRepository.count());
+        assertEquals(1, meshPolygonRepository.count());
 
-        String svg = testData.terrainMesh.toSvg();
+        TerrainMesh terrainMesh = meshService.loadMesh("large2024");
+        terrainMesh.writeToSvg();
 
-        TestUtils.writeTmpSvg(svg);
+
     }
 
     /**
      * Test test data?
-     * Sketch 3??
+     * Sketch 3
      *
      * @throws OsmProcessException
      * @throws MeshInconsistencyException
      */
-    private TerrainMesh buildSimpleTestMesh() throws MeshInconsistencyException {
+    private void buildSmall2024() throws MeshInconsistencyException {
 
         double centerLat = (51);
         double centerLon = (7.0);
         double widthInDegrees = 0.001;
         double heightInDegrees = 0.001;
-        TestData testData = TestData.build2024(manager, centerLat, centerLon, widthInDegrees, heightInDegrees, 0.0001, false);
+        TestData.build2024(meshService, "small2024", centerLat, centerLon, widthInDegrees, heightInDegrees, 0.0001, false);
 
-        assertNotNull(testData.terrainMesh);
-        assertEquals(4, testData.terrainMesh.points.size());
-        assertEquals(5, testData.terrainMesh.lines.size());
 
-        ((PersistedMeshFactory) TerrainMesh.meshFactoryInstance).projection = testData.terrainMesh.getGridCellBounds().getProjection().getBaseProjection();
 
-        return testData.terrainMesh;
+      //11.2.26   ((PersistedMeshFactory) TerrainMesh.meshFactoryInstance).projection = testData.terrainMesh.getGridCellBounds().getProjection().getBaseProjection();
 
+       // return testData.terrainMesh;
+
+    }
+
+
+    private MeshServiceFactory getMeshServiceFactory() {
+        return gridCellBounds -> MeshService.buildMeshServiceFacade();
+    }
+
+    private ValidatorServiceFactory getValidatorServiceFactory() {
+        return new ValidatorServiceFactory() {
+            @Override
+            public ValidatorServiceFacade createService() {
+                return testServices;
+            }
+        };
     }
 
 }

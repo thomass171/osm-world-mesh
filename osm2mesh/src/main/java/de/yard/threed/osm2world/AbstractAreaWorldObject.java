@@ -2,6 +2,7 @@ package de.yard.threed.osm2world;
 
 
 
+import de.yard.threed.core.Util;
 import de.yard.threed.osm2scenery.util.Poly2TriTriangulationUtil;
 
 import java.util.Collection;
@@ -77,27 +78,26 @@ public abstract class AbstractAreaWorldObject
 	 */
 	protected Collection<TriangleXZ> getTriangulationXZ() {
 		
-		try {
-		
-			return Poly2TriTriangulationUtil.triangulate(
+		/*try {
+			Poly2TriTriangulationUtil.triangulate(
 				area.getPolygon().getOuter(),
 				area.getPolygon().getHoles(),
 				Collections.<LineSegmentXZ>emptyList(),
-				Collections.<VectorXZ>emptyList());
+				Collections.<VectorXZ>emptyList());* /
 			
 		} catch (TriangulationException e) {
 			
 			System.err.println("Poly2Tri exception for " + this + ":");
 			e.printStackTrace();
 			System.err.println("... falling back to JTS triangulation.");
-			
+			*/
 			return JTSTriangulationUtil.triangulate(
 					area.getPolygon().getOuter(),
 					area.getPolygon().getHoles(),
 					Collections.<LineSegmentXZ>emptyList(),
 					Collections.<VectorXZ>emptyList());
 			
-		}
+		//}
 		
 	}
 	

@@ -3,6 +3,8 @@ package de.yard.threed.osm2scenery.modules;
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
+import de.yard.threed.osm2scenery.modules.common.WayModule;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -11,6 +13,7 @@ import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.MapData;
 import de.yard.threed.osm2world.MapWay;
+import de.yard.threed.osm2world.MapWaySegment2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +40,7 @@ public abstract class SceneryModule {
      *
      * Returns the objects to be created(or updated) in the order they should be processed.
      */
-    public SceneryObjectList applyTo(MapWay mapWay, TerrainMesh terrainMesh, SceneryContext sceneryContext){
+    public SceneryObjectList applyTo(MapWaySegment2 mapWay, TerrainMesh terrainMesh, SceneryContext sceneryContext) throws MeshInconsistencyException {
         return new SceneryObjectList();
     }
 
@@ -80,7 +83,7 @@ public abstract class SceneryModule {
      *
      * @param mapData
      */
-    public void classify(MapData mapData){
+    public void classify(MapData mapData) throws MeshInconsistencyException {
         //default, nothing to do
     }
 

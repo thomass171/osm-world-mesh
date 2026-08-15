@@ -15,7 +15,7 @@ import de.yard.threed.javacommon.ConfigurationByEnv;
 import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
-import org.apache.log4j.Logger;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class JtsUtilTest {
     //EngineHelper platform = PlatformHomeBrew.init(new HashMap<String, String>());
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
-    Logger logger = Logger.getLogger(JtsUtilTest.class);
 
     @BeforeAll
     public static void setup() {
@@ -89,7 +88,7 @@ public class JtsUtilTest {
         //nicht fertig
         assertNotNull(pwithouthole, "pwithouthole");
         double diff = Math.abs(pwithHoleOnEdge.getArea() - pwithouthole.getArea());
-        logger.debug("diff=" + diff);
+        //log.debug("diff=" + diff);
         Assertions.assertTrue(diff < 0.0000001, "polygon.sizes.equal");
     }
 

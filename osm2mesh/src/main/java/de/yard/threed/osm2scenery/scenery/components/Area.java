@@ -14,17 +14,17 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupFinder;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
-import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshLineSplitCandidate;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonOld;
 import de.yard.threed.osm2scenery.scenery.AreaSeam;
 import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.PolygonMetadata;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
 import de.yard.threed.osm2world.Material;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +33,8 @@ import java.util.List;
  * Ein beliebiger Polygon als Area.
  * Als TerrainProvider Teil des Mesh, als Overlay z.B. aber nicht.
  */
+@Slf4j
 public class Area extends AbstractArea {
-    static Logger logger = Logger.getLogger(Area.class);
     // Ein MeshPolygon ist wegen moeglicher Splits flüchtig. Darum startline.Tja?? Dafuer gibt es jetzt Flag isPartOfMesh
     //public MeshPolygon meshpolygon;
     //public MeshLine[] meshStartLine;
@@ -54,10 +54,10 @@ public class Area extends AbstractArea {
     /**
      * Ein MeshPolygon ist wegen moeglicher Splits flüchtig. Aber wenn er im Mesh ist, kann er jederzeit dort retrieved werden.
      */
-    public Area(/*MeshLine startLine*/MeshPolygon meshpolygon, Material material, boolean dummy) {
+    public Area(/*MeshLine startLine*/MeshPolygonOld meshpolygon, Material material, boolean dummy) {
         super(material);
         //this.meshpolygon = meshpolygon/*new MeshPolygon[]{meshpolygon};*/;
-        isPartOfMesh = true;
+        //16.4.26 isPartOfMesh = true;
     }
 
     /**
@@ -69,9 +69,9 @@ public class Area extends AbstractArea {
      */
     @Override
     public CutResult cut(Geometry gridbounds, SceneryFlatObject abstractSceneryFlatObject, EleConnectorGroupSet elevations) {
-        if (isPartOfMesh) {
+       /*16.4.26  if (isPartOfMesh) {
             throw new RuntimeException("no cut on MeshPolygon");
-        }
+        }*/
         if (poly == null) {
             return null;
         }
@@ -108,7 +108,7 @@ public class Area extends AbstractArea {
                     if (abstractSceneryFlatObject.getEleConnectorGroups().eleconnectorgroups.size() > 0) {
                         abstractSceneryFlatObject.getEleConnectorGroups().eleconnectorgroups.get(0).add(new EleCoordinate(c));
                     } else {
-                        logger.warn("no group");
+                        log.warn("no group");
                     }
                 }
             }
@@ -140,18 +140,18 @@ public class Area extends AbstractArea {
                 if (result instanceof MultiPoint) {
                     intersectcoorinates = result.getCoordinates();
                 } else {
-                    logger.warn("unknown cut intersection type " + result.getClass().getName());
+                    log.warn("unknown cut intersection type " + result.getClass().getName());
                 }
             }*/
         } catch (TopologyException topologyException) {
             // Wenn man die Coordinate kennt, könnte man die wohl etwas verschieben oder sonst was machen. Aber erstmal ignorieren. TODO
-            logger.error("intersection exception. area not cut: " + topologyException);
+            log.error("intersection exception. area not cut: " + topologyException);
             return null;
         }
 
         Polygon[] polygon;
         if (cut instanceof MultiPolygon) {
-            logger.info("area " + parentinfo + " split by grid bounds");
+            log.info("area " + parentinfo + " split by grid bounds");
             /*poly.*/
             polygon = new Polygon[((MultiPolygon) cut).getNumGeometries()];
             for (int i = 0; i < /*poly.*/polygon.length; i++) {
@@ -163,7 +163,7 @@ public class Area extends AbstractArea {
                 /*poly.*/
                 polygon = new Polygon[]{(Polygon) cut};
             } else {
-                logger.error("area  split by grid bounds returned result class " + cut.getClass().getSimpleName());
+                log.error("area  split by grid bounds returned result class " + cut.getClass().getSimpleName());
                 return intersectcoorinates;
             }
         }
@@ -185,22 +185,22 @@ public class Area extends AbstractArea {
 
 
         vertexData = null;
-        MeshPolygon meshPolygon;
+        MeshPolygonOld meshPolygonOld;
         Polygon p;
-        if (isPartOfMesh) {
-            meshPolygon = getMeshPolygon(tm);
-            if (meshPolygon == null) {
-                logger.error("no mesh polygon found");
+        /*16.4.26  if (isPartOfMesh) {
+            meshPolygonOld = getMeshPolygon(tm);
+            if (meshPolygonOld == null) {
+                log.error("no mesh polygon found");
                 return false;
             }
-            p = meshPolygon.getPolygon();
+            p = meshPolygonOld.getPolygon();
             if (p == null) {
-                logger.error("invalid mesh polygon found");
+                log.error("invalid mesh polygon found");
                 return false;
             }
-        } else {
+        } else*/ {
             if (poly == null || poly.polygon == null) {
-                logger.error("polygon not yet created");
+                log.error("polygon not yet created");
                 return false;
             }
             p = poly.polygon;
@@ -208,7 +208,7 @@ public class Area extends AbstractArea {
         if (p.isEmpty()) {
             //kommt wohl schon mal vor
             //error, because it shouldn't be called at all.
-            logger.error("triangulateAndTexturize: skipping empty polygon");
+            log.error("triangulateAndTexturize: skipping empty polygon");
         } else {
             VertexData vd;
             int cntr = 0;
@@ -221,26 +221,26 @@ public class Area extends AbstractArea {
                 }
                 // Nur fuer Areas im Mesh muessen neue Coordinates im Mesh hinterlegt werden, fuer anderes (z.B. Overlay) nicht.
                 // Und registriert werden muessen die auch; mit EleGroup Zuordnung.
-                if (isPartOfMesh) {
+                /*16.4.26 if (isPartOfMesh) {
                     if (vd.vertices.size() != p.getCoordinates().length - 1) {
-                        logger.debug("Triangulation created " + (vd.vertices.size() - p.getCoordinates().length + 1) + " additional vertices for " + getParentInfo() + ". Adding and retrying");
+                        log.debug("Triangulation created " + (vd.vertices.size() - p.getCoordinates().length + 1) + " additional vertices for " + getParentInfo() + ". Adding and retrying");
                         for (int i = 0; i < vd.vertices.size(); i++) {
                             Coordinate c = vd.vertices.get(i);
                             int index = JtsUtil.findVertexIndex(c, p.getCoordinates());
                             if (index == -1) {
-                                meshPolygon = getMeshPolygon(tm);
-                                if (meshPolygon == null) {
-                                    logger.error("no mesh polygon");
+                                meshPolygonOld = getMeshPolygon(tm);
+                                if (meshPolygonOld == null) {
+                                    log.error("no mesh polygon");
                                 } else {
-                                    if (meshPolygon.insert(c, tm) == null) {
-                                        logger.error("adding new vertex failed:" + c);
+                                    if (meshPolygonOld.insert(c, tm) == null) {
+                                        log.error("adding new vertex failed:" + c);
                                     } else {
-                                        //logger.debug("added new vertex to mesh:" + c);
+                                        //log.debug("added new vertex to mesh:" + c);
                                     }
                                 }
 
-                                if (eleConnectorGroupFinder != null/* && vertexRegistry!=null*/) {
-                                    //logger.debug("registering new coordinate");
+                                if (eleConnectorGroupFinder != null/* && vertexRegistry!=null* /) {
+                                    //log.debug("registering new coordinate");
                                     EleConnectorGroup egr = eleConnectorGroupFinder.findGroupForCoordinate(c);
                                     egr.add(new EleCoordinate(c));
                                 }
@@ -249,7 +249,7 @@ public class Area extends AbstractArea {
                         p = getMeshPolygon(tm).getPolygon();
                         vd = null;
                     }
-                }
+                }*/
             }
             while (vd == null && cntr++ < 100);
 
@@ -291,12 +291,12 @@ public class Area extends AbstractArea {
         if (parentInfo != null && parentInfo.contains("WayTo")) {
             int h = 9;
         }
-        if (isPartOfMesh) {
-            //logger.error("should no longer we called. mesh should be used. Naja, viellcith doch, z.B. wegen Overlaps.");
+        /*16.4.26 if (isPartOfMesh) {
+            //log.error("should no longer we called. mesh should be used. Naja, viellcith doch, z.B. wegen Overlaps.");
             // Polygon[] p = new Polygon[meshpolygon.length];
-            MeshPolygon meshPolygon = getMeshPolygon(tm);
-            if (meshPolygon != null) {
-                return meshPolygon.getPolygon();
+            MeshPolygonOld meshPolygonOld = getMeshPolygon(tm);
+            if (meshPolygonOld != null) {
+                return meshPolygonOld.getPolygon();
             }
             //fall through. Naja
             /*MeshPolygon[] mp = getMeshPolygon();
@@ -307,19 +307,19 @@ public class Area extends AbstractArea {
                     return super.getPolygons();
                 }
             }
-            return p;*/
-        }
+            return p;* /
+        }*/
         return super.getPolygon(tm);
     }
 
     @Override
     public MeshLine findMeshLineWithCoordinates(Coordinate c0, Coordinate c1, TerrainMesh tm) {
-        if (!isPartOfMesh) {
+        /*16.4.26 if (!isPartOfMesh) {
             throw new RuntimeException("invalid usage");
-        }
-        MeshPolygon meshPolygon = getMeshPolygon(tm);
+        }*/
+        MeshPolygonOld meshPolygonOld = getMeshPolygon(tm);
         //for (int i = 0; i < meshpolygon.length; i++) {
-        for (MeshLine result : meshPolygon/*[i]*/.lines) {
+        for (MeshLine result : meshPolygonOld/*[i]*/.lines) {
             if (result.contains(c0) && result.contains(c1)) {
                 return result;
             }
@@ -360,17 +360,17 @@ public class Area extends AbstractArea {
         int cntr = 0;
         LineString lineWithoutBoundary = polygonOfArea.getExteriorRing();
         if (SceneryBuilder.TerrainMeshDebugLog) {
-            logger.debug("Adding area to mesh for " + parent.getOsmIdsAsString() + ". area polygon=" + polygonOfArea);
+            log.debug("Adding area to mesh for " + parent.getOsmIdsAsString() + ". area polygon=" + polygonOfArea);
         }
         //die Area kann ja mehrere Boundaries schneiden (z.B. B55B477small), darum als Schleife.
         while ((boundaryintersections = TerrainMesh.findBestSplitCandidate(tm.findBoundaryCommon(lineWithoutBoundary))) != null && cntr++ < 10) {
             //Eine Edge oder Point des Polygon liegt auf der Boundary.
             if (SceneryBuilder.TerrainMeshDebugLog) {
-                logger.debug("Splitting mesh boundary line (pointSplit=" + boundaryintersections.isPointSplit() + ") for " + parent.getOsmIdsAsString());
+                log.debug("Splitting mesh boundary line (pointSplit=" + boundaryintersections.isPointSplit() + ") for " + parent.getOsmIdsAsString());
             }
             MeshLine[] splitresult = tm.split(boundaryintersections);
             if (splitresult == null) {
-                logger.error("split failed.");
+                log.error("split failed.");
                 return;
             }
             if (boundaryintersections.commonsegment == -1) {
@@ -388,7 +388,7 @@ public class Area extends AbstractArea {
 
         }
         if (cntr >= 10) {
-            logger.error("Not aus");
+            log.error("Not aus");
         }
 
         //jetzt die remaining lineWithoutBoundary nach shared mit anderen Areas checken. Das ist jetzt nur noch ein LineString, kein Polygon mehr.
@@ -402,12 +402,12 @@ public class Area extends AbstractArea {
             MeshLineSplitCandidate commomCandidate = TerrainMesh.findBestSplitCandidate(tm.findCommon(lineWithoutBoundary, false));
             if (commomCandidate != null) {
                 if (SceneryBuilder.TerrainMeshDebugLog) {
-                    logger.debug("Splitting mesh (non) boundary line (pointSplit=" + commomCandidate.isPointSplit() + ") for " + parent.getOsmIdsAsString());
+                    log.debug("Splitting mesh (non) boundary line (pointSplit=" + commomCandidate.isPointSplit() + ") for " + parent.getOsmIdsAsString());
                 }
                 int sharedindex = 0;
                 MeshLine[] splitresult = tm.split(commomCandidate);
                 if (commomCandidate.commonsegment == -1) {
-                    logger.error("huch??. not yet handled");
+                    log.error("huch??. not yet handled");
                     return;
                 }
                 MeshLine shared = splitresult[commomCandidate.commonsegment];
@@ -430,7 +430,7 @@ public class Area extends AbstractArea {
                 if (common != null) {
                     LineString[] splitted = JtsUtil.removeCoordinatesFromLine(lineWithoutBoundary, common);
                     if (splitted.length > 2) {
-                        logger.error("unexpected split result");
+                        log.error("unexpected split result");
                         return;
                     }
                     newsegments.add(splitted[0]);
@@ -448,7 +448,7 @@ public class Area extends AbstractArea {
                         // share gibts schon. Nur dranhaengen.
                         Boolean areaIsLeft = JtsUtil.isPolygonLeft(shareCandidate, polygonOfArea);
                         if (areaIsLeft == null) {
-                            logger.error("doing Kappes");
+                            log.error("doing Kappes");
                             areaIsLeft = false;
                         }
                         if (areaIsLeft) {
@@ -457,7 +457,7 @@ public class Area extends AbstractArea {
                             //2.5.24existingShare.setRight(abstractArea);
                         }
                         if (existingShare.getLeft() == null || existingShare.getRight() == null) {
-                            logger.error("inconsistent?");
+                            log.error("inconsistent?");
                         }
                         existingShares.add(existingShare);
                     }
@@ -470,7 +470,7 @@ public class Area extends AbstractArea {
             }
             segments = newsegments;
         }
-      /*2.5.24  try {
+      /*2.5.24 26.2.26 activate it again ?? try {
             tm.createMeshPolygon(segments, existingShares, polygonOfArea, abstractArea);
         } catch (MeshInconsistencyException e) {
             throw new RuntimeException(e);

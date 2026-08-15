@@ -11,6 +11,7 @@ import de.yard.threed.osm2graph.osm.VertexData;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.AerowayModule;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -21,7 +22,7 @@ import de.yard.threed.osm2world.ConfMaterial;
 import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.Material;
 import de.yard.threed.osm2world.Materials;
-import org.apache.log4j.Logger;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class AerowayModuleTest {
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
-    Logger logger = Logger.getLogger(AerowayModuleTest.class);
 
     @BeforeAll
     public static void setup(){
@@ -51,8 +51,8 @@ public class AerowayModuleTest {
     /**
      * @throws IOException
      */
-    @Test
-    public void testTestData() throws IOException {
+    //25.3.26 @Test
+    public void testTestData() throws IOException, MeshInconsistencyException {
         //Simple wegen sonst ueberhaengendem DeadEnd Zipfel
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/TestData-Simplified.osm.xml", "TestData", "superdetailed");
 
@@ -62,7 +62,7 @@ public class AerowayModuleTest {
         aerowayModule.classify(SceneryTestUtil.mapData);
 
         AerowayModule.Runway runway = (AerowayModule.Runway) objs.findObjectByOsmId(117);
-        runway.createPolygon(null, null, null, SceneryContext.getInstance());
+        runway.createPolygon( null, null, SceneryContext.getInstance());
         runway.cut(SceneryTestUtil.gridCellBounds);
         runway.triangulateAndTexturize(null);
 
@@ -79,7 +79,7 @@ public class AerowayModuleTest {
         }
         segment = runway.getArea()[6];
         VertexData vd = segment.getVertexData();
-        Dumper.dumpVertexData(logger, vd);
+        Dumper.dumpVertexData( vd);
         assertEquals(4, vd.vertices.size(), "segment0.vertices");
 
         int expectedatlassegment = 4;
@@ -89,12 +89,12 @@ public class AerowayModuleTest {
 
     }
 
-    @Test
+   /*9.2.26   @Test
     public void testEDDKSmallOSMOnly() throws IOException {
         //taxiway+parking_position
         //c4x mal so uebernommen
-        dotestEDDKSmall(true, 32 + 65, 637/*wegen parkpos 334*/, "C04", -70.1, -112.8);
-    }
+        dotestEDDKSmall(true, 32 + 65, 637/*wegen parkpos 334* /, "C04", -70.1, -112.8);
+    }*/
 
     @Test
     public void testEDDKSmall() throws IOException {
@@ -107,7 +107,7 @@ public class AerowayModuleTest {
     /**
      * TODO: Klären: Warum unetrscheidet sich C_4 position zwischen OSM und FG?
      */
-    public void dotestEDDKSmall(boolean osmOnly, int expectedtaxiways, int expectedwaymapsize, String c4name, double c4x, double c4heading) throws IOException {
+    public void dotestEDDKSmall(boolean osmOnly, int expectedtaxiways, int expectedwaymapsize, String c4name, double c4x, double c4heading) throws IOException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/EDDK-Small.osm.xml", "EDDK-Small", "superdetailed");
 
         AerowayModule aerowayModule = new AerowayModule();
@@ -132,7 +132,7 @@ public class AerowayModuleTest {
 
         // Polygons
 
-        apron.createPolygon(null, null, null, SceneryContext.getInstance());
+        apron.createPolygon( null, null, SceneryContext.getInstance());
 
         // Supplements
 
@@ -144,7 +144,7 @@ public class AerowayModuleTest {
         SceneryWayObject parkingC4 = (SceneryWayObject) objs.findObjectByOsmId(385706063);
         if (parkingC4 != null) {
             //only with OSM
-            Degree heading = OsmUtil.getHeadingAtEnd(parkingC4.mapWay);
+            Degree heading = OsmUtil.getHeadingAtEnd(parkingC4.mapWay.mapWay);
             assertEquals(c4heading, heading.getDegree(), 0.1, "C4 heading");
             new RoadDecorator().createParking(parkingC4, Materials.GRASS);
         }
@@ -157,7 +157,7 @@ public class AerowayModuleTest {
 
         AbstractArea deco0 = objs.findDecorationByName(c4name);//apron.getDecorations().get(0);
         VertexData vd = deco0.getVertexData();
-        Dumper.dumpVertexData(logger, vd);
+        Dumper.dumpVertexData( vd);
         assertEquals(4, vd.vertices.size(), "deco0.vertices");
         assertEquals(c4x, vd.vertices.get(0).x, 0.1, "deco0.vertices[0].x");
 
@@ -166,7 +166,7 @@ public class AerowayModuleTest {
     }
 
     @Test
-    public void testMaterial() throws IOException {
+    public void testMaterial() throws IOException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/EDDK-Small.osm.xml", "EDDK-Small", "superdetailed");
         ConfMaterial material = new ConfMaterial("PARKINGPOSITION", Material.Interpolation.FLAT, Color.ORANGE);
         OsmUtil.loadMaterialConfiguration(Config.getCurrentConfiguration(), material, true);

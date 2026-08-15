@@ -12,13 +12,14 @@ import de.yard.threed.osm2scenery.scenery.BridgeGap;
 import de.yard.threed.osm2scenery.scenery.BridgeSideRamp;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
+@Slf4j
 public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
-    Logger logger = Logger.getLogger(BridgeTerrainMeshAdder.class);
     BridgeGap bridgeGap;
 
     /**
@@ -31,8 +32,8 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
         this.bridgeGap = bridgeGap;
     }
 
-    @Override
-    public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) {
+    //26.2.26 @Override
+    public void addToTerrainMesh(/*AbstractArea[] areas,*/ TerrainMesh tm) {
         if (!SceneryBuilder.FTR_SMARTBG) {
             // return;
         }
@@ -41,14 +42,14 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
         }
 
         if (SceneryBuilder.TerrainMeshDebugLog) {
-            logger.debug("Adding bridge to mesh: " + bridgeGap.bridge.getOsmIdsAsString());
+            log.debug("Adding bridge to mesh: " + bridgeGap.bridge.getOsmIdsAsString());
         }
         addRamps(bridgeGap.bridge.startHead, tm);
         addRamps(bridgeGap.bridge.endHead, tm);
         if (!bridgeGap.isEmpty(tm)) {
             //might be empty due to overlap resolving.
             if (bridgeGap.getArea().length != 2) {
-                logger.error("ignoring bridge gap filler with size " + bridgeGap.getArea().length);
+                log.error("ignoring bridge gap filler with size " + bridgeGap.getArea().length);
                 return;
             }
             for (int i = 0; i < 2; i++) {
@@ -61,7 +62,7 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
                     fromto = JtsUtil.findCommon(gapLine, JtsUtil.createLine(head.bridgebaseline.p0, head.bridgebaseline.p1));
                 }
                 if (fromto == null) {
-                    logger.error("fromto still null");
+                    log.error("fromto still null");
                     return;
                 }
                 LineString[] result = JtsUtil.removeCoordinatesFromLine(gapLine, fromto);
@@ -84,7 +85,7 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
             throw new RuntimeException(e);
         }
         if (lines == null || lines.length != 2) {
-            logger.error("inconsistent bridgehead");
+            log.error("inconsistent bridgehead");
             return;
         }
         MeshLine lineToGap = null;
@@ -115,7 +116,7 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
             index = connectWayLines[1].findCoordinate(ramp.backpoint);
             if (index == -1) {
                 //das kann ein Hinweis auf einen nicht sauberen Split an dem Way sein. Gabs schon mal bei 225794249
-                logger.error("ramp.backpoint on no way line:" + ramp.backpoint);
+                log.error("ramp.backpoint on no way line:" + ramp.backpoint);
                 SceneryContext.getInstance().errorCounter++;
                 return null;
             }
@@ -140,7 +141,7 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
         MeshNode roadpoint = tm.getMeshNode(ramp.roadpoint);
         MeshLine[] splitresult = splitLineAtRamp(ramp, connectWayLines, tm);
         if (splitresult == null) {
-            logger.warn("ignoring ramp for terrain mesh");
+            log.warn("ignoring ramp for terrain mesh");
             return null;
         }
         MeshNode backpoint = tm.getMeshNode(ramp.backpoint);
@@ -174,7 +175,7 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
                 return share;
             }
         }
-        logger.error("should not be reached!");
+        log.error("should not be reached!");
         return null;
     }
 }

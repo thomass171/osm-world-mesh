@@ -9,7 +9,9 @@ import de.yard.owm.services.persistence.OsmWayNodeRepository;
 import de.yard.owm.services.persistence.OsmWayRepository;
 import de.yard.owm.services.persistence.PersistedOsmWay;
 import de.yard.owm.services.persistence.TerrainMeshManager;
+import de.yard.threed.TestUtil;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
+import de.yard.threed.osm2scenery.modules.OsmClassifier;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
@@ -24,7 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * For easy reuse of "Desdorf" in tests
+ * 19.3.26 deprecated in favor of DesdorfTestdata in OsmServiceTest
  */
+@Deprecated
 public class DesdorfTestUtil {
 
     public ServicesTestUtil stu;
@@ -42,9 +46,9 @@ public class DesdorfTestUtil {
 
         //Processor processor = sb.execute(desdorfk41, configsuffix, "Desdorf", false, customconfig, MATERIAL_FLIGHT).processor;
         HighwayModule roadModule = new HighwayModule();
-        List<SceneryObject> sceneryObjects = osmElementService.process(k41Low, List.of(roadModule), stu.terrainMesh, stu.sceneryContext);
+        List<SceneryObject> sceneryObjects = null;//osmElementService.process(k41Low, List.of(roadModule), stu.terrainMesh, stu.sceneryContext, OsmClassifier.LOD_BASIC);
 
-        TestUtils.writeTmpSvg(stu.terrainMesh.toSvg());
+        stu.terrainMesh.writeToSvg();
 
         assertEquals(1, sceneryObjects.size(), "scenery.objects");
 
@@ -52,9 +56,9 @@ public class DesdorfTestUtil {
 
     public void processK41Upper() throws MeshInconsistencyException, OsmProcessException {
         HighwayModule roadModule = new HighwayModule();
-        List<SceneryObject> sceneryObjects = osmElementService.process(k41Upper, List.of(roadModule), stu.terrainMesh, stu.sceneryContext);
+        List<SceneryObject> sceneryObjects = null;//osmElementService.process(k41Upper, List.of(roadModule), stu.terrainMesh, stu.sceneryContext, OsmClassifier.LOD_BASIC);
 
-        TestUtils.writeTmpSvg(stu.terrainMesh.toSvg());
+        stu.terrainMesh.writeToSvg();
 
         assertEquals(1, sceneryObjects.size(), "scenery.objects");
     }

@@ -1,8 +1,10 @@
 package de.yard.threed.osm2graph.osm;
 
 
+import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2scenery.SceneryConversionFacade;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2world.*;
 
 
@@ -27,7 +29,7 @@ public class Aerodrome {
         this.servicewayseddk = servicewayseddk;
     }
 
-    public static Aerodrome serviceWays() throws IOException {
+    public static Aerodrome serviceWays() throws IOException, MeshInconsistencyException {
 
         WaySet servicewayseddk = null;
         WaySet serviceways = null;
@@ -55,7 +57,8 @@ public class Aerodrome {
 
         serviceways = allways.extractWaysByTag(new Tag("highway", "service"));
         System.out.println("" + serviceways.size() + " service ways found total");
-        List<MapArea> eddk = SceneryBuilder.findByTag(cf.getMapData().getMapAreas(), new Tag("aeroway", "aerodrome"));
+        Util.notyet();
+        List<MapArea> eddk = null;//24.3.26 SceneryBuilder.findByTag(cf.getMapData().getMapAreas(), new Tag("aeroway", "aerodrome"));
         System.out.println("" + eddk.size() + " aerodromes found");
         servicewayseddk = serviceways.inArea(eddk.get(0));
         System.out.println("" + servicewayseddk.size() + " service ways in EDDK found");

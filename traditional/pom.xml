@@ -50,6 +50,8 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.30</version>
+            <!-- don't impose the impl to runtime -->
+            <scope>provided</scope>
         </dependency>
 
         <!--2.4.24 <dependency>
@@ -82,11 +84,18 @@
             <version>1.14.0</version>
         </dependency>
         <dependency>
-            <!--3rd party jar-->
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.20</version>
+            <!-- provided because its not needed during runtime?-->
+            <scope>provided</scope>
+        </dependency>
+        <!--9.2.26 <dependency>
+            <!- -3rd party jar- ->
             <groupId>poly2tri</groupId>
             <artifactId>poly2tri</artifactId>
             <version>0.1.1</version>
-        </dependency>
+        </dependency>-->
         <!-- temporary dependencies to tcp -->
         <dependency>
             <groupId>de.yard.tcp-22</groupId>
@@ -163,6 +172,13 @@
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5-fluent</artifactId>
             <version>${hc.client5.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- Springboot uses jupiter 5.10-->
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.1</version>
             <scope>test</scope>
         </dependency>
         <!-- own project dependencies -->

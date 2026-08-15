@@ -3,6 +3,7 @@ package de.yard.threed.osm2scenery.scenery;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2world.*;
@@ -15,6 +16,7 @@ import java.util.List;
  * <p>
  * Object mit area/polygon, aber kein Way, but only ONE node relation. Typischerweise Connection/Junction between ways.
  * For now polygon free. bis ich sowas wie Templates habe.
+ * 26.2.26: Doesn't polygon come from parent SceneryFlatObject?
  * <p>
  * Gegenstück zu SceneryAreaObject.
  *
@@ -30,8 +32,10 @@ public abstract class SceneryNodeObject extends SceneryFlatObject /*implements N
     public SceneryNodeObject(String creatortag, MapNode node, Material material, Category category) {
         super(creatortag, material, category, new Area(null,material));
         this.node = node;
-        osmIds.add(node.getOsmId());
-
+        if (node!=null) {
+            // eg. when loaded from DB
+            osmIds.add(node.getOsmId());
+        }
     }
 
 
@@ -49,16 +53,16 @@ public abstract class SceneryNodeObject extends SceneryFlatObject /*implements N
     }
 
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException {
         flatComponent = new AbstractArea[]{AbstractArea.EMPTYAREA};
         return null;
     }
 
-    @Override
+    /*16.4.26 @Override
     public boolean isPartOfMesh(TerrainMesh tm) {
         //TODO irgendwie erkennen
         return false;
-    }
+    }*/
 
 	/*protected OutlineNodeSceneryObject(MapNode node) {
 		this.node = node;

@@ -40,7 +40,7 @@ public abstract class BridgeOrTunnel extends HighwayModule.Highway/*SceneryVolum
    public SceneryWayObject sroad;
     public SceneryWayObject eroad;
 
-    public BridgeOrTunnel(String creatortag, MapWay mapWay, TagMap materialmap, Category category/*/* SceneryWayObject roadorrailway,* / /*MapWay mapWay/*MapWaySegment segment,
+    public BridgeOrTunnel(String creatortag, MapWaySegment2 mapWay, TagMap materialmap, Category category/*/* SceneryWayObject roadorrailway,* / /*MapWay mapWay/*MapWaySegment segment,
                           AbstractNetworkWaySegmentWorldObject primaryRepresentation*/, SceneryContext sceneryContext) {
         //super(creatortag, category);
         super(mapWay, materialmap, sceneryContext);

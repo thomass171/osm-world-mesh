@@ -11,7 +11,8 @@ import de.yard.threed.osm2world.TriangleXYZ;
 import de.yard.threed.osm2world.VectorXYZ;
 import de.yard.threed.osm2world.VectorXYZList;
 import de.yard.threed.osm2world.VectorXZ;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,8 +25,8 @@ import java.util.List;
  * <p>
  * Created on 12.06.18.
  */
+@Slf4j
 public abstract class AbstractTarget /*26.4.19 implements Target<RenderableToAllTargets>*/ {
-    static Logger logger = Logger.getLogger(AbstractTarget.class);
 
     /**
      * abstract, weil bei 3D z negiert werden muss.
@@ -144,7 +145,7 @@ public abstract class AbstractTarget /*26.4.19 implements Target<RenderableToAll
         //2.5.19 doch fragwürdig List<Vector3> finalnormals = new ArrayList<>();
         Vector2 defaultuv = new Vector2();
         if (uvlist != null && uvlist.size() != coordinates.size()) {
-            logger.warn("inconsistent uvlist.");
+            log.warn("inconsistent uvlist.");
             return null;//sinnlos new SimpleGeometry(vertices, uvs, normals, new int[]{});
         }
         int i = 0;

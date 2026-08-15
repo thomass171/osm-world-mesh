@@ -1,6 +1,9 @@
 package de.yard.threed.osm2world;
 
 
+import de.yard.threed.core.Vector2;
+import de.yard.threed.osm2graph.osm.OsmUtil;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,6 +26,7 @@ public class MapWay /*extends MapSegment*/ implements MapElement {
     private List<WaySegmentWorldObject> representations = new ArrayList<WaySegmentWorldObject>(1);
     // Order of segments it start->end. Polygon creatore rely on this. The same applies to start/end in the Segment.
     List<MapWaySegment> mapWaySegs = new ArrayList<MapWaySegment>();
+    public List<MapWaySegment2> segment2s = new ArrayList<MapWaySegment2>();
     List<MapNode> mapNodes = new ArrayList<MapNode>();
     @SuppressWarnings("unchecked") //is later checked for EMPTY_LIST using ==
     private Collection<MapOverlap<?, ?>> overlaps = Collections.EMPTY_LIST;
@@ -38,6 +42,7 @@ public class MapWay /*extends MapSegment*/ implements MapElement {
     /**
      * if no add() will be called the end node is missing.
      * Caller must check this.
+     *
      * @param startNode
      * @param osmWay
      */
@@ -46,6 +51,10 @@ public class MapWay /*extends MapSegment*/ implements MapElement {
         this.osmWay = osmWay;
         this.mapNodes.add(startNode);
     }
+
+    /*3.5.26 public static MapWaySegmentKey buildWaySegmentKey(Long osmWayId, int waySegment) {
+        return new MapWaySegmentKey(osmWayId, waySegment);
+    }*/
 
     @Override
     public int getLayer() {
@@ -118,9 +127,9 @@ public class MapWay /*extends MapSegment*/ implements MapElement {
     }
 
     public MapNode getEndNode() {
-        return mapNodes.get(mapNodes.size()-1);
+        return mapNodes.get(mapNodes.size() - 1);
     }
-    
+
     /**
      * adds a visual representation for this way segment
      */
@@ -129,7 +138,7 @@ public class MapWay /*extends MapSegment*/ implements MapElement {
 	}*/
     @Override
     public String toString() {
-        return getStartNode() + "->" + getEndNode();
+        return "" + getOsmId() + "(" + getStartNode() + "->" + getEndNode() + ")";
     }
 
     public void add(MapNode node, MapWaySegment mapWaySeg) {
@@ -144,5 +153,37 @@ public class MapWay /*extends MapSegment*/ implements MapElement {
 
     public List<MapNode> getMapNodes() {
         return mapNodes;
+    }
+
+    public boolean isOuterNode(MapNode node) {
+        return node == getStartNode() || node == getEndNode();
+    }
+
+    public boolean isStartNode(MapNode node) {
+        return node == getStartNode();
+    }
+
+    public boolean isEndNode(MapNode node) {
+        return node == getEndNode();
+    }
+
+    public static List<Vector2> getCenterline(List<MapNode> nodes) {
+        List<Vector2> centerLine = new ArrayList<>();
+        for (MapNode n : nodes) {
+            centerLine.add(OsmUtil.toVector2(n.getPos()));
+        }
+        return centerLine;
+    }
+
+    public void addSegment(MapWaySegment2 currentSegment) {
+        segment2s.add(currentSegment);
+    }
+
+    public MapWaySegment2 getFirstSegment() {
+        return segment2s.get(0);
+    }
+
+    public MapWaySegment2 getLastSegment() {
+        return segment2s.get(segment2s.size() - 1);
     }
 }

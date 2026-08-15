@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>World Mesh</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="description" content="Setup page for launching flights with or without VR">
+    <!--Viewport from w3.css-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css"
+          integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"
+            integrity="sha256-o9N1jGDZrf5tS+Ft4gbIK7mYMipq9lqpVJ91xHSyKhg=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
+</head>
+
+<body class="w3-light-grey">
+<!--
+There are two basic design ideas:
+1) content first
+   - don't use static header, footer, navigation bars that only occupy space
+2) keep it simple
+   - don't use custom css but only w3.css
+   - don't use w3-model(content). It has difficult to maintain side effects
+Reminder:
+w3-card-2:  Container for any HTML content (2px bordered shadow)
+w3-half: Half (1/2) screen column container
+w3-row-padding: Row where all columns have a default padding (Responsive Class)
+w3-section:	Adds an 16px top and bottom margin to an element (Margin Class)
+w3-container: HTML container with 16px left and right padding (Container Class)
+w3-panel:	HTML container with 16px left and right padding and 16px top and bottom margin
+
+w3-khaki is color for use cases 'maze', w3-blue(?) for use case traffic.
+-->
+
+<!-- Start Content -->
+<div class="w3-container">
+
+    <header class="w3-container w3-center  w3-blue">
+        <h1 class="">World Mesh</h1>
+        <p class="w3-small">(still WiP on <a href="https://github.com/thomass171/tcp-22" target="_blank">Github</a>!)
+        </p>
+        <p id="debuginfo" style="font-size:8px;color:yellow"></p>
+    </header>
+
+    <!-- keep map as large as possible -->
+    <div class="w3-row">
+        <div class="w3-container w3-third">
+            <div class="w3-panel">
+                <h2>Mesh</h2>
+
+                <!-- messages panels -->
+                <div class="w3-row">
+                    <div class="w3-container">
+                        <div class="w3-panel w3-pale-green w3-border">
+                            <p id="p_message"></p>
+                        </div>
+                        <div class="w3-panel w3-pale-red w3-border">
+                            <p id="p_errormessage"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <p><label>Mesh</label>
+                    <input id="inp_meshname" class="w3-input" type="text" list="dl_icaos_from" placeholder="Enter mesh name"
+                           oninput="meshNameChanged()">
+                    <datalist id="dl_icaos_from"></datalist>
+
+                    <!-- 'select' has no 'placeholder'. Solution from https://stackoverflow.com/questions/5805059/how-do-i-make-a-placeholder-for-a-select-box -->
+                   <!-- <select id="sel_runway_from" class="w3-select" oninput="updateStatus()">
+                        <option value="" disabled selected>Choose runway</option>
+                    </select>-->
+                    <button id="btn_createmesh" class=" w3-button w3-round w3-blue " onclick="createMesh()">Create Mesh</button>
+                    <button id="btn_deletemesh" class=" w3-button w3-round w3-blue " onclick="deleteMesh()">Delete Mesh</button>
+
+                </p>
+            </div>
+
+            <div class="w3-panel">
+                <h2>OSM</h2>
+                <!--<form> will cause a page reload after onclick-->
+
+                <p><label>Dataset</label>
+                    <!--<input id="inp_osmdataset" class="w3-input" type="text" list="dl_osmdataset" placeholder="Enter ...">
+                    <datalist id="dl_osmdataset"></datalist>-->
+                    <!-- 'select' has no 'placeholder'. Solution from https://stackoverflow.com/questions/5805059/how-do-i-make-a-placeholder-for-a-select-box -->
+                    <select id="sel_osmdataset" class="w3-select" oninput="updateStatus()">
+                        <option value="" disabled selected>Choose runway</option>
+                    </select>
+                </p>
+
+                Add selected OSM dataset to mesh.
+                <br>
+                <button id="btn_populatemesh" class=" w3-button w3-round w3-blue " onclick="populateMesh()">Add To Mesh</button>
+            </div>
+
+            <div class="w3-panel">
+                <h2>Failures</h2>
+                <ul id="ul_failures">
+                </ul>
+        </div>
+
+        </div>
+        <div class="w3-container w3-twothird">
+            <div class="w3-panel">
+                <div id="map" class="w3-card-4"></div>
+                <br>
+                <!-- map options-->
+                <!--<p>
+                    <input id="cb_scenerytiles" class="w3-check" type="checkbox" oninput="showSceneryTilesChanged()">
+                    <label> Show scenery tiles</label>
+                </p>-->
+            </div>
+        </div>
+    </div>
+
+    <footer class="w3-container w3-center  w3-blue">
+        <h1 class=""></h1>
+    </footer>
+</div>
+
+<script src="util.js"></script>
+<script src="httputil.js"></script>
+<script src="worldmesh.js"></script>
+
+<script>$(document).ready(function(){init();});</script>
+
+</body>
+</html>

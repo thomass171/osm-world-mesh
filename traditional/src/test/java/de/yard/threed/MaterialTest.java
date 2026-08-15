@@ -8,7 +8,7 @@ import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.Material;
 import de.yard.threed.osm2world.Materials;
-import org.apache.log4j.Logger;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +26,6 @@ import static de.yard.threed.osm2graph.SceneryBuilder.loadMaterialConfig;
 public class MaterialTest {
     //EngineHelper platform = PlatformHomeBrew.init(new HashMap<String, String>());
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
-    Logger logger = Logger.getLogger(MaterialTest.class);
 
     @BeforeAll
     public static void setup(){

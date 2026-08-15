@@ -1,6 +1,7 @@
 package de.yard.threed.osm2scenery.modules;
 
 import com.google.common.base.Function;
+import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2scenery.SceneryObjectList;
@@ -9,8 +10,9 @@ import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObjectFactory;
 import de.yard.threed.osm2scenery.scenery.components.BuildingComponent;
 import de.yard.threed.osm2world.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
+
 
 import java.awt.*;
 import java.util.List;
@@ -37,8 +39,8 @@ import static java.util.Collections.*;
 /**
  * adds buildings to the world
  */
+@Slf4j
 public class BuildingModule extends SceneryModule {
-    static Logger logger = Logger.getLogger(BuildingModule.class);
     Map<MapArea, Building> area2building = new HashMap<>();
     Map<MapArea, BuildingCluster> area2cluster = new HashMap<>();
     private SceneryObjectList buildingobjects;
@@ -219,7 +221,7 @@ public class BuildingModule extends SceneryModule {
                                     area.getPolygon().getOuter(),
                                     subtractPolygons);
                 } catch (/*11.11.21 org.osm2world.core.math.*/InvalidGeometryException e) {
-                    logger.error("CAGUtil.subtractPolygon() failed", e);
+                    log.error("CAGUtil.subtractPolygon() failed", e);
                     remainingPolys = new ArrayList<>();
                 }
                 for (PolygonWithHolesXZ remainingPoly : remainingPolys) {
@@ -438,7 +440,8 @@ public class BuildingModule extends SceneryModule {
             setAttributes(useBuildingColors, drawBuildingWindows);
             // 6.5.19: Check optional OSM details.
             Configuration extension;
-            if ((extension = SceneryBuilder.loadExtensionConfig(area.getOsmId())) != null) {
+            Util.notyet();
+            if ((extension = null/*24.3.26 SceneryBuilder.loadExtensionConfig(area.getOsmId())*/) != null) {
                 ConfMaterial specificMaterial = new ConfMaterial("OSM" + area.getOsmId(), Material.Interpolation.FLAT,
                         Color.BLUE);
                 OsmUtil.loadMaterialConfiguration(extension, specificMaterial, false);
@@ -802,7 +805,7 @@ public class BuildingModule extends SceneryModule {
             if (building.classification == null) {
                 building.classification = buildingDefaults.classification;
             } else {
-                logger.warn("inconsistent classification");
+                log.warn("inconsistent classification");
             }
             /* determine defaults for building type */
             // 3.5.19: 3 ist doch zu hoch(!).
@@ -892,11 +895,11 @@ public class BuildingModule extends SceneryModule {
                     }
 
                 } catch (InvalidGeometryException e) {
-                    logger.warn("falling back to FlatRoof: " + e);
+                    log.warn("falling back to FlatRoof: " + e);
                     roof = new FlatRoof();
                     explicitRoofTagging = false;
                 } catch (RoofNotPossibleException e) {
-                    logger.warn("RoofNotPossibleException: falling back to FlatRoof: " + e);
+                    log.warn("RoofNotPossibleException: falling back to FlatRoof: " + e);
                     roof = new FlatRoof();
                     explicitRoofTagging = false;
                 }
@@ -1124,7 +1127,7 @@ public class BuildingModule extends SceneryModule {
                         //45 nur als Indikator
                         this.roof = new GabledRoof(45f);
                     } catch (RoofNotPossibleException e) {
-                        logger.debug("" + e.getMessage());
+                        log.debug("" + e.getMessage());
                     }
                     this.materialRoof = materialRoof;
                 }
@@ -1488,7 +1491,7 @@ public class BuildingModule extends SceneryModule {
 
                 Collection<TriangleXZ> triangles;
 
-                try {
+                /*try {
 
                     triangles = Poly2TriUtil.triangulate(
                             getPolygon().getOuter(),
@@ -1497,14 +1500,14 @@ public class BuildingModule extends SceneryModule {
                             getInnerPoints());
 
                 } catch (TriangulationException e) {
-
+*/
                     triangles = JTSTriangulationUtil.triangulate(
                             getPolygon().getOuter(),
                             getPolygon().getHoles(),
                             getInnerSegments(),
                             getInnerPoints());
 
-                }
+                //}
 
                 List<TriangleXYZ> trianglesXYZ =
                         new ArrayList<TriangleXYZ>(triangles.size());

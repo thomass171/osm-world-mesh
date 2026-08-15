@@ -16,7 +16,7 @@ import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshFillCandidate;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonOld;
 import de.yard.threed.osm2scenery.scenery.Background;
 import de.yard.threed.osm2scenery.scenery.BackgroundElement;
 import de.yard.threed.osm2scenery.scenery.OverlapResolver;
@@ -33,12 +33,12 @@ import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2world.Materials;
 import de.yard.threed.osm2world.OsmOrigin;
-import de.yard.threed.traffic.geodesy.ElevationProvider;
-import org.apache.log4j.Logger;
+import de.yard.threed.trafficcore.ElevationProvider;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,10 +47,10 @@ import java.util.Map;
  * 3.4.24: Just a container?
  * Created on 11.07.18.
  */
+@Slf4j
 public class SceneryMesh {
     // 26.3.24: Instead of singleton TerrainMesh
     public TerrainMesh terrainMesh;
-    Logger logger = Logger.getLogger(SceneryMesh.class);
 
     //16.8.18: jetzt drei Listen. Aaach. ich weiss nicht
     //public List<SceneryAreaObject/*Area*/> sceneryAreaObjects = new ArrayList<>();
@@ -83,7 +83,7 @@ public class SceneryMesh {
         // der ist so mal bei Roads entstanden. Da ist beim Union ein Hole entstanden.
         Polygon pwithhole = (Polygon) JtsUtil.buildFromWKT("POLYGON ((49.972 -30.167, 48.12887487632708 -30.94345977261266, 33.0748317683746 4.7912136322257135, 4.337197425440958 72.12000304319542, -2.5515357935065426 83.0079020176959, -10.202367976668196 91.59259706000324, -18.205262458259348 96.86708474811385, -25.842766510414897 100.82346745286253, -36.90287126131779 102.82009355148364, -48.44508871945548 102.51587517039499, -60.64442668805475 98.63798905508973, -70.6691338832814 92.40816251415829, -80.79630565079619 82.74213577725818, -102.16725314155842 57.927328210975055, -122.63925314155841 37.555328210975055, -124.05 38.973, -126.5524324136154 36.454998475629424, -197.39043241361543 106.85499847562943, -244.37481412914067 161.48355916999287, -299.6215566716621 235.60677045644246, -349.5172850237618 318.64818274283436, -343.43071497623816 322.30381725716563, -293.92844332833783 239.84922954355756, -238.9911858708593 166.11244083000713, -192.38556758638458 111.89100152437058, -122.95220813131472 42.88695700537062, -104.98874685844159 60.76267178902494, -83.82769434920381 85.35186422274181, -73.4328661167186 95.2998374858417, -62.767573311945256 102.02801094491026, -49.67491128054453 106.322124829605, -37.03512873868221 106.81790644851637, -25.147233489585105 104.76253254713748, -16.400737541740654 100.43691525188615, -8.005632023331803 94.93540293999675, 0.4195357935065422 85.68609798230409, 7.712802574559043 74.26599695680457, 36.7531682316254 6.362786367774286, 36.85573141867386 6.119326958783388, 47.64598836010592 -4.53076035524815, 54.23171262031565 -8.290748911436406, 61.40009189356124 -10.3847754762109, 69.21522075283465 -10.66638244394461, 81.35358664560277 -8.12000890535213, 99.12185434326392 -5.551051403348532, 105.14656455638077 -3.0060537061844967, 186.05731589635795 37.165662900741765, 252.73170820737343 75.18597626991966, 315.21140722610056 114.67790578183288, 371.35100310301465 156.2424135291909, 375.5749968969854 150.5355864708091, 319.00459277389945 108.67609421816714, 256.2482917926266 69.01802373008034, 189.21468410364204 30.80633709925823, 108.20668410364203 -9.41366290074177, 106.628 -6.234, 108.00941785496035 -9.504196381173825, 51.35341785496034 -33.43719638117383, 49.972 -30.167), (86.39393922007629 -10.92766098826892, 81.85441335439722 -11.583991094647871, 69.93477924716535 -14.09161755605539, 61.29590810643876 -13.883224523789101, 53.27428737968435 -11.657251088563594, 45.930011639894076 -7.58123964475185, 40.334019827420974 -2.1372616346789215, 50.43614616349587 -26.11718833264797, 86.39393922007629 -10.92766098826892))");
         //areas.add(new SceneryArea(pwithhole));
-        //logger.debug("pwithhole.interiorNum=" + pwithhole.getNumInteriorRing());
+        //log.debug("pwithhole.interiorNum=" + pwithhole.getNumInteriorRing());
 
 
     }
@@ -95,7 +95,11 @@ public class SceneryMesh {
      */
     public void setBackgroundMesh(GridCellBounds bounds) {
         //this.bounds = bounds;
-        background = new Background(bounds.getPolygon());
+        try {
+            background = new Background(bounds.getProjectedBoundaryPolygon());
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         //background.add((bounds.getPolygon()));
         gridbounds = bounds;//(bounds.getPolygon());
     }
@@ -158,21 +162,21 @@ public class SceneryMesh {
             for (BackgroundElement be : background.background) {
                 be.vertexData = TextureUtil.triangulateAndTexturizePolygon(be.polygon, Materials.TERRAIN_DEFAULT);
                 if (be.vertexData == null) {
-                    logger.error("Triangulation failed for background area. valid= " + be.polygon.isValid());
+                    log.error("Triangulation failed for background area. valid= " + be.polygon.isValid());
                     be.trifailed = true;
                 }
             }
             for (Area be : background.getBgfiller()) {
                 if (be.isEmpty(terrainMesh)) {
-                    logger.warn("empty BG filler?");
+                    log.warn("empty BG filler?");
                 } else {
                     be.triangulateAndTexturize(new SimpleEleConnectorGroupFinder(gridbounds.elegroups), terrainMesh);
                     if (be.getVertexData() == null) {
                         Polygon p = be.getPolygon(terrainMesh);
                         if (p == null) {
-                            logger.error("Triangulation failed for background filler area. polygon=null ");
+                            log.error("Triangulation failed for background filler area. polygon=null ");
                         } else {
-                            logger.error("Triangulation failed for background filler area. valid= " + p.isValid());
+                            log.error("Triangulation failed for background filler area. valid= " + p.isValid());
                             //TODO be.trifailed = true;
                         }
                     }
@@ -301,13 +305,13 @@ public class SceneryMesh {
      * Supplements nach den anderen
      */
     public static List<ScenerySupplementAreaObject> createPolygons(SceneryObject.Cycle cycle, List<SceneryObject> sceneryObjects,
-                                                             GridCellBounds gridbounds, TerrainMesh terrainMesh, SceneryContext sceneryContext) {
+                                                             GridCellBounds gridbounds, TerrainMesh terrainMesh, SceneryContext sceneryContext) throws MeshInconsistencyException {
 
         List<ScenerySupplementAreaObject> supplements = new ArrayList<>();
         for (SceneryObject obj : sceneryObjects) {
             //Connector brauchen die Ways
             if (/*obj instanceof SceneryWayObject*/obj.cycle == cycle && !(obj instanceof ScenerySupplementAreaObject)) {
-                List<ScenerySupplementAreaObject> l = obj.createPolygon(Collections.unmodifiableList(sceneryObjects), gridbounds, terrainMesh, sceneryContext);
+                List<ScenerySupplementAreaObject> l = obj.createPolygon(/*19.2.26 Collections.unmodifiableList(sceneryObjects),*/ gridbounds, terrainMesh, sceneryContext);
                 if (l != null) {
                     supplements.addAll(l);
                 }
@@ -316,7 +320,7 @@ public class SceneryMesh {
         for (SceneryObject obj : sceneryObjects) {
             //Connector brauchen die Ways
             if (/*obj instanceof SceneryWayObject*/obj.cycle == cycle && (obj instanceof ScenerySupplementAreaObject)) {
-                List<ScenerySupplementAreaObject> l = obj.createPolygon(Collections.unmodifiableList(sceneryObjects), gridbounds, terrainMesh, sceneryContext);
+                List<ScenerySupplementAreaObject> l = obj.createPolygon(/*19.2.26 Collections.unmodifiableList(sceneryObjects),*/ gridbounds, terrainMesh, sceneryContext);
                 if (l != null) {
                     supplements.addAll(l);
                 }
@@ -350,7 +354,7 @@ public class SceneryMesh {
     /**
      * Macht jetzt alles Polygone eines Cycle. Nicht mehr way spezifisch.
      */
-    public void clip(SceneryObject.Cycle cycle) {
+    public void clip(SceneryObject.Cycle cycle) throws MeshInconsistencyException {
         for (SceneryObject obj : sceneryObjects.objects) {
             if (obj.cycle == cycle/*obj instanceof SceneryWayObject*/) {
                 /* ((SceneryWayObject) obj)*/
@@ -423,7 +427,7 @@ public class SceneryMesh {
         }
         /*das bringts nichtz for (SceneryObject obj : sceneryObjects.objects) {
             if (!obj.isRegistered) {
-                logger.error("objects coordinates not registered in object "+obj);
+                log.error("objects coordinates not registered in object "+obj);
             }
         }*/
     }
@@ -439,7 +443,7 @@ public class SceneryMesh {
      * schwieriger macht, z.B. bei Connectoren.
      * TODO: Aus dem Graphen sollten die outside Edges aber doch raus.
      */
-    public void insertSceneryObjectsIntoBackgroundAndCut(SceneryObject.Cycle cycle, TerrainMesh tm) {
+    public void insertSceneryObjectsIntoBackgroundAndCut(SceneryObject.Cycle cycle, TerrainMesh tm) throws MeshInconsistencyException {
         List<SceneryObject> outside = new ArrayList<>();
         for (SceneryObject obj : sceneryObjects.objects) {
             if (obj instanceof SceneryFlatObject && obj.cycle == cycle) {
@@ -481,7 +485,7 @@ public class SceneryMesh {
             TerrainMesh tm = terrainMesh;
             try {
                 if (!tm.isValid(true)) {
-                    logger.error("Terrain mesh not valid. Not building BG filler");
+                    log.error("Terrain mesh not valid. Not building BG filler");
                     tm.errorCounter++;
                     return;
                 }
@@ -494,7 +498,7 @@ public class SceneryMesh {
             int cntr = 0;
             while (meshLine != null && cntr++ <= 100) {
                 if (!createBGFillerFromLine(meshLine, true)) {
-                    logger.error("createBackground: create BG filler from boundary failed. Aborting");
+                    log.error("createBackground: create BG filler from boundary failed. Aborting");
                     tm.errorCounter++;
                     return;
                 }
@@ -504,17 +508,17 @@ public class SceneryMesh {
             meshLine = tm.findOpenLine(2);
             while (meshLine != null && cntr++ <= 100) {
                 if (!createBGFillerFromLine(meshLine, false)) {
-                    logger.error("createBackground: create BG filler from inner failed. Aborting");
+                    log.error("createBackground: create BG filler from inner failed. Aborting");
                     tm.errorCounter++;
                     return;
                 }
                 meshLine = tm.findOpenLine(2);
             }
             if (cntr >= 100) {
-                logger.error("abort counter reached");
+                log.error("abort counter reached");
                 tm.errorCounter++;
             }
-            logger.info("" + cntr + " BG polygons created");
+            log.info("" + cntr + " BG polygons created");
             return;
         }
         //6.8.19 mal nicht mehr background.createFromRemaining(sceneryObjects);
@@ -528,17 +532,17 @@ public class SceneryMesh {
      * @return
      */
     private boolean createBGFillerFromLine(MeshLine meshLine, boolean fromBoundary) {
-        //logger.debug("found open mesh line " + meshLine);
+        //log.debug("found open mesh line " + meshLine);
         TerrainMesh tm = terrainMesh;
         boolean left = meshLine.getLeft() == null;
-        MeshPolygon meshPolygon = null;
+        MeshPolygonOld meshPolygonOld = null;
         try {
-            meshPolygon = tm.traversePolygon(meshLine, null, left);
+            meshPolygonOld = tm.traversePolygon(meshLine, null, left);
         } catch (MeshInconsistencyException e) {
             throw new RuntimeException(e);
         }
-        if (meshPolygon == null || meshPolygon.lines.size() == 0) {
-            logger.error("createBackground: MeshPolygon not found. Aborting");
+        if (meshPolygonOld == null || meshPolygonOld.lines.size() == 0) {
+            log.error("createBackground: MeshPolygon not found. Aborting");
             return false;
         }
         //Polygon polygon = meshPolygon.getPolygon();
@@ -547,17 +551,17 @@ public class SceneryMesh {
         //ScenerySupplementAreaObject bgFiller = SceneryObjectFactory.createBackgroundFiller(meshPolygon);
         //sceneryObjects.add(bgFiller);
         //bgFiller.addToTerrainMesh();
-        logger.debug("Creating BG filler from open (" + ((fromBoundary) ? "boundary" : "non boundary") + ") line " + meshPolygon.getPolygon());
-        Area bgfiller = new Area(meshPolygon, Materials.TERRAIN_DEFAULT, true);
+        log.debug("Creating BG filler from open (" + ((fromBoundary) ? "boundary" : "non boundary") + ") line " + meshPolygonOld.getPolygon());
+        Area bgfiller = new Area(meshPolygonOld, Materials.TERRAIN_DEFAULT, true);
         bgfiller.parentInfo = "BG filler";
-        for (MeshLine ml : meshPolygon.lines) {
+        for (MeshLine ml : meshPolygonOld.lines) {
             //2.5.24tm.completeLine(ml, bgfiller);
         }
         background.addFiller(bgfiller);
-        //logger.debug("resolved open mesh line to" + meshPolygon);
+        //log.debug("resolved open mesh line to" + meshPolygon);
         try {
             if (!tm.isValid(true)) {
-                logger.error("not valid");
+                log.error("not valid");
                 return false;
             }
         } catch (MeshInconsistencyException e) {
@@ -591,7 +595,7 @@ public class SceneryMesh {
                     SceneryFlatObject area = (SceneryFlatObject) obj;
                     SmartPolygon polygon = area.getArea().poly;
                     if (polygon.polygon.length > 1 || above.polygon.length > 1) {
-                        logger.warn("many polygons TODO");
+                        log.warn("many polygons TODO");
                     }
                     if (polygon.polygon[0].intersects(above.polygon[0])) {
                         bridge.addBelow(area);
@@ -651,7 +655,7 @@ public class SceneryMesh {
      *
      * @return
      */
-    public int checkForOverlappingAreas(boolean verbose) {
+    public int checkForOverlappingAreas(boolean verbose) throws MeshInconsistencyException {
         IntHolder cnt = new IntHolder(0);
         nestedTerrainProviderLoop((sfo, sfo1) -> {
             if (sfo.getOsmIdsAsString().contains("33817500") && sfo1.getOsmIdsAsString().contains("33817501")) {
@@ -659,7 +663,7 @@ public class SceneryMesh {
             }
             if (sfo.overlaps(sfo1)) {
                 if (verbose) {
-                    logger.debug("area " + sfo.getOsmIdsAsString() + " overlaps area " + sfo1.toString());
+                    log.debug("area " + sfo.getOsmIdsAsString() + " overlaps area " + sfo1.toString());
                 }
                 cnt.v++;
             }
@@ -677,7 +681,7 @@ public class SceneryMesh {
 
                 if (sfo.isTerrainProvider()) {
                     if (((SceneryFlatObject) sfo).overlaps(polygon)) {
-                        logger.debug("area " + sfo.getOsmIdsAsString() + " overlaps polygon ");
+                        log.debug("area " + sfo.getOsmIdsAsString() + " overlaps polygon ");
                         cnt++;
                     }
                 }
@@ -703,17 +707,21 @@ public class SceneryMesh {
             connector.resolveOverlaps(terrainMesh);
         });
 
-        nestedTerrainProviderLoop((sfo, sfo1) -> {
-            if (sfo instanceof SceneryWayObject && sfo.overlaps(sfo1)) {
-                AbstractArea[] aa = sfo1.getArea();
-                if (aa != null) {
-                    if (aa.length != 1) {
-                        throw new RuntimeException("invalid usage");
+        try {
+            nestedTerrainProviderLoop((sfo, sfo1) -> {
+                if (sfo instanceof SceneryWayObject && sfo.overlaps(sfo1)) {
+                    AbstractArea[] aa = sfo1.getArea();
+                    if (aa != null) {
+                        if (aa.length != 1) {
+                            throw new RuntimeException("invalid usage");
+                        }
+                        ((SceneryWayObject)sfo).resolveWayOverlaps(aa[0], terrainMesh);
                     }
-                    ((SceneryWayObject)sfo).resolveWayOverlaps(aa[0], terrainMesh);
                 }
-            }
-        });
+            });
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void resolveSupplementOverlaps(TerrainMesh tm) {
@@ -727,7 +735,7 @@ public class SceneryMesh {
         });
     }
 
-    private void nestedTerrainProviderLoop(NestedLoopHandler nlh) {
+    private void nestedTerrainProviderLoop(NestedLoopHandler nlh) throws MeshInconsistencyException {
         for (SceneryObject obj : sceneryObjects.objects) {
             if (obj instanceof SceneryFlatObject && obj.isTerrainProvider()) {
                 SceneryFlatObject sfo = (SceneryFlatObject) obj;
@@ -745,7 +753,7 @@ public class SceneryMesh {
 
     @FunctionalInterface
     public static interface NestedLoopHandler {
-        void handle(SceneryFlatObject sfo, SceneryFlatObject sfo1);
+        void handle(SceneryFlatObject sfo, SceneryFlatObject sfo1) throws MeshInconsistencyException;
     }
 
     /**
@@ -766,23 +774,23 @@ public class SceneryMesh {
                 SceneryWayObject way = (SceneryWayObject) obj;
                 MeshFillCandidate[] candidates;
                 if ((candidates = createWayToAreaCandidates(way, terrainMesh)) != null) {
-                    logger.debug("found wayToArea candidate for way " + way.getOsmIdsAsString());
+                    log.debug("found wayToArea candidate for way " + way.getOsmIdsAsString());
                     for (MeshFillCandidate candidate : candidates) {
                         //sicherheitshalber auf overlap pruefen, weil das einen Riesen Kudddelmuddel verursachen würde.
                         //und im Zweifel auf das Supplement verzichten.
                         if (overlapsWithAnyTerrainProvider(candidate.polygon) == 0) {
-                            logger.debug("Creating new wayToArea Filler");
+                            log.debug("Creating new wayToArea Filler");
                             //weitgehend registrieren, um Inkonsistenzen bei Fehlern gering zu halten.
                             candidate.register(terrainMesh);
                             if (candidate.lines == null) {
-                                logger.error("register failed");
+                                log.error("register failed");
                             } else {
                                 ScenerySupplementAreaObject filler = SceneryObjectFactory.createWayToAreaFiller(way, candidate);
                                 sceneryObjects.add(filler);
                                 cnt++;
                             }
                         } else {
-                            logger.warn("found overlaps for candidate");
+                            log.warn("found overlaps for candidate");
                         }
                     }
                 }
@@ -810,11 +818,11 @@ public class SceneryMesh {
         if (wayArea == null || wayArea.isEmpty(terrainMesh)) {
             return null;
         }
-        List<MeshLine> leftlines = wayArea.getLeftLines(terrainMesh);
-        List<MeshLine> rightlines = wayArea.getRightLines(terrainMesh);
+        List<MeshLine> leftlines = null;//16.4.26 wayArea.getLeftLines(terrainMesh);
+        List<MeshLine> rightlines = null;//16.4.26 wayArea.getRightLines(terrainMesh);
         if (leftlines == null || rightlines == null) {
             if (SceneryBuilder.WayToAreaFillerDebugLog) {
-                logger.debug("no left/right lines");
+                log.debug("no left/right lines");
             }
             return null;
         }
@@ -839,7 +847,7 @@ public class SceneryMesh {
             Coordinate destination = JtsUtil.moveCoordinate(c/*pair.getFirst()*/, normal.multiply(5));
             List<SceneryAreaObject> result = sceneryObjects.findAreasByCoordinate(destination, tm);
             if (result.size() > 0) {
-                //logger.debug("possible candidate for " + way.getOsmIdsAsString() + ":" + result.get(0).getOsmIdsAsString());
+                //log.debug("possible candidate for " + way.getOsmIdsAsString() + ":" + result.get(0).getOsmIdsAsString());
                 if (possibletarget == null) {
                     possibletarget = result.get(0);
                 } else {
@@ -855,15 +863,15 @@ public class SceneryMesh {
             return null;
         }
         if (SceneryBuilder.WayToAreaFillerDebugLog) {
-            logger.debug("inner points all fit for line " + rightline + " in way " + way.getOsmIdsAsString() + ":" + possibletarget.getOsmIdsAsString());
+            log.debug("inner points all fit for line " + rightline + " in way " + way.getOsmIdsAsString() + ":" + possibletarget.getOsmIdsAsString());
         }
-        if (!possibletarget.isPartOfMesh(tm)) {
-            logger.error("not part of mesh: " + possibletarget.getOsmIdsAsString());
+        /*16.4.26 if (!possibletarget.isPartOfMesh(tm)) {
+            log.error("not part of mesh: " + possibletarget.getOsmIdsAsString());
             return null;
-        }
+        }*/
         Polygon polygon = possibletarget.getArea()[0].getPolygon(tm);
         if (polygon == null) {
-            logger.error("no polygon: " + possibletarget.getOsmIdsAsString());
+            log.error("no polygon: " + possibletarget.getOsmIdsAsString());
             return null;
         }
         Coordinate[] polycoors = polygon.getCoordinates();
@@ -892,7 +900,7 @@ public class SceneryMesh {
         candidate.add(candidate.get(0));
         Polygon cp = JtsUtil.createPolygon(candidate);
         if (!cp.isValid()) {
-            logger.warn("invalid");
+            log.warn("invalid");
         }
         return new MeshFillCandidate[]{new MeshFillCandidate(cp, rightline, targetLine, c0, c1, true)};
     }

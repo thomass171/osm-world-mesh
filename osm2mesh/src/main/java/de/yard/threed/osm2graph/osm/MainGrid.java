@@ -1,23 +1,27 @@
 package de.yard.threed.osm2graph.osm;
 
 
+import de.yard.threed.core.GeoCoordinate;
+import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2scenery.SceneryConversionFacade;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.OSMData;
 import de.yard.threed.osm2world.OSMDataReader;
 import de.yard.threed.osm2world.OSMFileReader;
 import de.yard.threed.osm2world.Tag;
-import org.apache.log4j.Logger;
+
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created on 22.05.18.
  */
 public class MainGrid {
-    static Logger logger = Logger.getLogger(MainGrid.class.getName());
     public WaySet roads, rivers;
     public Connector connector;
 
@@ -50,7 +54,11 @@ public class MainGrid {
         //Die Representations brauche ich hier doch nicht?
 
         Config.getInstance().enableModules(new String[]{"RoadModule", "WaterModule"});
-        SceneryConversionFacade.Results results = cf.createRepresentations(null, null);
+        try {
+            SceneryConversionFacade.Results results = cf.createRepresentations(null, null);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
 
 
         HighwayModule roadModule = (HighwayModule) cf.getModule("RoadModule");
@@ -67,24 +75,36 @@ public class MainGrid {
     }
 
     /**
-     * erstmal als einfaches Dreieck.
+     * A simple triangle. This 'Desdorf' triangle has been used for testing from the very beginning.
+     * 16.5.19 not needed because we have afile for it?
+     * 13.2.26: But still this can be useful.
+     * TODO move to test
      */
-    /*16.5.19 gibts doch Datei für public static GridCellBounds buildDesdorf() {
+    public static GridCellBounds buildDesdorf() {
         List<Long> ids = new ArrayList<>();
-        List<LatLon> coords = new ArrayList<>();
-        //Suedost
+        List<GeoCoordinate> coords = new ArrayList<>();
+        //Southeast
         ids.add(1829065191L);
-        coords.add(OsmUtil.toLatLon(new SGGeod(new Degree(6.5936041f), new Degree(50.9479214f), 0)));
-        //Nord
+        //coords.add(OsmUtil.toLatLon(new SGGeod(new Degree(6.5936041f), new Degree(50.9479214f), 0)));
+        coords.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(50.9479214,6.5936041f),0));
+        //North
         ids.add(1829058473L);
-        coords.add(OsmUtil.toLatLon(new SGGeod(new Degree(6.5913940f), new Degree(50.9502612f), 0)));
+        //coords.add(OsmUtil.toLatLon(new SGGeod(new Degree(6.5913940f), new Degree(50.9502612f), 0)));
+        coords.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(50.9502612,6.5913940),0));
         //West
         ids.add(2377084113L);
-        coords.add(OsmUtil.toLatLon(new SGGeod(new Degree(6.5874427f), new Degree(50.9475747f), 0)));
-        GridCellBounds simpleTargetBounds = new GridCellBounds(coords);
+        //coords.add(OsmUtil.toLatLon(new SGGeod(new Degree(6.5874427f), new Degree(50.9475747f), 0)));
+        coords.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(50.9475747,6.5874427),0));
+        GridCellBounds simpleTargetBounds = null;
+        try {
+            simpleTargetBounds = new GridCellBounds(coords);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
 
         return simpleTargetBounds;
-    }*/
+    }
+
     public static GridCellBounds buildA4Poll() {
         //A$ Poll 370524/370513, ha falsch, das sind ja Endpunkte, ich brauch Zwischenpunkte,
         //besser 370512/1664879703, die sind aber nicht direkt auf gleicher Höhe.

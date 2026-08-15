@@ -8,7 +8,7 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryRenderer;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
-import de.yard.threed.osm2scenery.polygon20.OsmWay;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.VolumeProvider;
 import de.yard.threed.osm2world.MapNode;
@@ -179,12 +179,17 @@ public abstract class SceneryObject {
      * 18.4.19: Das kann in exotischen Fällen auch mal scheitern, z.B. bei BridgeRamps. Dann hat das SceneryObject einfach keine Fläche.
      * 18.7.19: Es könnten Supplements z.B. duch Overlaps entstehen.
      * 23.7.19: GridBounds auch übergeben, um optionasl schon einen cut machen zu können.
+     * 19.2.26: sceneryobjects should not be needed for creating a polygon. The polygon should only
+     * be returned, not stored inside object (flatComponent currently?)
+     * 10.3.26: Part of addtoterrainmesh?
      */
-    public abstract List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext);
+    public abstract List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException;
 
-    public void clip(TerrainMesh tm) {
+    public void clip(TerrainMesh tm) throws MeshInconsistencyException{
         if (isClipped) {
-            return;
+            // 10.3.26: Avoid multiple
+            throw new MeshInconsistencyException("multiple clip");
+            //return;
         }
         isClipped = true;
     }
@@ -194,8 +199,9 @@ public abstract class SceneryObject {
      * Die Fahrbeinteile ueber Bruecken z.B. gehoeren nicht dazu. Senkrechte Flächen der Rampen auch nicht, auch wenn sie Terrain mitbilden. 3.6.19: Ist das nicht unlogisch
      * oder unsauber definiert?
      * <p>
-     * Default isType true, because thats most common.
+     * Default is true, because thats most common.
      *
+     * 26.2.26: Only those who provide terrain will ...???
      * @return
      */
     public boolean isTerrainProvider() {
@@ -254,6 +260,11 @@ public abstract class SceneryObject {
     public boolean isClipped() {
         return isClipped;
     }
+
+    // Now for 2026 DB persist. Should replace TerrainMeshAdder?
+    // Temporarily we need TerrainMesh as parameter for meshservice and the mesh name
+    // 10.3.26: Should have createpolygon() before.
+    public abstract void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException;
 
     //22.8.18: Ist Category ein Ersatz fuer creatoretag? Erstmal nicht. Es kann immer nur eine Category pro Object geben, oder?
     //auf jeden Fall darf sie null sein.

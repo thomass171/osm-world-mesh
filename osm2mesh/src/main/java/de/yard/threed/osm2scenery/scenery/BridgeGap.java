@@ -14,6 +14,7 @@ import de.yard.threed.osm2scenery.scenery.components.BridgeTerrainMeshAdder;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
 import de.yard.threed.osm2world.MapNode;
 import de.yard.threed.osm2world.Material;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ import java.util.List;
  * <p>
  * Created on 15.08.18.
  */
+@Slf4j
 public class BridgeGap extends ScenerySupplementAreaObject {
     Polygon basepolygon;
     //SceneryWayObject roadorrailway;
@@ -75,19 +77,19 @@ public class BridgeGap extends ScenerySupplementAreaObject {
      * 27.8.19: der overlaps aber mit den anderen Ways. Stattdessen lieber die baselines verbinden.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
         //Gap Filler
         //jeweils ein Meter weiter auseinander, weil die SideRamp daran kommt.
         //double width = bridge.getWidth() + 2;
         //flatComponent[0].poly = MapDataHelper.getOutlinePolygon(bridge./*.roadorrailway*/mapWay.getMapNodes(), width);
         if (bridge.startHead.bridgebaseline == null || bridge.endHead.bridgebaseline == null) {
-            logger.error("no gap baseline");
+            log.error("no gap baseline");
             flatComponent[0] = AbstractArea.EMPTYAREA;
             return null;
         }
         Polygon polygon = JtsUtil.createPolygonFromLines(bridge.startHead.bridgebaseline, bridge.endHead.bridgebaseline);
         if (polygon == null) {
-            logger.error("no gap polygon");
+            log.error("no gap polygon");
             flatComponent[0] = AbstractArea.EMPTYAREA;
             return null;
         }
@@ -95,14 +97,14 @@ public class BridgeGap extends ScenerySupplementAreaObject {
 
         boolean wasCut = super.cutArea0(gridbounds);
         if (wasCut) {
-            logger.error("cut gap filler unhandled");
+            log.error("cut gap filler unhandled");
         }
 
         /*7.9.19 extrahiert nach resolveSupplementOverlaps()
         if (isTerrainProvider() && objects != null) {
 
             OverlapResolver.resolveOverlaps(this, objects, bridge.mapWay.getOsmId());
-            logger.debug("resolveOverlaps returned " + getArea().length + " areas.");
+            log.debug("resolveOverlaps returned " + getArea().length + " areas.");
         }*/
         //6.8.19: Stimmt das wohl so im Context? Ja. 7.9.19:Warum? clip hat nichts mehr mit resolveOverlap zu tun.
         isClipped = true;
@@ -121,10 +123,10 @@ public class BridgeGap extends ScenerySupplementAreaObject {
         if (overlaps.size() == 1) {
             //mal annehmen, dass das der Overlap mit einem Way unter der Brücke ist. Da hilt dann ein Split.
             OverlapResolver.resolveTerrainOverlaps(this, overlaps, bridge.mapWay.getOsmId(), tm);
-            logger.debug("resolveOverlaps returned " + getArea().length + " areas.");
+            log.debug("resolveOverlaps returned " + getArea().length + " areas.");
         } else {
             // das kann man bestimmt auch eleganter lösen.
-            logger.debug("setting overlapping bridge gap filler to empty for bridge" + bridge.mapWay.getOsmId());
+            log.debug("setting overlapping bridge gap filler to empty for bridge" + bridge.mapWay.getOsmId());
             flatComponent = new AbstractArea[]{AbstractArea.EMPTYAREA};
         }
     }

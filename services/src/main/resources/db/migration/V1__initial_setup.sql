@@ -7,7 +7,7 @@
 
 /**
  * Appears to be a OSM clone. But we need a location for meta data like
- * - major/minot in road junctions
+ * - major/minor in road junctions
  */
 create table osmnode (
     id bigint not null,
@@ -44,12 +44,23 @@ create table osmwaynode (
     primary key(osmway_id, osmnode_id, index)
 );
 
+create table mesh (
+    id bigint not null,
+    name varchar not null,
+
+    primary key(id),
+    unique(name)
+);
+
+create sequence mesh_seq start with 1;
+
 create table meshnode (
     id bigint not null,
     lat double precision not null,
     lon double precision not null,
     -- the OSM 'parent'
     osmnode_id bigint references osmnode,
+    mesh_id bigint references mesh not null,
 
     primary key(id)
 );
@@ -86,4 +97,60 @@ create table meshline (
 );
 
 create sequence meshline_seq start with 1;
+
+create table meshpolygon (
+    id bigint not null,
+    type int not null,
+    -- for now no reference. And not unique, who knows what happens
+    osmid bigint,
+    mesh_id bigint not null,
+
+    primary key(id)
+);
+
+create sequence meshpolygon_seq start with 1;
+
+/**
+ * closed (like JTS polygons?)
+ */
+create table meshpolygonnode (
+    id bigint not null,
+    index int not null,
+    meshpolygon_id bigint not null references meshpolygon,
+    meshnode_id bigint not null references meshnode,
+
+    primary key(id),
+    unique(meshpolygon_id, meshnode_id, index)
+);
+
+create sequence meshpolygonnode_seq start with 1;
+
+/**
+ *
+ */
+create table meshnodepair (
+    id bigint not null,
+    leftnode int not null,-- references meshnode,
+    rightnode int not null,-- references meshnode,
+    -- for now no reference
+    osmid bigint not null,
+    meshpolygon_id bigint not null references meshpolygon,
+    --opposite_node_osm_id bigint not null,
+    heading double precision not null,
+    primary key(id)
+);
+
+create sequence meshnodepair_seq start with 1;
+
+create table meshfailure (
+    id bigint not null,
+    sourceref varchar,
+    polygon varchar,
+    message varchar,
+    mesh_id bigint not null references mesh,
+
+    primary key(id)
+);
+
+create sequence meshfailure_seq start with 1;
 

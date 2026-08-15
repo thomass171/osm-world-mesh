@@ -1,146 +1,83 @@
 package de.yard.threed.osm2scenery.polygon20;
 
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
-import de.yard.threed.osm2scenery.polygon20.MeshLine;
-import de.yard.threed.osm2scenery.polygon20.MeshNode;
-import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2scenery.scenery.TerrainMesh;
-import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import org.apache.log4j.Logger;
+import de.yard.threed.core.Degree;
+import de.yard.threed.core.Pair;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
- * A transient temporary representation, because lines might change!
+ * 2.5.24: Now an interface like MeshLine and MeshNode
+ * 12.2.26: Also no setter
  */
-public class MeshPolygon {
-    Logger logger = Logger.getLogger(MeshPolygon.class);
-
-    public List<MeshLine> lines = new ArrayList();
+public interface MeshPolygon {
 
     /**
-     * Die lines sind nicht zwingend sortiert. Das passiert erst, wenn es gebraucht wird.
-     * Oder doch hier?
-     * Und CCW?
-     *
-     * @param lines
+     * returns unspecific order
      */
-    public MeshPolygon(List<MeshLine> lines) throws MeshInconsistencyException {
-        this.lines = TerrainMesh.sort(lines);
-        //Konsistenzprüfung
-        if (getPolygon() == null) {
-            // 16.4.24: throw
-            if (lines.get(0).getClass().getName().contains("ersisted")) {
+    List<? extends MeshPolygonNode> getPolygonNodes();
 
-                throw new MeshInconsistencyException("invalid MeshPolygon");
+    default List<MeshPolygonNode> getPolygonNodesSortedByIndex() {
+        List<MeshPolygonNode> result = new ArrayList<>();
+        getPolygonNodes().stream().sorted(new Comparator<MeshPolygonNode>() {
+            @Override
+            public int compare(MeshPolygonNode o1, MeshPolygonNode o2) {
+                return Integer.compare(o1.getIndex(), o2.getIndex());
             }
-            logger.warn("invalid mesh polygon");
-            //leeren, weil es sonst nur Folgefehler gibt
-            this.lines = new ArrayList<>();
-        }
-    }
-
-    public MeshPolygon(MeshLine meshLine) {
-        lines.add(meshLine);
-    }
-
-    public MeshPolygon(MeshLine meshLine, MeshLine remaining) {
-        lines.add(meshLine);
-        lines.add(remaining);
+        }).forEach(pn -> result.add(pn));
+        return result;
     }
 
     /**
-     * Die lines sind zwar sortiert, from und to müssen aber in die richtige order gebracht werden.
-     *
-     * @return
+     * Returns sorted list by index including the duplicate end node.
      */
-    public Polygon getPolygon() {
-        List<Coordinate> coors = new ArrayList<>();
-
-        if (lines.size() == 0) {
-            return null;
-        }
-        coors.addAll(JtsUtil.toList(lines.get(0).getCoordinates()));
-        MeshNode point = lines.get(0).getTo();
-        //immer den letzten Punkt eine line noch mitnehmen und bei der naechsten 1 dahinter beginnen.
-        for (int i = 1; i < lines.size(); i++) {
-            MeshLine line = lines.get(i);
-            if (line.getFrom() == point) {
-                for (int j = 1; j < line.length(); j++) {
-                    coors.add(line.get(j));
-                }
-                point = line.getTo();
-            } else {
-                for (int j = line.length() - 2; j >= 0; j--) {
-                    coors.add(line.get(j));
-                }
-                point = line.getFrom();
-            }
-
-        }
-        Polygon p = JtsUtil.createPolygon(coors);
-        if (p == null || !p.isValid()) {
-            logger.error("invalid:p=" + p);
-            return null;
-        }
-        return p;
+    default List<MeshNode> getNodesSortedByIndex() {
+        List<MeshNode> result = new ArrayList<>();
+        getPolygonNodesSortedByIndex().stream().forEach(pn -> result.add(pn.getMeshNode()));
+        return result;
     }
 
-    /**
-     * aber nicht per complete, denn es sind u.U. beide Areas leer. lines sind CCW? Braucht trotzdem leftindicator
-     */
-    public void setInner(AbstractArea abstractArea, List<Boolean> leftIndicator) {
-        for (int i = 0; i < lines.size(); i++) {
-            MeshLine meshLine = lines.get(i);
-
-            //TerrainMesh.getInstance().completeLine(meshLine, flatComponent[0]);
-            if (leftIndicator.get(i)) {
-                if (meshLine.getLeft() != null && meshLine.getLeft() != abstractArea) {
-                    logger.error("left already set");
-                }
-                //2.5.24 meshLine.setLeft(abstractArea);
-            } else {
-                if (meshLine.getRight() != null && meshLine.getRight() != abstractArea) {
-                    logger.error("right already set");
-                }
-                //2.5.24meshLine.setRight(abstractArea);
-            }
-        }
-    }
+    //Moved to MeshHelper, but now we have getGeoPolygon() Polygon getProjectedPolygon(SceneryProjection projection);
 
     /**
-     * Add additional coordinate. Must be on any existing line.
-     *
-     * @param c
+     * 11.7.26 Really throwing? Shouln't a MeshPolygon be consistent? Try without.
      */
-    public MeshLine insert(Coordinate c, TerrainMesh terrainMesh) {
-        for (MeshLine line : lines) {
-            int index;
-            if ((index = line.getCoveringSegment(c)) != -1) {
-                line.insert(index + 1, c);
-                TerrainMesh.validateMeshLine(line, terrainMesh.warnings);
+    GeoPolygon getGeoPolygon();//11.7.26  throws MeshInconsistencyException;
 
-                return line;
-            }
+    Long getOsmId();
+
+    MeshPolygonType getType();
+
+    /// 10.8.26 Following moved here from MeshWayConnector
+    /**
+     * Connector is expected to exist, so we can return nodes
+     * Pair in orientation of way (right=first).
+     * 13.5.26 No, in orientation from heading from connector
+     * 10.8.26 it is easier to derive node from index than index from node. So nly have that one.
+     */
+    /*GeoCoordinatePair*///Pair<? extends MeshNode,? extends MeshNode> getAttachCoordinates(long wayOsmId, Degree heading/*MapWaySegmentKey key*/) throws MeshInconsistencyException;
+    default Pair<? extends MeshNode, ? extends MeshNode> getAttachCoordinates(long wayOsmId, Degree heading/*MapWaySegmentKey key*/) throws MeshInconsistencyException {
+            /*for (PersistedMeshNodePair np :  {
+                if (np.getOsmId() == wayOsmId && (int) np.getHeading().getDegree() == (int) heading.getDegree()) {
+                    // first=right
+                    return new Pair<>(getNodes().get(np.getRight()), getNodes().get(np.getLeft()));
+                }
+            }*/
+        Pair<Integer, Integer> attachIndices = getAttachIndices(wayOsmId, heading);
+        if (attachIndices != null) {
+            List<MeshNode> l = getNodesSortedByIndex();
+            return new Pair<>(l.get(attachIndices.getFirst()), l.get(attachIndices.getSecond()));
         }
         return null;
     }
 
     /**
-     * Unique but not sorted.
+     * Should round degree to int.
      */
-    public List<MeshNode> getNodes() {
-        List<MeshNode> result = new ArrayList<>();
-        for (MeshLine l : lines) {
-            if (!result.contains(l.getFrom())) {
-                result.add(l.getFrom());
-            }
-            if (!result.contains(l.getTo())) {
-                result.add(l.getTo());
-            }
-        }
-        return result;
-    }
+    /*GeoCoordinatePair*/Pair<Integer, Integer> getAttachIndices(long wayOsmId, Degree heading) throws MeshInconsistencyException;
+
+
 }

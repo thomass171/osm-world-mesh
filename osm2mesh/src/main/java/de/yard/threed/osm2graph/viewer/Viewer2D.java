@@ -2,10 +2,9 @@ package de.yard.threed.osm2graph.viewer;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jtstest.testbuilder.JTSTestBuilder;
+import de.yard.threed.core.ParseException;
 import de.yard.threed.core.Util;
 import de.yard.threed.core.Vector2;
-import de.yard.threed.javacommon.ConfigurationByEnv;
-import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.osm2graph.RenderData;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GraphicsTarget;
@@ -44,12 +43,13 @@ import de.yard.threed.osm2world.MapNode;
 import de.yard.threed.osm2world.OSMData;
 import de.yard.threed.osm2world.OsmOrigin;
 import de.yard.threed.osm2world.VectorXZ;
-import de.yard.threed.traffic.geodesy.GeoCoordinate;
+import de.yard.threed.core.GeoCoordinate;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+
 import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 
 import javax.swing.*;
@@ -89,9 +89,9 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
  * <p>
  * Kopie aus OSM2World, 22.5.18
  */
+@Slf4j
 public class Viewer2D extends JFrame {
     MainPanel mainPanel;
-    public static Logger logger = Logger.getLogger(Viewer2D.class);
     public static Data data = new Data();
     //static ConversionFacade cf;
     //private final RenderOptions renderOptions = new RenderOptions();
@@ -113,7 +113,8 @@ public class Viewer2D extends JFrame {
 
         //Vector3 und logging braucht Platform.
         //PlatformHomeBrew.init(new HashMap<String, String>());
-        SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
+        Util.nomore();
+        //24.3.26 after removing dependencies, Viewer2d should move SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -131,6 +132,10 @@ public class Viewer2D extends JFrame {
     }
 
     public static void main(String[] arg) {
+        mainEntry(true);
+    }
+
+    public static void mainEntry(boolean enable) {
         //eigene Configuration. 2.4.19: Was heiss das?
         JTSTestBuilder.main(new String[]{});
         try {
@@ -146,7 +151,7 @@ public class Viewer2D extends JFrame {
             //30.5.18 Maingrid frisst Brot. TODO Optional als Layer
             //MainGrid mainGrid = MainGrid.build();
             //Viewer2D.data.setMainGrid(mainGrid);
-            viewer2D.setEnabled(true);
+            viewer2D.setEnabled(enable);
             //viewer2D.createProcessor(inputfile);
             //viewer2D.process(null);
             //18.8.18: Initiales Tile über Index
@@ -154,6 +159,8 @@ public class Viewer2D extends JFrame {
             //  @Override
             //public void run() {
             //4 ist B55-B477, 3 ist B55-B477 small, 1 ist Desdorf, 5 EDDK-Small
+            // 11.2.26:This is no longer the preferred way, so preselect nothing?
+            // But lets keep the traditional workflow for now with build a mesh
             viewer2D.mainPanel.buttonpanel.cbo_source.setSelectedIndex(3);
             //}
             //});
@@ -244,7 +251,9 @@ public class Viewer2D extends JFrame {
             processor.process(gridCellBounds);
             RenderData/*ConversionFacade.Results*/ results = processor.getResults();
             // 15.6.18: scale und Bounds sind jetzt erst nach process bekannt
-            this.osmbound = SceneryBuilder.getBounds(processor.osmData);
+            Util.nomore();
+            //24.3.26 after removing dependencies, Viewer2d should move
+            this.osmbound = null;//24.3.26 SceneryBuilder.getBounds(processor.osmData);
             this.gridCellBounds = gridCellBounds;
             // scale ist nur von Basisdaten abhaengig, darum nicht bei jedem neuen Process reseten.
             //9.9.18 jetzt evtl. abhaengig von LAyer mainPanel.drawPanel.setScale();
@@ -292,7 +301,7 @@ public class Viewer2D extends JFrame {
     }
 }
 
-
+@Slf4j
 class MainPanel extends JPanel {
     protected final ControlPanel nodepanel;
     DrawPanel drawPanel;
@@ -371,7 +380,7 @@ class MainPanel extends JPanel {
     }
 
     public void setScale(float scale) {
-        Viewer2D.logger.debug("setting scale" + scale);
+        log.debug("setting scale" + scale);
         drawPanel.scale = scale;
         //drawPanel.revalidate();
         drawPanel.paintResults();
@@ -689,6 +698,7 @@ class TexturePanel extends JPanel {
 /**
  * 26.4.19: Zeigt jetzt auch die Volumes/WorldElements in den Objects an.
  */
+@Slf4j
 class SceneryObjectsPanel extends JPanel {
     JTable table = new JTable();
     DefaultTableModel model;
@@ -750,7 +760,7 @@ class SceneryObjectsPanel extends JPanel {
     }
 
     void refresh() {
-        Viewer2D.logger.debug("refresh");
+        log.debug("refresh");
         model.setRowCount(0);
         int row = 0;
         for (int i = 0; i < sceneryObjects.size(); i++) {
@@ -1230,6 +1240,7 @@ class MaterialPanel extends JPanel {
  * <p>
  * Das mit dem Zoom ist aus https://stackoverflow.com/questions/18158550/zoom-box-for-area-around-mouse-location-on-screen
  */
+@Slf4j
 class DrawPanel extends JPanel {
     //JLabel l = new JLabel();
     //Graphics2D g2d;
@@ -1319,7 +1330,7 @@ class DrawPanel extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 Point p = new Point(e.getX(), e.getY());
-               /* Viewer2D.logger.debug("clicked. popupTrigger="+e.isPopupTrigger());
+               /* log.debug("clicked. popupTrigger="+e.isPopupTrigger());
                 if (e.isPopupTrigger()){
 
                 }else {
@@ -1342,7 +1353,7 @@ class DrawPanel extends JPanel {
             @Override
             public void mousePressed(MouseEvent e) {
                 Point p = new Point(e.getX(), e.getY());
-                //Viewer2D.logger.debug("pressed.popuptrigger=" + e.isPopupTrigger());
+                //log.debug("pressed.popuptrigger=" + e.isPopupTrigger());
                 wasPopup = false;
                 if (e.isPopupTrigger()) {
                     if (withControl(e)) {
@@ -1350,7 +1361,7 @@ class DrawPanel extends JPanel {
                             layer.openPopup(e.getComponent(), p, tile.getProjectionLocation(p));
                         });
                     } else {
-                        //Viewer2D.logger.debug("opening standard popup");
+                        //log.debug("opening standard popup");
                         popupMenu.show(e.getComponent(), e.getX(), e.getY());
                     }
                     wasPopup = true;
@@ -1370,7 +1381,7 @@ class DrawPanel extends JPanel {
             @Override
             public void mouseReleased(MouseEvent e) {
                 Point p = new Point(e.getX(), e.getY());
-                //Viewer2D.logger.debug("released. popup=" + e.isPopupTrigger());
+                //log.debug("released. popup=" + e.isPopupTrigger());
                 Rectangle r = getDragRectangle();
                 // vier moegliche Konstellationen: Click normal/Layer und DragEnde normal/Layer
                 // oder 8? Kann auch Popup release sein.
@@ -1380,7 +1391,7 @@ class DrawPanel extends JPanel {
                     if (wasDragging) {
                         if (r != null && r.width > 0 && r.height > 0) {
                             //dragging completed
-                            Viewer2D.logger.debug("setting Magnifier");
+                            log.debug("setting Magnifier");
                             // Die Area in projected Coordinaten umrechnen. from muss links unten sein.
                             VectorXZ from = tile.pointToVectorXZ(new Point(r.x, r.y + r.height));
                             // und to rechts oben
@@ -1434,7 +1445,7 @@ class DrawPanel extends JPanel {
 
                 }
                 wasDragging = true;
-                //Viewer2D.logger.debug("dragged");
+                //log.debug("dragged");
                 repaint();
             }
         });
@@ -1462,7 +1473,7 @@ class DrawPanel extends JPanel {
     private boolean withControl(MouseEvent e) {
         boolean withControl = false;
         if ((e.getModifiers() & ActionEvent./*CTRL_MASK*/ALT_MASK) == ActionEvent.ALT_MASK) {
-            //Viewer2D.logger.debug("CTRL KEY PRESSED");
+            //log.debug("CTRL KEY PRESSED");
             withControl = true;
         }
         return withControl;
@@ -1535,7 +1546,7 @@ class DrawPanel extends JPanel {
      * Indirekt Callback fuer den LoadOSMThread
      */
     public void paintData(RenderData/*ConversionFacade.Results*/ r) {
-        Viewer2D.logger.debug("starting paint");
+        log.debug("starting paint");
         results = r;
         paintResults();
         // revalidate();
@@ -1558,7 +1569,7 @@ class DrawPanel extends JPanel {
      */
     private void paintResults(VectorXZ zoomfrom, VectorXZ zoomto) {
         //29.5.18 Bound osmbound = projection.getBound();
-        //29.5.18 Viewer2D.logger.debug("osmbound=" + osmbound);
+        //29.5.18 log.debug("osmbound=" + osmbound);
         if (Viewer2D.supertexture) {
             // scale auf der GUI halbwegs uebernehmen.
             int size = (int) (scale * 512);
@@ -1571,8 +1582,8 @@ class DrawPanel extends JPanel {
             Rectangle2D projectionarea = get2DRectangle(projection);
             //9.8.18: scale immer neu ermitteln, z.B. wegen PolytestLayer
             //dann geht +/- aber nicht mehr setScale();
-            //Viewer2D.logger.debug("origin=" + projection.getOrigin());
-            //Viewer2D.logger.debug("rectangle=" + rec);
+            //log.debug("origin=" + projection.getOrigin());
+            //log.debug("rectangle=" + rec);
             tile = new Tile(projectionarea, (float) scale, zoomfrom, zoomto);
             mainpanel.datapanel.setField("Tile Size", "" + Math.round(projectionarea.getWidth()) + "x" + Math.round(projectionarea.getHeight()));
             mainpanel.datapanel.setField("Image Size", "" + tile.size.width + "x" + tile.size.height);
@@ -1683,7 +1694,7 @@ class DrawPanel extends JPanel {
      */
     @Override
     protected void paintComponent(Graphics g) {
-        //Viewer2D.logger.debug("paintComponent");
+        //log.debug("paintComponent");
         // Das Image?
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
@@ -1724,8 +1735,13 @@ class DrawPanel extends JPanel {
         if (coordinate.length() > 0 && coordinate.contains(",")) {
             String[] part = coordinate.split(",");
             if (part.length == 2 && part[0].trim().length() > 0 && part[1].trim().length() > 0) {
-                double x = Util.parseDouble(part[0]);
-                double y = Util.parseDouble(part[1]);
+                double x = 0,y;
+                try {
+                    x = Util.parseDouble(part[0]);
+                    y = Util.parseDouble(part[1]);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
                 Coordinate c = new Coordinate(x, y);
                 //tile.drawCircle(c, 10, Color.black);
                 DrawHelper.drawCircle(g2, tile.coordinateToPoint(c), 10, Color.black);
@@ -1818,7 +1834,7 @@ class DrawPanel extends JPanel {
     void markSceneryObject(int objectid, char elementtag, int subindex) {
         RenderedObject ro = target.rendermap.get(objectid);
         if (ro == null) {
-            Viewer2D.logger.error("Object id not found: " + objectid);
+            log.error("Object id not found: " + objectid);
             return;
         }
         if (subindex == -1) {
@@ -1853,7 +1869,7 @@ class GridLayer extends Layer {
                 points.add(gridCellBounds.simplePolygonXZ.getVertex(i));
             }*/
             //tile.drawPolygon("Grid", gridCellBounds.getPolygon(), null, Color.ORANGE, false);
-            DrawHelper.drawArea(g, tileProjection.toArea(gridCellBounds.getPolygon()), Color.ORANGE, false);
+            DrawHelper.drawArea(g, tileProjection.toArea(gridCellBounds.getProjectedBoundaryPolygon()), Color.ORANGE, false);
 
             for (MapNode n : gridCellBounds.additionalGridnodes) {
                 //tile.drawCircle(n.getPos(), 20, Color.BLUE);
@@ -1870,6 +1886,7 @@ class GridLayer extends Layer {
 /**
  * Darstellung irgendeines Polygons zu Test/Analysezwecken.
  */
+@Slf4j
 class PolygonLayer extends Layer {
 
     PolygonLayer() {
@@ -1895,12 +1912,16 @@ class PolygonLayer extends Layer {
         com.vividsolutions.jts.geom.Polygon p = PolygonCollection.getSplitFailPolygon();
         p = PolygonCollection.getTriFailPolygon();
         if (!p.isValid()) {
-            Viewer2D.logger.error("Polygon not valid");
+            log.error("Polygon not valid");
         }
         //tile.drawGeometry(p, null, Color.ORANGE, false, null, null);
         //tile.drawMarkedPolygon(tile.getGraphics(), p, false,Color.RED);
 
-        com.vividsolutions.jts.geom.Polygon[] splitresult = JtsUtil.splitPolygon(p);
+        try {
+            com.vividsolutions.jts.geom.Polygon[] splitresult = JtsUtil.splitPolygon(p);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         //TODO 11.9.19 tile.drawMarkedPolygon(tile.getGraphics(), splitresult[1], false, Color.RED);
 
     }
@@ -1924,7 +1945,11 @@ class TriangulatorLayer extends Layer {
         //Triangulator triangulator = new Triangulator(SceneryMesh.buildRectangleWithHole());
         //List<LineSegment> result = triangulator.buildGrid();
         com.vividsolutions.jts.geom.Polygon rectangleWithHole = SceneryMesh.buildRectangleWithHole();
-        com.vividsolutions.jts.geom.Polygon[] splitresult = JtsUtil.removeHoleFromPolygonBySplitting(rectangleWithHole);
+        try {
+            com.vividsolutions.jts.geom.Polygon[] splitresult = JtsUtil.removeHoleFromPolygonBySplitting(rectangleWithHole);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         //11.9.19 TODO tile.drawGeometry(splitresult[0], null, Color.ORANGE, false, null, null);
         //11.9.19 TODO tile.drawGeometry(splitresult[1], null, Color.GREEN, false, null, null);
 //        for (LineSegment p : result) {
@@ -1968,7 +1993,8 @@ class TerrainMeshLayer extends Layer {
 
     public void draw(Graphics2D g, TileProjection tileProjection) {
         if (terrainMesh != null) {
-            for (MeshLine line : terrainMesh.lines) {
+            Util.nomore();
+            /*for (MeshLine line : terrainMesh.lines) {
                 //blau ist vor road hintergrund schlecht sichtbar
                 boolean broken = false;
                 try {
@@ -1997,7 +2023,7 @@ class TerrainMeshLayer extends Layer {
                         DrawHelper.drawLine(g, p0, p1, (broken) ? Color.red : Color.orange);
                     }
                 }
-            }
+            }*/
         }
     }
 

@@ -4,7 +4,7 @@ package de.yard.threed.osm2graph;
  * Created by thomass on 07.06.17.
  */
 /*public abstract class MyLineWorldObject implements MyWorldObject {
-    Logger logger = Logger.getLogger(MyLineWorldObject.class);
+    Logger logger = log.getLogger(MyLineWorldObject.class);
     //SimplePolygonXZ outlinePolygonXZ;
     private SimplePolygonXZ outlinePolygonXZ = null;
     MyMapGraph segment;
@@ -57,7 +57,7 @@ package de.yard.threed.osm2graph;
         if (outlineLoopXZ.size() > 0) {
             outlineLoopXZ.add(outlineLoopXZ.get(0));
         } else {
-            logger.warn("empty outline");
+            log.warn("empty outline");
         }
 
         // check for brokenness
@@ -67,7 +67,7 @@ package de.yard.threed.osm2graph;
             broken = false;
             //broken = outlinePolygonXZ.isClockwise();
         } catch (InvalidGeometryException e) {
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             broken = true;
             //connectors = EleConnectorGroup.EMPTY;
         }

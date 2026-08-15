@@ -10,24 +10,16 @@ import de.yard.threed.osm2scenery.polygon20.MeshArea;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.persistence.Transient;
 import java.util.*;
 
 @Entity
 @Table(name = "meshline")
+@Slf4j
 public class PersistedMeshLine implements MeshLine {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshline_id_generator")
@@ -37,8 +29,8 @@ public class PersistedMeshLine implements MeshLine {
     @Column(name = "type")
     private int type;
 
-    @Transient
-    Logger logger = Logger.getLogger(PersistedMeshLine.class);
+    //@Transient
+    //Logger logger = log.getLogger(PersistedMeshLine.class);
 
     @ManyToOne
     @JoinColumn(name = "from_node", nullable = false)
@@ -209,7 +201,7 @@ public class PersistedMeshLine implements MeshLine {
             int h = 9;
         }
         if (leftArea != null) {
-            logger.warn("overriding left?");
+            log.warn("overriding left?");
         }
         leftArea = (PersistedMeshArea) area;
     }
@@ -219,7 +211,7 @@ public class PersistedMeshLine implements MeshLine {
             int h = 9;
         }
         if (rightArea != null) {
-            logger.warn("overriding right?");
+            log.warn("overriding right?");
         }
 
         rightArea = (PersistedMeshArea) area;

@@ -1,25 +1,26 @@
 package de.yard.threed.osm2graph.osm;
 
 
-import de.yard.threed.core.loader.PortableModelList;
+import de.yard.threed.core.Util;
+import de.yard.threed.core.loader.PortableModel;
 import de.yard.threed.osm2graph.RenderData;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryConversionFacade;
 import de.yard.threed.osm2scenery.elevation.ElevationArea;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.MapData;
 import de.yard.threed.osm2world.OSMData;
 import de.yard.threed.osm2world.OSMDataReader;
 import de.yard.threed.osm2world.OSMFileReader;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
+
 
 import java.io.File;
 import java.io.IOException;
 
-import static de.yard.threed.osm2graph.SceneryBuilder.loadConfig;
-import static de.yard.threed.osm2graph.SceneryBuilder.loadMaterialConfig;
 
 /**
  * Nur mal so als Container.
@@ -30,8 +31,8 @@ import static de.yard.threed.osm2graph.SceneryBuilder.loadMaterialConfig;
  * <p>
  * Created on 02.06.18.
  */
+@Slf4j
 public class Processor {
-    Logger logger = Logger.getLogger(Processor.class.getName());
     public File dataSet;
     public OSMData osmData;
     public MapData mapData;
@@ -43,7 +44,7 @@ public class Processor {
     //public ConversionFacade.Results results;
     public SceneryConversionFacade.Results sresults;
     public GridCellBounds gridCellBoundsused;
-    public PortableModelList pml;
+    public PortableModel pml;
     // nur fuer Testzwecke!
     public PortableModelTarget pmt;
     public static String defaultconfigfile = ("config/configuration-base.properties");
@@ -64,7 +65,8 @@ public class Processor {
      * Extrahiert, um danach noch (vor dem process, was ändern zu können.
      */
     public void reinitConfig(String materialconfigsuffix,String lodconfigfilesuffix, Configuration customconfig) {
-        Config.reinit(defaultconfigfile, loadMaterialConfig(materialconfigsuffix), loadConfig(lodconfigfilesuffix), customconfig);
+        Util.nomore();
+       //24.3.26 after removing dependencies, shouldn't be here any longer anyway Config.reinit(defaultconfigfile, loadMaterialConfig(materialconfigsuffix), loadConfig(lodconfigfilesuffix), customconfig);
 
     }
 
@@ -77,7 +79,7 @@ public class Processor {
         OSMDataReader dataReader = new OSMFileReader(dataSet);
         osmData = dataReader.getData();
         osmData.source =dataSet.getName();
-        logger.info("Loading OSM data from "+dataSet+" took "+((System.currentTimeMillis()-starttime)/1000)+" seconds.");
+        log.info("Loading OSM data from "+dataSet+" took "+((System.currentTimeMillis()-starttime)/1000)+" seconds.");
 
         //mapProjection =  new MetricTextureProjection();
         //mapProjection.setOrigin(osmData);
@@ -85,14 +87,22 @@ public class Processor {
         //9.4.19: Ohne Grid ist doch völlig witzlos
         //if (gridCellBounds != null) {
         //gridCellBounds.setOrigin(osmData);
-        gridCellBounds.init(gridCellBounds.getProjection());
+        try {
+            gridCellBounds.init(gridCellBounds.getProjection());
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         //}
 
         scf = new SceneryConversionFacade(osmData);
 
         //9.4.19 Config.getInstance().setTargetBounds(gridCellBounds);
 
-        sresults = scf.createRepresentations(gridCellBounds, gridCellBounds.getProjection());
+        try {
+            sresults = scf.createRepresentations(gridCellBounds, gridCellBounds.getProjection());
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         mapData = scf.getMapData();
 
         //4.8.18 vor elevationcalc sresults.sceneryMesh.texturize();

@@ -1,0 +1,145 @@
+package de.yard.threed.osm2scenery.polygon20;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Polygon;
+import de.yard.threed.osm2graph.osm.JtsUtil;
+import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
+import lombok.extern.slf4j.Slf4j;
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * A transient temporary representation, because lines might change!
+ */
+@Slf4j
+public class MeshPolygonOld {
+
+    public List<MeshLine> lines = new ArrayList();
+
+    /**
+     * Die lines sind nicht zwingend sortiert. Das passiert erst, wenn es gebraucht wird.
+     * Oder doch hier?
+     * Und CCW?
+     *
+     * @param lines
+     */
+    public MeshPolygonOld(List<MeshLine> lines) throws MeshInconsistencyException {
+        this.lines = TerrainMesh.sort(lines);
+        //Konsistenzprüfung
+        if (getPolygon() == null) {
+            // 16.4.24: throw
+            if (lines.get(0).getClass().getName().contains("ersisted")) {
+
+                throw new MeshInconsistencyException("invalid MeshPolygon");
+            }
+            log.warn("invalid mesh polygon");
+            //leeren, weil es sonst nur Folgefehler gibt
+            this.lines = new ArrayList<>();
+        }
+    }
+
+    public MeshPolygonOld(MeshLine meshLine) {
+        lines.add(meshLine);
+    }
+
+    public MeshPolygonOld(MeshLine meshLine, MeshLine remaining) {
+        lines.add(meshLine);
+        lines.add(remaining);
+    }
+
+    /**
+     * Die lines sind zwar sortiert, from und to müssen aber in die richtige order gebracht werden.
+     *
+     * @return
+     */
+    public Polygon getPolygon() {
+        List<Coordinate> coors = new ArrayList<>();
+
+        if (lines.size() == 0) {
+            return null;
+        }
+        coors.addAll(JtsUtil.toList(lines.get(0).getCoordinates()));
+        MeshNode point = lines.get(0).getTo();
+        //immer den letzten Punkt eine line noch mitnehmen und bei der naechsten 1 dahinter beginnen.
+        for (int i = 1; i < lines.size(); i++) {
+            MeshLine line = lines.get(i);
+            if (line.getFrom() == point) {
+                for (int j = 1; j < line.length(); j++) {
+                    coors.add(line.get(j));
+                }
+                point = line.getTo();
+            } else {
+                for (int j = line.length() - 2; j >= 0; j--) {
+                    coors.add(line.get(j));
+                }
+                point = line.getFrom();
+            }
+
+        }
+        Polygon p = JtsUtil.createPolygon(coors);
+        if (p == null || !p.isValid()) {
+            log.error("invalid:p=" + p);
+            return null;
+        }
+        return p;
+    }
+
+    /**
+     * aber nicht per complete, denn es sind u.U. beide Areas leer. lines sind CCW? Braucht trotzdem leftindicator
+     */
+    public void setInner(AbstractArea abstractArea, List<Boolean> leftIndicator) {
+        for (int i = 0; i < lines.size(); i++) {
+            MeshLine meshLine = lines.get(i);
+
+            //TerrainMesh.getInstance().completeLine(meshLine, flatComponent[0]);
+            if (leftIndicator.get(i)) {
+                if (meshLine.getLeft() != null && meshLine.getLeft() != abstractArea) {
+                    log.error("left already set");
+                }
+                //2.5.24 meshLine.setLeft(abstractArea);
+            } else {
+                if (meshLine.getRight() != null && meshLine.getRight() != abstractArea) {
+                    log.error("right already set");
+                }
+                //2.5.24meshLine.setRight(abstractArea);
+            }
+        }
+    }
+
+    /**
+     * Add additional coordinate. Must be on any existing line.
+     *
+     * @param c
+     */
+    public MeshLine insert(Coordinate c, TerrainMesh terrainMesh) {
+        for (MeshLine line : lines) {
+            int index;
+            if ((index = line.getCoveringSegment(c)) != -1) {
+                line.insert(index + 1, c);
+                TerrainMesh.validateMeshLine(line, terrainMesh.warnings);
+
+                return line;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Unique but not sorted.
+     */
+    public List<MeshNode> getNodes() {
+        List<MeshNode> result = new ArrayList<>();
+        for (MeshLine l : lines) {
+            if (!result.contains(l.getFrom())) {
+                result.add(l.getFrom());
+            }
+            if (!result.contains(l.getTo())) {
+                result.add(l.getTo());
+            }
+        }
+        return result;
+    }
+}

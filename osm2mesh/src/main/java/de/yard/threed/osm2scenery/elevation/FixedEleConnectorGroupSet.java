@@ -1,14 +1,13 @@
 package de.yard.threed.osm2scenery.elevation;
 
 
-import org.apache.log4j.Logger;
+
 
 /**
  * List of fixed
  * Created on 01.08.18.
  */
 public class FixedEleConnectorGroupSet extends EleConnectorGroupSet {
-    Logger logger = Logger.getLogger(FixedEleConnectorGroupSet.class);
 
     
 

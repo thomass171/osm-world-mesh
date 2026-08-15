@@ -6,20 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -49,10 +36,10 @@ public class PersistedOsmWay implements OsmWay {
     private String category;
 
     //  @JoinTable only works with pure mapping tables without additional attributes?
-    @OneToMany(mappedBy = "osmWay", cascade = CascadeType.ALL)
+   /*24.3.26  @OneToMany(mappedBy = "osmWay", cascade = CascadeType.ALL)
     @OrderBy(value = "index")
     @Getter
-    private List<PersistedOsmWayNode> osmWayNodes = new ArrayList<>();
+    private List<PersistedOsmWayNode> osmWayNodes = new ArrayList<>();*/
 
     public PersistedOsmWay() {
 
@@ -60,7 +47,7 @@ public class PersistedOsmWay implements OsmWay {
 
     public void add(PersistedOsmNode osmNode, int index) {
         PersistedOsmWayNode osmWayNode = new PersistedOsmWayNode(this, osmNode,index);
-        osmWayNodes.add(osmWayNode);
+        /*24.3.26 osmWayNodes.add(osmWayNode);*/
        // osmNode.getOsmWays().add(this);
     }
 

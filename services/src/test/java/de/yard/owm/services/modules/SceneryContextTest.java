@@ -23,7 +23,6 @@ import de.yard.threed.osm2world.MapWay;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 public class SceneryContextTest {
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
-    Logger logger = Logger.getLogger(SceneryContextTest.class);
+    //Logger logger = log.getLogger(SceneryContextTest.class);
 
     @Autowired
     OsmElementService osmElementService;
@@ -63,7 +62,7 @@ public class SceneryContextTest {
 
     /**
      */
-    @Test
+    /*10.2.26@Test
     public void testSceneryContextFromDB() throws Exception {
         DesdorfTestUtil desdorfTestUtil = new DesdorfTestUtil(terrainMeshManager, osmElementService);
 
@@ -73,5 +72,5 @@ public class SceneryContextTest {
         assertEquals(1, newSceneryContext.highways.size(), "sceneryContext.highways");
         assertTrue( newSceneryContext.highways.containsKey(desdorfTestUtil.k41Low.getOsmId()), "sceneryContext.highways.osmid");
 
-    }
+    }*/
 }

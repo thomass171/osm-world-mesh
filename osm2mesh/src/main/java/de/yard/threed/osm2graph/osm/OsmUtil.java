@@ -2,25 +2,13 @@ package de.yard.threed.osm2graph.osm;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineSegment;
-import de.yard.threed.core.Degree;
-import de.yard.threed.core.LatLon;
-import de.yard.threed.core.Util;
-import de.yard.threed.core.Vector2;
-import de.yard.threed.osm2world.ConfMaterial;
-import de.yard.threed.osm2world.MapNode;
-import de.yard.threed.osm2world.MapWay;
-import de.yard.threed.osm2world.Materials;
-import de.yard.threed.osm2world.OSMData;
-import de.yard.threed.osm2world.OSMNode;
-import de.yard.threed.osm2world.OSMWay;
-import de.yard.threed.osm2world.Osm2WorldMapProjection;
-import de.yard.threed.osm2world.TagGroup;
-import de.yard.threed.osm2world.VectorXZ;
-import de.yard.threed.traffic.geodesy.GeoCoordinate;
-import de.yard.threed.trafficfg.FgCalculations;
+import de.yard.threed.core.*;
+import de.yard.threed.osm2world.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
 
+
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -33,9 +21,9 @@ import static de.yard.threed.osm2world.EmptyTagGroup.EMPTY_TAG_GROUP;
  * <p>
  * Created on 13.06.18.
  */
+@Slf4j
 public class OsmUtil {
     private static int dummyid = -1;
-    static Logger logger = Logger.getLogger(OsmUtil.class);
 
     public static LatLon unproject(Osm2WorldMapProjection projection, VectorXZ xz) {
         return LatLon.fromDegrees(projection.calcLat(xz), projection.calcLon(xz));
@@ -153,11 +141,12 @@ public class OsmUtil {
         List<MapNode> nodes = mapWay.getMapNodes();
         MapNode end = nodes.get(nodes.size() - 1);
         MapNode beforeend = nodes.get(nodes.size() - 2);
-        Degree heading = new FgCalculations().courseTo(toSGGeod(getLatLon(beforeend.getOsmNode())),(toSGGeod(getLatLon(end.getOsmNode()))));
+        Util.notyet();
+        Degree heading = null;//23.3.26 new FgCalculations().courseTo(toSGGeod(getLatLon(beforeend.getOsmNode())),(toSGGeod(getLatLon(end.getOsmNode()))));
         return heading;
     }
 
-    public static int getFirstGridNode(MapWay mapWay) {
+    /*17.3.26 we no longer care about public static int getFirstGridNode(MapWay mapWay) {
         int index = 0;
         for (MapNode mapNode : mapWay.getMapNodes()) {
             if (mapNode.location == MapNode.Location.GRIDNODE) {
@@ -166,9 +155,9 @@ public class OsmUtil {
             index++;
         }
         return -1;
-    }
+    }*/
 
-    public static int getLastGridNode(MapWay mapWay) {
+    /*17.3.26 we no longer care about public static int getLastGridNode(MapWay mapWay) {
         for (int index = mapWay.getMapNodes().size() - 1; index >= 0; index--) {
             MapNode mapNode = mapWay.getMapNodes().get(index);
             if (mapNode.location == MapNode.Location.GRIDNODE) {
@@ -176,7 +165,7 @@ public class OsmUtil {
             }
         }
         return -1;
-    }
+    }*/
 
     public static Vector2 getDirection(VectorXZ from, VectorXZ to) {
         return toVector2(to).subtract(toVector2(from)).normalize();
@@ -185,7 +174,7 @@ public class OsmUtil {
     /**
      * Ein Way kann closed sein, dann ist start==end. Darum erst die endNode pruefen.
      */
-    public static Vector2 getDirectionToNode(MapWay w, MapNode node) {
+    public static Vector2 getDirectionToNode(MapWaySegment2 w, MapNode node) {
         Vector2 dir;
         if (node == w.getEndNode()) {
             int i = w.getMapNodes().size();
@@ -194,7 +183,7 @@ public class OsmUtil {
             if (node == w.getStartNode()) {
                 dir = getDirection(w.getMapNodes().get(1).getPos(), w.getMapNodes().get(0).getPos());
             } else {
-                logger.error("inconsistent");
+                log.error("inconsistent");
                 return null;
             }
         }
@@ -203,9 +192,9 @@ public class OsmUtil {
 
     /**
      * Ein Way kann closed sein, dann ist start==end. Darum erst die startNode pruefen.
-     * Result isType normalized.
+     * Result is normalized.
      */
-    public static Vector2 getDirectionFromNode(MapWay w, MapNode node) {
+    public static Vector2 getDirectionFromNode(MapWaySegment2 w, MapNode node) {
         Vector2 dir;
         if (node == w.getStartNode()) {
             dir = getDirection(w.getMapNodes().get(0).getPos(), w.getMapNodes().get(1).getPos());
@@ -214,7 +203,7 @@ public class OsmUtil {
                 int i = w.getMapNodes().size();
                 dir = getDirection(w.getMapNodes().get(i - 1).getPos(), w.getMapNodes().get(i - 2).getPos());
             } else {
-                logger.error("inconsistent");
+                log.error("inconsistent");
                 return null;
             }
         }
@@ -253,7 +242,7 @@ public class OsmUtil {
                     dir1 = getDirection(w1.getMapNodes().get(l - 1).getPos(), w1.getMapNodes().get(l - 2).getPos());
                 }
             } else {
-                logger.error("inconsistent");
+                log.error("inconsistent");
                 return null;
             }
         }

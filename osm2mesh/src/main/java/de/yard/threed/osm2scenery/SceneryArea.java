@@ -7,7 +7,6 @@ package de.yard.threed.osm2scenery;
  */
 
 /*public class SceneryArea {
-    Logger logger = Logger.getLogger(SceneryArea.class);
     //Polygon statt Geometry wegen möglicher Holes. Holes lassen sich nie vermeiden, die können immer beim union entstehen.
     private Polygon poly;
     List<Long> osmIds = new ArrayList<>();
@@ -45,7 +44,7 @@ package de.yard.threed.osm2scenery;
      */
     /*Komplikationen? public void merge(SceneryArea area) {
         if (!poly.intersects(area.poly)){
-            logger.warn("merge: no intersection");
+            log.warn("merge: no intersection");
         }
         // Evtl. liefert der union() ein MultiPolygon
         poly = (Polygon) poly.union(area.poly);
@@ -68,7 +67,7 @@ package de.yard.threed.osm2scenery;
     public void cut(Geometry gridbounds) {
         Geometry cut = poly.intersection(gridbounds);
         if (!(cut instanceof Polygon)) {
-            logger.error("area cut by grid bounds. ignored.");
+            log.error("area cut by grid bounds. ignored.");
             return;
         }
         poly = (Polygon) cut;
@@ -91,7 +90,7 @@ package de.yard.threed.osm2scenery;
         //vertices = poly.getCoordinates();
         vertexData = TextureUtil.triangulate(null,poly);
         if (vertexData==null){
-            logger.error("Triangulation failed for area "+getOsmOrigin());
+            log.error("Triangulation failed for area "+getOsmOrigin());
             trifailed=true;
             return;
         }
@@ -106,7 +105,7 @@ package de.yard.threed.osm2scenery;
         if (poly.getCoordinates().length < 4){
             //kein warn sondern error, weil ja nichts erzeugt wird
             //es kann zwischenzeitlich durcuas leere geben. Die werden nachher entfernt.
-            //logger.error("SceneryArea:inconsistent? empty polygon");
+            //log.error("SceneryArea:inconsistent? empty polygon");
         }
 
     }

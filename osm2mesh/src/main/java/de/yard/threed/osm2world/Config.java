@@ -1,10 +1,11 @@
 package de.yard.threed.osm2world;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.CompositeConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.log4j.Logger;
+
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -23,8 +24,8 @@ import java.util.Map;
  * <p>
  * Created on 30.05.18.
  */
+@Slf4j
 public class Config {
-    Logger logger = Logger.getLogger(Config.class.getName());
     private CompositeConfiguration compositeConfiguration;
     private Configuration defaultconfig = null;
     private static Config instance = null;
@@ -44,10 +45,10 @@ public class Config {
         try {
             reader = new FileReader(configfile);
             source = configfile;
-            logger.info("loaded configuration from filesystem file" + configfile);
+            log.info("loaded configuration from filesystem file" + configfile);
         } catch (FileNotFoundException e) {
 
-            //logger.warn("file not found: " + configfile + ". Trying classpath");
+            //log.warn("file not found: " + configfile + ". Trying classpath");
         }
 
         if (reader == null) {
@@ -55,7 +56,7 @@ public class Config {
             InputStream inputstream = Thread.currentThread().getContextClassLoader().getResourceAsStream(configfile);
             reader = new InputStreamReader(inputstream);
             source = configfile;
-            logger.info("loaded configuration from classpath file " + configfile);
+            log.info("loaded configuration from classpath file " + configfile);
         }
         defaultconfig = loadConfig(reader, source);
         merge(null, null,null);
@@ -120,7 +121,7 @@ public class Config {
             //TODO really needed? fileConfig.setListDelimiter(';');
             config = fileConfig;
         } catch (Exception e) {
-            logger.error("could not read config from " + source + ", ignoring it: " + e.getMessage());
+            log.error("could not read config from " + source + ", ignoring it: " + e.getMessage());
         }
         return config;
     }

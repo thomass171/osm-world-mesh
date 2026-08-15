@@ -2,8 +2,10 @@ package de.yard.threed.osm2graph.osm;
 
 import com.vividsolutions.jts.geom.*;
 
+import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.core.Util;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.*;
 import de.yard.threed.osm2graph.SceneryBuilder;
@@ -13,8 +15,9 @@ import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+
 import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 
 
@@ -22,9 +25,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static de.yard.threed.osm2scenery.scenery.SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
+/*17.3.26 we no longer care about import static de.yard.threed.osm2scenery.scenery.SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
 
 /**
+ * The definition of a grid. This is both a boundary/outline polygon and the smallest rectangle that fully covers the outline.
+ * <p>
  * Es ist doof, im Constructor schon projected MapNodes reinzustecken, denn dafuer muss man vorab schon mal alles verarbeiten. Besser
  * on the fly bei Nutzung.
  * 13.6.18: MapNodes sind doof wegen freier Koordinaten. Mal ohne versuchen. Einfach mit Koordinaten.
@@ -49,18 +54,18 @@ import static de.yard.threed.osm2scenery.scenery.SceneryWayObject.WayOuterMode.G
  * Skizze 51
  * <p>
  * 26.7.19 Durch SMARTGRID kann sich der genaue Verlauf ändern.
- *
+ * 13.2.26: Also DB style uses a boundary now.
  * <p>
  * Created on 02.06.18.
  */
+@Slf4j
 public class GridCellBounds /*implements TargetBounds*/ {
     //16.5.19: Erstmal nur so
     public List<Long> tripnodes;
-    static Logger logger = Logger.getLogger(GridCellBounds.class.getName());
     //public SimplePolygonXZ simplePolygonXZ
-    private Polygon polygon;
-    //CCW?
-    public List<LatLon> coords;
+    private Polygon projectedBoundaryPolygon;
+    //The boundary CCW?
+    public List<GeoCoordinate/*13.2.26 LatLon*/> coords;
     // die dummy MapNodes zu den definierten Eckpunkten. Ergeben sich aus der Projection.
     // die spielen nach dem Rearrange keine Rolle mehr.
     public List<BoundaryNode> basicnodes = new ArrayList<>();
@@ -87,9 +92,9 @@ public class GridCellBounds /*implements TargetBounds*/ {
 
     /**
      * 26.3.24: Deprecated because of new gridless DB approach.
+     * 13.2.26: Even in DB we have multiple meshes/tiles. So not deprecated.
      */
-    @Deprecated
-    public GridCellBounds(List<LatLon> coords) {
+    public GridCellBounds(List<GeoCoordinate/*LatLon*/> coords) throws MeshInconsistencyException {
         instance = this;
         this.coords = coords;
         top = Collections.max(coords, (o1, o2) -> (o1.getLatDeg().getDegree() < o2.getLatDeg().getDegree()) ? -1 : 1).getLatDeg().getDegree();
@@ -114,13 +119,15 @@ public class GridCellBounds /*implements TargetBounds*/ {
         if (topright.z - bottomleft.z > maxextension) {
             maxextension = topright.z - bottomleft.z;
         }
-        // logger.debug("maxextension=" + maxextension);
+        // log.debug("maxextension=" + maxextension);
+        buildBoundaryPolygon(coords);
     }
 
     /**
      * 26.3.24: New gridless DB constructor
+     * 13.2.26: Boundary is equals to outer...
      */
-    public GridCellBounds(double top, double bottom, double left, double right) {
+    public GridCellBounds(double top, double bottom, double left, double right) throws MeshInconsistencyException {
         instance = this;
         this.top = top;
         this.bottom = bottom;
@@ -143,23 +150,28 @@ public class GridCellBounds /*implements TargetBounds*/ {
         if (topright.z - bottomleft.z > maxextension) {
             maxextension = topright.z - bottomleft.z;
         }
+        buildBoundaryPolygon(List.of(
+                LatLon.fromDegrees(top, left),
+                LatLon.fromDegrees(top, right),
+                LatLon.fromDegrees(bottom, right),
+                LatLon.fromDegrees(bottom, left)
+        ));
+    }
 
+    private void buildBoundaryPolygon(List<? extends LatLon> boundary) throws MeshInconsistencyException {
         // copied from init
         de.yard.threed.osm2graph.osm.CoordinateList vl = new de.yard.threed.osm2graph.osm.CoordinateList();
-        vl.add(JTSConversionUtil.vectorXZToJTSCoordinate(OsmUtil.project(projection, LatLon.fromDegrees(top, left))));
-        vl.add(JTSConversionUtil.vectorXZToJTSCoordinate(OsmUtil.project(projection, LatLon.fromDegrees(top, right))));
-        vl.add(JTSConversionUtil.vectorXZToJTSCoordinate(OsmUtil.project(projection, LatLon.fromDegrees(bottom, right))));
-        vl.add(JTSConversionUtil.vectorXZToJTSCoordinate(OsmUtil.project(projection, LatLon.fromDegrees(bottom, left))));
+        boundary.forEach(b-> vl.add(JTSConversionUtil.vectorXZToJTSCoordinate(OsmUtil.project(projection,b))));
         //close polygon
         vl.add(vl.get(0));
-        polygon = JtsUtil.createPolygonFromCoordinateList(vl, false);
-        if (!polygon.isValid()) {
+        projectedBoundaryPolygon = JtsUtil.createPolygonFromCoordinateList(vl, false);
+        if (!projectedBoundaryPolygon.isValid()) {
             throw new RuntimeException("invalid polygon");
         }
     }
 
     //@Override
-    public void init(SceneryProjection projection) {
+    public void init(SceneryProjection projection) throws MeshInconsistencyException {
 
         de.yard.threed.osm2graph.osm.CoordinateList vl = new CoordinateList();
 
@@ -167,7 +179,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
         for (LatLon coor : coords) {
             OSMNode gridosmnode = OsmUtil.buildDummyNode(coor.getLatDeg().getDegree(), coor.getLonDeg().getDegree());
             VectorXZ xz = OsmUtil.project(projection, coor);
-            MapNode gridnode = new MapNode(xz, gridosmnode, MapNode.Location.GRIDNODE);
+            MapNode gridnode = new MapNode(xz, gridosmnode/*17.3.26, MapNode.Location.GRIDNODE*/);
 
             //vl.add(JTSConversionUtil.vectorXZToJTSCoordinate(xz));
             BoundaryNode boundaryNode = new BoundaryNode(gridnode, JTSConversionUtil.vectorXZToJTSCoordinate(xz));
@@ -176,8 +188,8 @@ public class GridCellBounds /*implements TargetBounds*/ {
         }
         //close polygon
         vl.add(vl.get(0));
-        polygon = JtsUtil.createPolygonFromCoordinateList(vl, false);
-        if (!polygon.isValid()) {
+        projectedBoundaryPolygon = JtsUtil.createPolygonFromCoordinateList(vl, false);
+        if (!projectedBoundaryPolygon.isValid()) {
             throw new RuntimeException("invalid polygon");
         }
         for (int i = 0; i < basicnodes.size() - 1; i++) {
@@ -190,7 +202,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
     }
 
     public boolean isInside(VectorXZ vectorXZ) {
-        if (polygon.contains(JtsUtil.GF.createPoint(JTSConversionUtil.vectorXZToJTSCoordinate(vectorXZ)))) {
+        if (projectedBoundaryPolygon.contains(JtsUtil.GF.createPoint(JTSConversionUtil.vectorXZToJTSCoordinate(vectorXZ)))) {
             return true;
         }
         return false;
@@ -206,7 +218,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
     }
 
     public boolean isInside(Coordinate c) {
-        if (polygon.contains(JtsUtil.GF.createPoint(c))) {
+        if (projectedBoundaryPolygon.contains(JtsUtil.GF.createPoint(c))) {
             return true;
         }
         /*for (MapNode n : boundNodes) {
@@ -219,8 +231,8 @@ public class GridCellBounds /*implements TargetBounds*/ {
     }
 
     //@Override
-    public Polygon getPolygon() {
-        return polygon;
+    public Polygon getProjectedBoundaryPolygon() {
+        return projectedBoundaryPolygon;
     }
 
     public SceneryProjection getProjection() {
@@ -272,9 +284,9 @@ public class GridCellBounds /*implements TargetBounds*/ {
      * @return
      * @throws IOException
      */
-    public static GridCellBounds buildGridFromFile(File gridfile) throws IOException {
+    public static GridCellBounds buildGridFromFile(File gridfile) throws IOException, MeshInconsistencyException {
         List<Long> tripnodes = new ArrayList<>();
-        List<LatLon> ids = new ArrayList();
+        List<GeoCoordinate/*LatLon*/> ids = new ArrayList();
         Scanner scanner = new Scanner(gridfile);
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
@@ -287,8 +299,8 @@ public class GridCellBounds /*implements TargetBounds*/ {
                     if (parts.length != 2) {
                         throw new RuntimeException("invalid grid line: " + line);
                     }
-                    ids.add(LatLon.fromDegrees(Double.parseDouble(parts[0]),
-                            Double.parseDouble(parts[1])));
+                    ids.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(Double.parseDouble(parts[0]),
+                            Double.parseDouble(parts[1]))));
                 }
             }
         }
@@ -312,12 +324,14 @@ public class GridCellBounds /*implements TargetBounds*/ {
             return buildGridFromFile(new File(gridfilename));//buildDesdorf();
         } catch (IOException e) {
             //e.printStackTrace();
-            logger.warn("Could not read grid file " + gridfilename + ":" + e.getMessage() + ". Ignoring");
+            log.warn("Could not read grid file " + gridfilename + ":" + e.getMessage() + ". Ignoring");
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
         }
         return null;
     }
 
-    public static GridCellBounds buildFromOsmData(OSMData osmData) {
+    public static GridCellBounds buildFromOsmData(OSMData osmData) throws MeshInconsistencyException {
         if (osmData.getBounds() != null && !osmData.getBounds().isEmpty()) {
 
             Bound firstBound = osmData.getBounds().iterator().next();
@@ -343,7 +357,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
 
     }
 
-    public static GridCellBounds buildFromGeos(double top, double bottom, double left, double right) {
+    public static GridCellBounds buildFromGeos(double top, double bottom, double left, double right) throws MeshInconsistencyException {
 
         // Surrounding is needed for ...?? 16.4.24: No longer use it. Always causes confusion
         double offset = 0.0;//0.01;
@@ -361,14 +375,14 @@ public class GridCellBounds /*implements TargetBounds*/ {
      */
     public boolean extend(Polygon extension) {
         //int intersection=JtsUtil.intersection(polygon,extension);
-        if (!polygon.intersects(extension)) {
+        if (!projectedBoundaryPolygon.intersects(extension)) {
             return false;
         }
-        Geometry newpoly = polygon.union(extension);
+        Geometry newpoly = projectedBoundaryPolygon.union(extension);
         if (newpoly instanceof MultiPolygon) {
             int h = 9;
         }
-        polygon = (Polygon) newpoly;
+        projectedBoundaryPolygon = (Polygon) newpoly;
         return true;
     }
 
@@ -378,12 +392,12 @@ public class GridCellBounds /*implements TargetBounds*/ {
      *
      * @param objects
      */
-    public void rearrangeForWayCut(List<SceneryObject> objects, TerrainMesh tm) {
+    public void rearrangeForWayCut(List<SceneryObject> objects, TerrainMesh tm) throws MeshInconsistencyException {
         if (locked) {
             throw new RuntimeException("locked");
         }
         // bis jetzt besteht der Polygon nur aus den basic nodes.
-        if (polygon.getCoordinates().length - 1 != basicnodes.size()) {
+        if (projectedBoundaryPolygon.getCoordinates().length - 1 != basicnodes.size()) {
             throw new RuntimeException("inconsistent grid");
         }
         //Die cut nodes gruppieren nach der BoundaryLine, auf der sie liegen
@@ -403,8 +417,8 @@ public class GridCellBounds /*implements TargetBounds*/ {
                     throw new RuntimeException("inconsisten");
                 }
 
-                polygon = JtsUtil.replace(polygon, basicnodes.get(i).coordinate, pairsatnode.get(0).coordinatePair.getFirst(), pairsatnode.get(0).coordinatePair.getSecond());
-                Coordinate[] coors = polygon.getCoordinates();
+                projectedBoundaryPolygon = JtsUtil.replace(projectedBoundaryPolygon, basicnodes.get(i).coordinate, pairsatnode.get(0).coordinatePair.getFirst(), pairsatnode.get(0).coordinatePair.getSecond());
+                Coordinate[] coors = projectedBoundaryPolygon.getCoordinates();
                 nodeline[i] = new LineSegment(coors[index], coors[index + 1]);
                 nodewidth[i] = 2;
             } else {
@@ -413,8 +427,8 @@ public class GridCellBounds /*implements TargetBounds*/ {
                 if ((lco = getNearCut(basicnodes.get(i), mapOfCuts)) != null) {
                     CoordinatePair pair = lco.coordinatePair;
 
-                    polygon = JtsUtil.replace(polygon, basicnodes.get(i).coordinate, pair.getFirst(), pair.getSecond());
-                    Coordinate[] coors = polygon.getCoordinates();
+                    projectedBoundaryPolygon = JtsUtil.replace(projectedBoundaryPolygon, basicnodes.get(i).coordinate, pair.getFirst(), pair.getSecond());
+                    Coordinate[] coors = projectedBoundaryPolygon.getCoordinates();
                     nodeline[i] = new LineSegment(coors[index], coors[index + 1]);
                     nodewidth[i] = 2;
                     lco.replacedBasicNode = true;
@@ -426,7 +440,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
 
             index += nodewidth[i];
         }
-        polygon345 = polygon;
+        polygon345 = projectedBoundaryPolygon;
 
         int beforeindex = 0;
         for (int i = 0; i < basicnodes.size(); i++) {
@@ -450,18 +464,18 @@ public class GridCellBounds /*implements TargetBounds*/ {
                             beforevertex = nodeline[nextindex].p0;
                         }
 
-                        Polygon newpolygon = JtsUtil.insert(polygon, beforevertex, lco.coordinatePair.getFirst(), lco.coordinatePair.getSecond());
+                        Polygon newpolygon = JtsUtil.insert(projectedBoundaryPolygon, beforevertex, lco.coordinatePair.getFirst(), lco.coordinatePair.getSecond());
                         if (newpolygon == null) {
                             //was nun??
-                            logger.error("unexpected failure");
+                            log.error("unexpected failure");
                             return;
                         }
-                        polygon = newpolygon;
+                        projectedBoundaryPolygon = newpolygon;
                     }
                 }
             }
         }
-        polygon345a = polygon;
+        polygon345a = projectedBoundaryPolygon;
         //damit niemenad mehr dran rumfummelt und die Coordinates registriert werden können.
         locked = true;
     }
@@ -497,20 +511,20 @@ public class GridCellBounds /*implements TargetBounds*/ {
             }
             WayArea wayArea = way.getWayArea();
             if (wayArea == null) {
-                logger.error("unexpected?");
+                log.error("unexpected?");
                 return;
             }
             if (way.getOsmIdsAsString().contains("37935545")) {
                 int h = 9;
             }
-            if (way.startMode == GRIDBOUNDARY) {
+            /*17.3.26 we no longer care about if (way.startMode == GRIDBOUNDARY) {
                 MapNode mapNode = way.getStartNode();
                 groupMapNode(way.getStartNode(), cuts, wayArea.getStartPair(tm)[0], way);
-            }
-            if (way.endMode == GRIDBOUNDARY) {
+            }*/
+            /*17.3.26 we no longer care about if (way.endMode == GRIDBOUNDARY) {
                 MapNode mapNode = way.getEndNode();
                 groupMapNode(way.getEndNode(), cuts, wayArea.getEndPair()[0], way);
-            }
+            }*/
 
         });
         return cuts;
@@ -532,8 +546,8 @@ public class GridCellBounds /*implements TargetBounds*/ {
             throw new RuntimeException("unknown gridnode " + mapNode.getOsmId());
         }
         Coordinate c = JtsUtil.toCoordinate(mapNode.getPos());
-        int lineindex = JtsUtil.getCoveringLine(c, polygon);
-        final Coordinate endOfLine = polygon.getCoordinates()[lineindex + 1];
+        int lineindex = JtsUtil.getCoveringLine(c, projectedBoundaryPolygon);
+        final Coordinate endOfLine = projectedBoundaryPolygon.getCoordinates()[lineindex + 1];
         if (!cuts.containsKey(lineindex)) {
             cuts.put(lineindex, new ArrayList<>());
         }
@@ -558,7 +572,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
         }
 
         //its OK not to find a pair when its not a lazy cut.
-        //logger.error("coordinate not found on grid:"+c0+c1);
+        //log.error("coordinate not found on grid:"+c0+c1);
         return null;
     }
 
@@ -586,7 +600,7 @@ public class GridCellBounds /*implements TargetBounds*/ {
     }
 
     private void insertWayCut() {
-        Coordinate[] coors = polygon.getCoordinates();
+        Coordinate[] coors = projectedBoundaryPolygon.getCoordinates();
     }
 
     public void lock() {
@@ -598,11 +612,12 @@ public class GridCellBounds /*implements TargetBounds*/ {
     }
 
     public boolean onBoundary(Coordinate coor) {
-        return JtsUtil.onBoundary(coor, polygon);
+        return JtsUtil.onBoundary(coor, projectedBoundaryPolygon);
     }
 
     public boolean isPreDbStyle() {
-        return coords != null;
+        //13.2.26 no longer a criteria return coords != null;
+        return false;
     }
 
     /**
@@ -628,6 +643,10 @@ public class GridCellBounds /*implements TargetBounds*/ {
             this.coordinatePair = coordinatePair;
             this.sfo = sfo;
         }
+    }
+
+    public List<GeoCoordinate> getBoundary() {
+        return coords;
     }
 }
 
@@ -687,4 +706,8 @@ class MetricSceneryProjection implements SceneryProjection {
         return new LatLon(gridCellBounds.origin.getLatDeg().getDegree(), gridCellBounds.origin.getLonDeg().getDegree());
     }
 
+    @Override
+    public Coordinate project(GeoCoordinate geoCoordinate) {
+        return metricMapProjection.project(geoCoordinate);
+    }
 }

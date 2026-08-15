@@ -3,6 +3,7 @@ package de.yard.threed.osm2scenery.modules;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
+import de.yard.threed.core.Util;
 import de.yard.threed.engine.XmlDocument;
 import de.yard.threed.graph.GraphEdge;
 import de.yard.threed.graph.GraphNode;
@@ -18,14 +19,8 @@ import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupFinder;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
-import de.yard.threed.osm2scenery.scenery.CustomData;
-import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
-import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
-import de.yard.threed.osm2scenery.scenery.SceneryObject;
-import de.yard.threed.osm2scenery.scenery.SceneryObjectFactory;
-import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
-import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
-import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
@@ -49,12 +44,10 @@ import de.yard.threed.osm2world.TextureData;
 import de.yard.threed.osm2world.ValueStringParser;
 import de.yard.threed.osm2world.VectorXZ;
 import de.yard.threed.traffic.NodeCoord;
-import de.yard.threed.traffic.geodesy.GeoCoordinate;
-import de.yard.threed.trafficfg.flight.GroundNet;
-import de.yard.threed.trafficfg.flight.Parking;
-import de.yard.threed.trafficfg.flight.TaxiwayNode;
+import de.yard.threed.core.GeoCoordinate;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+
 
 import java.awt.*;
 import java.io.File;
@@ -77,12 +70,12 @@ import java.util.Map;
  * road graph entsteht hier nicht, den macht HighwayModule.
  * created 20.4.19
  */
+@Slf4j
 public class AerowayModule extends SceneryModule {
-    static Logger logger = Logger.getLogger(AerowayModule.class);
     boolean foundrunway = false;
     //soll eigentlich 0.3 sein, 1.8 hat zum Tests aber bessere Erkennbarkeit.
     public static double GROUNDNETMARKERWIDTH = 1.8f;
-    GroundNet groundNet = null;
+    //23.3.26 Avoid dependency to tcp-flightgear GroundNet groundNet = null;
     //Taxiways taxiways = null;
     /*20.4.19 public AerowayModule(RenderData renderdata) {
         super();
@@ -105,18 +98,18 @@ public class AerowayModule extends SceneryModule {
         if (osmDatasetName.contains("EDDK")) {
             loadGroundnet(converter.getProjection());
         }
-        if (groundNet != null) {
+        /*23.3.26 Avoid dependency to tcp-flightgear if (groundNet != null) {
             GroundNetToMapDataConverter.convert(groundNet, mapData, converter);
-        }
+        }*/
     }
 
     @Override
     public SceneryObjectList applyTo(MapData mapData) {
-        if (groundNet != null) {
+        /*23.3.26 Avoid dependency to tcp-flightgear if (groundNet != null) {
 
-        }
+        }*/
         Apron apron = null;
-        //logger.debug("apply " + grid);
+        //log.debug("apply " + grid);
 
         //noch nicht AerowayModule.TaxiwayArea ta = new AerowayModule.TaxiwayArea();
         //aerowayobjects.add(ta);
@@ -130,7 +123,7 @@ public class AerowayModule extends SceneryModule {
             }
             if (isRunway(mapway.getTags()) && tagfilter.isAccepted(mapway.getTags())) {
                 long osmid = mapway.getOsmId();
-                logger.debug("found runway ");
+                log.debug("found runway ");
                 foundrunway = true;
 
                 Runway runway = new Runway(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/);
@@ -145,11 +138,12 @@ public class AerowayModule extends SceneryModule {
                 //runway.addToWayMap(SceneryObject.Category.RUNWAY);
             } else {
                 //don't mix OSM taxiways with dedicated groundnet
-                if ((groundNet != null && mapway.getOsmId() < 0) || groundNet == null && mapway.getOsmId() > 0) {
+                /*23.3.26 Avoid dependency to tcp-flightgear if ((groundNet != null && mapway.getOsmId() < 0) || groundNet == null && mapway.getOsmId() > 0) {
                     if (isTaxiway(mapway.getTags()) || isParkingTaxiway(mapway.getTags())) {
                         addTaxiway(mapway, materialmap, SceneryContext.getInstance());
                     }
-                }
+                }*/
+                Util.nomore();
             }
         }
 
@@ -228,9 +222,10 @@ public class AerowayModule extends SceneryModule {
         try {
             String groundnetdefinition = FileUtils.readFileToString(new File(src));
             XmlDocument groundnetxml = XmlDocument.buildXmlDocument(groundnetdefinition);
-            groundNet = new GroundNet(null, null, groundnetxml, null);
+            //23.3.26 Avoid dependency to tcp-flightgear groundNet = new GroundNet(null, null, groundnetxml, null);
+            Util.nomore();
         } catch (Exception e) {
-            logger.error("loading groundnet failed");
+            log.error("loading groundnet failed");
         }
     }
 
@@ -239,7 +234,7 @@ public class AerowayModule extends SceneryModule {
      * zum Teil definiertes Apron ist, zum Teil Apron aber auch vergrößert.
      */
     private void addTaxiway(MapWay mapway, TagMap materialmap, SceneryContext sceneryContext) {
-        //logger.debug("found taxiway");
+        //log.debug("found taxiway");
         TaxiWayCustomData taxiWayCustomData = new TaxiWayCustomData(mapway);
         SceneryWayObject taxiway = SceneryObjectFactory.createTaxiway(mapway, materialmap, taxiWayCustomData, sceneryContext);
         //aerowayobjects.add(taxiway/*area*/);
@@ -253,12 +248,17 @@ public class AerowayModule extends SceneryModule {
         // So ähnlich scheint das auch die OSM Map zu machen.
         //die Breite eines Taxiway ist nicht herleitbar? 50 ist zumindest in EEDK zu breit; optisch und schneidet in Grünflächen.
         double width = 30;
-        AbstractArea ta = WayArea.buildOutlinePolygonFromCenterLine(taxiway.getGraphComponent().getCenterLine(), taxiway.effectiveNodes/*mapway.getMapNodes()*/, width, this, Materials.ASPHALT);
+        AbstractArea ta = null;
+        try {
+            ta = WayArea.buildOutlinePolygonFromCenterLine(taxiway.getGraphComponent().getCenterLine(), taxiway.mapWay.getMapNodes()/*mapway.getMapNodes()*/, width, this, Materials.ASPHALT, mapway.segment2s.get(0));
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         if (ta != null) {
             //26.8.19: Das ist hier wohl nicht mehr ganz koscher.
             //27.3.24 TerrainMesh isn't yet available here!
             TerrainMesh tm = null;
-            logger.warn("no TerrainMesh");
+            log.warn("no TerrainMesh");
             if (taxiwayarea == null) {
                 if (!ta.isEmpty(tm)) {
                     taxiwayarea = ta.poly.uncutPolygon;
@@ -269,7 +269,7 @@ public class AerowayModule extends SceneryModule {
                 }
             }
         } else {
-            logger.error("taxiway area segment failed");
+            log.error("taxiway area segment failed");
         }
 
     }
@@ -337,7 +337,6 @@ public class AerowayModule extends SceneryModule {
             //super(line);
             super("Runway", null, Category.RUNWAY, null);
             osmIds.add(mapWay.getOsmId());
-            logger = Logger.getLogger(Runway.class.getName());
 
             this.tags = mapWay.getTags();//tags;
             String ref = tags.getValue("ref");
@@ -423,12 +422,12 @@ public class AerowayModule extends SceneryModule {
         /**
          * Erstmal alle Segmente anlegen. Beim cut werden die ausserhalb liegenden entfernt.
          *
-         * @param objects
+         * @param
          * @param gridbounds
          * @return
          */
         @Override
-        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+        public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
             double width = 60;
             String s = tags.getValue("width");
             if (s != null) {
@@ -463,6 +462,12 @@ public class AerowayModule extends SceneryModule {
             }
             flatComponent = segments;
             return null;
+        }
+
+        @Override
+        public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+
+            return ;
         }
 
         @Override
@@ -568,7 +573,7 @@ public class AerowayModule extends SceneryModule {
          * TODO in super bzw. nicht erforderlich?
          */
         @Override
-        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+        public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
             return null;
         }
     }
@@ -578,7 +583,6 @@ public class AerowayModule extends SceneryModule {
  * Einen cut der Runway will ich eigentlich durch das Grid vermeiden. Wenn doch, erfolgt hier normal der cut ueber Area.
  */
 class RunwayArea extends Area {
-    static Logger logger = Logger.getLogger(RunwayArea.class);
 
     public VectorXZ startCoord, endCoord;
 
@@ -621,14 +625,14 @@ class RunwayArea extends Area {
 
 
 class Taxiways {
-    Logger logger = Logger.getLogger(Taxiways.class);
 
 
 }
 
+@Slf4j
 class GroundNetToMapDataConverter {
-    static Logger logger = Logger.getLogger(GroundNetToMapDataConverter.class);
 
+    /*23.3.26 Avoid dependency to tcp-flightgear
     public static void convert(GroundNet groundNet, MapData mapData, OSMToSceneryDataConverter converter) {
         for (int i = 0; i < groundNet.groundnetgraph.getBaseGraph().getEdgeCount(); i++) {
             //TODO werden das nicht zu viele Nodes?
@@ -660,11 +664,11 @@ class GroundNetToMapDataConverter {
             converter.addWayToMapData(way, mapData);
 
         }
-    }
+    }*/
 
     private static OSMNode buildOSMNode(GraphNode graphNode) {
         GeoCoordinate coor = null;
-        if (graphNode.customdata instanceof Parking) {
+       /*23.3.26 Avoid dependency to tcp-flightgear  if (graphNode.customdata instanceof Parking) {
             Parking parking = (Parking) graphNode.customdata;
             coor = parking.coor;
 
@@ -675,8 +679,9 @@ class GroundNetToMapDataConverter {
             TaxiwayNode taxiwayNode = (TaxiwayNode) graphNode.customdata;
             coor = taxiwayNode.coor;
         }
+        */
         if (coor == null) {
-            logger.error("unknown groundnet node " + graphNode.customdata);
+            log.error("unknown groundnet node " + graphNode.customdata);
             return null;
         }
         OSMNode osmNode = OsmUtil.buildDummyNode(coor.getLatDeg().getDegree(), coor.getLonDeg().getDegree());

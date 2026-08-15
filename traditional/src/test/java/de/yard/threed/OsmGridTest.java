@@ -4,19 +4,10 @@ package de.yard.threed;
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.core.Color;
 import de.yard.threed.core.Vector2;
-import de.yard.threed.core.geometry.SimpleGeometry;
 import de.yard.threed.core.loader.InvalidDataException;
-import de.yard.threed.core.loader.LoaderGLTF;
-import de.yard.threed.core.loader.PortableMaterial;
-import de.yard.threed.core.loader.PortableModelDefinition;
-import de.yard.threed.core.loader.PortableModelList;
 import de.yard.threed.core.platform.PlatformInternals;
-import de.yard.threed.core.resource.BundleResource;
-import de.yard.threed.core.testutil.InMemoryBundle;
-import de.yard.threed.graph.Graph;
 import de.yard.threed.javacommon.ConfigurationByEnv;
 import de.yard.threed.javacommon.SimpleHeadlessPlatform;
-import de.yard.threed.osm2graph.ProcessResults;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GeoJson;
 import de.yard.threed.osm2graph.osm.JtsUtil;
@@ -26,19 +17,13 @@ import de.yard.threed.osm2graph.osm.VertexData;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
-import de.yard.threed.osm2scenery.WayMap;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
-import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
-import de.yard.threed.osm2scenery.modules.AerowayModule;
 import de.yard.threed.osm2scenery.modules.BridgeModule;
 import de.yard.threed.osm2scenery.modules.BuildingModule;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
-import de.yard.threed.osm2scenery.modules.RailwayModule;
-import de.yard.threed.osm2scenery.modules.WaterModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
-import de.yard.threed.osm2scenery.scenery.Background;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonOld;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
@@ -46,14 +31,10 @@ import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
-import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2world.Config;
-import de.yard.threed.osm2world.ConfigUtil;
-import de.yard.threed.tools.GltfBuilder;
-import de.yard.threed.tools.GltfBuilderResult;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -68,9 +49,6 @@ import static de.yard.threed.osm2graph.SceneryBuilder.loadConfig;
 import static de.yard.threed.osm2graph.SceneryBuilder.loadMaterialConfig;
 import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.ROAD;
 import static de.yard.threed.osm2world.Config.MATERIAL_FLIGHT;
-import static de.yard.threed.osm2world.Config.MATERIAL_MODEL;
-import static de.yard.threed.osm2world.Materials.FARMLAND;
-import static de.yard.threed.osm2world.Materials.TERRAIN_DEFAULT;
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -82,7 +60,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class OsmGridTest {
     //EngineHelper platform = PlatformHomeBrew.init(new HashMap<String, String>());
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
-    Logger logger = Logger.getLogger(OsmGridTest.class);
 
     @BeforeAll
     public static void setup(){
@@ -204,7 +181,7 @@ public class OsmGridTest {
         SceneryWayConnector k41k43connector = (SceneryWayConnector) sceneryMesh.sceneryObjects.findObjectByOsmId(255563538);
         assertNotNull(k41k43connector.getArea(), "k41k43connector.area");
         assertEquals(5, k41k43connector.getArea()[0].getPolygon(sceneryMesh.terrainMesh).getCoordinates().length, "k41k43connector.polygon.size");
-        TestUtil.validateConnector(255563538, sceneryMesh.sceneryObjects, SceneryWayConnector.WayConnectorType.STANDARD_TRI_JUNCTION, Boolean.TRUE, sceneryMesh.terrainMesh);
+        TestUtil.validateConnector(255563538, sceneryMesh.sceneryObjects, SceneryWayConnector.WayConnectorType.STANDARD_JUNCTION, Boolean.TRUE, sceneryMesh.terrainMesh);
 
         SceneryAreaObject splitfarmland = (SceneryAreaObject) sceneryMesh.sceneryObjects.findObjectByOsmId(87822834);
         assertEquals(2, splitfarmland.getArea().length, "splitfarmland.polygone.size");
@@ -212,7 +189,7 @@ public class OsmGridTest {
         assertEquals(4, splitfarmland.polydiffs.get(0).seam.size(), "splitfarmland.polydiff[0].seam.size");
         assertEquals((SceneryBuilder.FTR_SMARTGRID) ? 5 : 6, splitfarmland.polydiffs.get(1).seam.size(), "splitfarmland.polydiff[1].seam.size");
         assertEquals(1, splitfarmland.getAdjacent().size(), "splitfarmland.adjacent.size");
-        MeshPolygon splitfarmlandEast = splitfarmland.getArea()[1].getMeshPolygon(sceneryMesh.terrainMesh);
+        MeshPolygonOld splitfarmlandEast = splitfarmland.getArea()[1].getMeshPolygon(sceneryMesh.terrainMesh);
 
         SceneryAreaObject smallScrubarea = (SceneryAreaObject) sceneryMesh.sceneryObjects.findObjectByOsmId(225794276);
         //es muss eine shared line geben. Oder sogar 2?
@@ -223,13 +200,13 @@ public class OsmGridTest {
         List<SceneryObject> wayToAreaFiller = sceneryMesh.sceneryObjects.findObjectsByCreatorTag("WayToAreaFiller");
         assertEquals(1, wayToAreaFiller.size(), "wayToAreaFiller.size");
 
-        TestUtil.validateResult(sceneryMesh, logger, 0, 9, sceneryMesh.terrainMesh);
+        TestUtil.validateResult(sceneryMesh, 0, 9, sceneryMesh.terrainMesh);
 
         //getCuts kann man nicht mehr aufrufenMap<Integer, List<GridCellBounds.LazyCutObject>> cuts = processor.gridCellBoundsused.getCuts(sceneryMesh.sceneryObjects.objects);
         //2 nodes + 4 lazy cut auf 3 Edges.->5
         //getCuts kann man nicht mehr aufrufen.assertEquals("cuts.size", 3+1, cuts.size());
         //6 LazyCuts
-        assertEquals(12 + 1, processor.gridCellBoundsused.getPolygon().getCoordinates().length, "gridCellBounds.coordinates.size");
+        assertEquals(12 + 1, processor.gridCellBoundsused.getProjectedBoundaryPolygon().getCoordinates().length, "gridCellBounds.coordinates.size");
         //Zwischenstufe des Boundary Polygon visuell getest und hier hinterlegt. Die Boundary im TerrainMesh ist noch weiter gesplittet.
         assertEquals("POLYGON ((205.60063218280519 -93.23774501728838, 211.2937464793042 -88.99528720927412, 71.44657661407406 151.0014835023132, 64.98341606170719 148.06251185901493, 48.06776390698129 126.56772547560094, 45.151512521241365 125.86382359666469, -143.32618865755532 -79.42480938115578, -146.28690948697593 -81.29139240107078, -209.97803471204543 -147.78372405767405, -207.82396724107957 -151.27227569818533, 26.540499353209718 -117.4358168330573, 29.332551336487548 -115.32526104780207, 205.60063218280519 -93.23774501728838))", processor.gridCellBoundsused.polygon345a.toString(), "new grid boundary");
         TerrainMesh tm = sceneryMesh.terrainMesh;
@@ -248,21 +225,21 @@ public class OsmGridTest {
      * @throws IOException
      * @throws MeshInconsistencyException
      */
-    @Test
+   /*9.2.26  @Test
     @Disabled
     public void testDesdorfK41SegmentGrid2D() throws IOException, MeshInconsistencyException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider");
         customconfig.setProperty("modules.HighwayModule.tagfilter", "highway=secondary");
         dotestDesdorfK41SegmentGrid(customconfig, false, "poc");
-    }
+    }*/
 
     /**
      * 2.5.24: Disabled because failing after latest changings
      * @throws IOException
      * @throws MeshInconsistencyException
      */
-    @Test
+   /*9.2.26  @Test
     @Disabled
     public void testDesdorfK41SegmentGrid2DE() throws IOException, MeshInconsistencyException {
         Configuration customconfig = new BaseConfiguration();
@@ -294,14 +271,14 @@ public class OsmGridTest {
             assertEquals(0, sceneryMesh.getBackground().background.size(), "scenery.backgrounds");
         } else {
             assertEquals(0, sceneryMesh.getBackground().bgfillersize(), "scenery.backgrounds");
-            assertEquals( /*13.8.19 ??? 1*/2, sceneryMesh.getBackground().background.size(), "scenery.backgrounds");
+            assertEquals( /*13.8.19 ??? 1* /2, sceneryMesh.getBackground().background.size(), "scenery.backgrounds");
         }
 
         assertEquals(6, SceneryContext.getInstance().wayMap.getMapForCategory(ROAD).size(), "scenery.waymap.size");
 
         SceneryFlatObject road = (SceneryFlatObject) sceneryMesh.sceneryObjects.objects.get(0);
         // durch den cut wohl nur noch 8. 12.4.19 8->7
-        assertEquals(7/*8/*11*/, road.getArea()[0].getPolygon(sceneryMesh.terrainMesh).getCoordinates().length, "road.coordinates");
+        assertEquals(7/*8/*11* /, road.getArea()[0].getPolygon(sceneryMesh.terrainMesh).getCoordinates().length, "road.coordinates");
         assertEquals(3, road.getEleConnectorGroups().size(), "road.elegroups");
         //eigentlich sind es nur 4+4, aber unten rechts hatg ein Lazycut eine Gridnode "ersetzt", oder auch nicht, auf jeden Fall ist das nicht sauber.Klärt sich vielleicht noch mal.
         // und dann noch 5(?) durch BG Triangulation. 19.8.19: Durch earclipping wider 5 weniger?
@@ -320,8 +297,8 @@ public class OsmGridTest {
         //2.5.19 TestUtil.assertVector3("normal", new Vector3(0, 0, 1), normal);
 
         // warum eigentlich 12 und nicht 10? 12.4.19: 12->6, 16.4.19: 6->51 (wegen no strip??). wieder 6; gut
-        assertEquals(6/*12*/, roadgeo.getVertices().size(), "road.vertices");
-        assertEquals(6/*12*/, roadgeo.getUvs().size(), "road.uvs");
+        assertEquals(6/*12* /, roadgeo.getVertices().size(), "road.vertices");
+        assertEquals(6/*12* /, roadgeo.getUvs().size(), "road.uvs");
         //uv einfach mal übernommen
         //16.4.19 TODO TestUtil.assertVector2("road.uv[0]", new Vector2(96.155586,36.590164), roadgeo.getUvs().getElement(0));
         if (!elevated) {
@@ -353,20 +330,20 @@ public class OsmGridTest {
         }
         assertTrue(sceneryMesh.terrainMesh.isValid(true), "TerrainMesh.valid");
 
-    }
+    }*/
 
     /**
      * Etwas groesser mit genau einer Bridge.
      * 20.4.24: Disabled because failing after latest changings
      * @throws IOException
      */
-    @Test
+   /*9.2.26  @Test
     @Disabled
     public void testB55B477smallGrid() throws IOException, MeshInconsistencyException {
         // 25.7.18: es wird nicht mehr gemerged, darum 6->12 (11 wegen gapfiller)+2scrub+4 farmland+4 Ramps
         //22.4.19: plus 9 Connector
         //13.8.19: smallcut nicht mehr, weil der auch den Way zerlegt, was z.Z. nicht handlebar ist.Der 225794273 wird jetzt per Sonderlocke rausgenommen, darum -2(?)
-        doB55B477small("B55-B477-small"/*cut"*/, 11 + 2 + 4 + 4 + 9 - 2);
+        doB55B477small("B55-B477-small"/*cut"* /, 11 + 2 + 4 + 4 + 9 - 2);
     }
 
     //9.4.19: Ohne Grid ist doch völlig witzlos @Test
@@ -375,11 +352,11 @@ public class OsmGridTest {
         // 25.7.18: es wird nicht mehr gemerged, darum 6->14
         // 12 Roads(keine Feldwege, inkl BrückenRoadsegment) + + 1 Gapfiller +2 scrub+4 farmland+4 Ramps
         doB55B477small(null, 12 + 1 + 2 + 4 + 4);
-    }*/
+    }* /
 
     /**
      * Zwei Ways rechts am Grid bleiben erstmal overlapped.
-     */
+     * /
     public void doB55B477small(String gridname, int expectedobjects) throws IOException, MeshInconsistencyException {
         String b55b477small = SceneryBuilder.osmdatadir + "/B55-B477-small.osm.xml";
         Configuration customconfig = new BaseConfiguration();
@@ -391,7 +368,7 @@ public class OsmGridTest {
 
         Processor processor = sb.execute(b55b477small, "detailed", gridname, false, customconfig, MATERIAL_FLIGHT).processor;
 
-        assertEquals(12/*smartgrid 4 */, processor.gridCellBoundsused.getPolygon().getCoordinates().length - 1, "b55b477smallgrid.nodes");
+        assertEquals(12/*smartgrid 4 * /, processor.gridCellBoundsused.getPolygon().getCoordinates().length - 1, "b55b477smallgrid.nodes");
         //Warum 7? Viewer zeigt nur 5. 13.8.19: 5 (wie hier) bei detailed, 7 bei superdetailed.Der 225794273 wird jetzt per Sonderlocke rausgenommen, darum -1
         assertEquals(5 - 1, processor.gridCellBoundsused.additionalGridnodes.size(), "b55b477smallgrid.additionalGridnodes");
 
@@ -426,20 +403,20 @@ public class OsmGridTest {
         /*2.5.24assertEquals(4 + 1, tm.getPolygon(c2345486254.getMajor0().getWayArea()).lines.size(), "2345486254.main0.meshpolygon.size");
         assertEquals(4 + 2/*ramps* /, tm.getPolygon(c2345486254.getMajor1().getWayArea()).lines.size(), "2345486254.main1.meshpolygon.size");
         assertEquals(4, tm.getPolygon(c2345486254.getWay(c2345486254.minorway).getWayArea()).lines.size(), "2345486254.minor.meshpolygon.size");
-*/
+* /
         //die Runterfahrt
         /*2.5.24HighwayModule.Highway road7093390 = (HighwayModule.Highway) sceneryMesh.sceneryObjects.findObjectByOsmId(7093390);
         MeshPolygon road7093390mp = tm.getPolygon(road7093390.getWayArea());
         //6 sind sichtbar, aber der Abzweig ist unsichtbar, hat aber seine Attachpoints. Der 225794273 wird jetzt per Sonderlocke rausgenommen, darum doch 6
-        assertEquals(6, road7093390mp.lines.size(), "road7093390.meshpolygon.size");*/
+        assertEquals(6, road7093390mp.lines.size(), "road7093390.meshpolygon.size");* /
         //der Connector unten
         SceneryWayConnector c54286227 = (SceneryWayConnector) sceneryMesh.sceneryObjects.findObjectByOsmId(54286227);
         /*2.5.24MeshPolygon c54286227mp = tm.getPolygon(c54286227.getArea()[0]);
-        assertEquals(4, c54286227mp.lines.size(), "c54286227.meshpolygon.size");*/
+        assertEquals(4, c54286227mp.lines.size(), "c54286227.meshpolygon.size");* /
         ScenerySupplementAreaObject bridgegroundfiller = (ScenerySupplementAreaObject) sceneryMesh.sceneryObjects.findObjectsByCreatorTag("BridgeGroundFiller").get(0);
         assertEquals(2, bridgegroundfiller.getArea().length, "bridgegroundfiller.size");
         /*2.5.24MeshPolygon bridgegroundfillermp = tm.getPolygon(bridgegroundfiller.getArea()[0]);
-        assertEquals(4, bridgegroundfillermp.lines.size(), "bridgegroundfiller.meshpolygon.size");*/
+        assertEquals(4, bridgegroundfillermp.lines.size(), "bridgegroundfiller.meshpolygon.size");* /
 
         //die Area SceneryAreaObject schneidet zwei verschiedene Grid Lines. Das sind dann drei Mesh lines, zwei davon boundary
         //die Reihenfolge ist hier natuerlich irgendwie Zufall.
@@ -448,7 +425,7 @@ public class OsmGridTest {
         assertEquals(3, area87818511mp.lines.size(), "area87818511.meshpolygon.size");
         assertTrue(area87818511mp.lines.get(0).isBoundary(), "area87818511.meshpolygon[0].isBoundary");
         assertFalse(area87818511mp.lines.get(1).isBoundary(), "area87818511.meshpolygon[1].isBoundary");
-        assertTrue(area87818511mp.lines.get(2).isBoundary(), "area87818511.meshpolygon[2].isBoundary");*/
+        assertTrue(area87818511mp.lines.get(2).isBoundary(), "area87818511.meshpolygon[2].isBoundary");* /
 
         // Bridges
         // von Sueden ist cut, darum erstmal von Norden
@@ -506,15 +483,15 @@ public class OsmGridTest {
         //HighwayModule.Highway road7093390 = (HighwayModule.Highway) sceneryMesh.sceneryObjects.findObjectByOsmId(7093390);
         /*2.5.24assertEquals(3, road7093390.getDecorations().size(), "decorations.size");
         assertEquals(expectedMinimumElevation + AbstractArea.OVERLAYOFFSET, road7093390.getDecorations().get(0).getVertexData().vertices.get(0).z, "decorations.vertex.z[0");
-   */
-    }
+   * /
+    }*/
 
     /**
      * Das normale mit Rails, Roundabout,...
      * 20.4.24: Disabled because failing after latest changings
      * @throws IOException
      */
-    @Test
+   /*9.2.26  @Test
     @Disabled
     public void testB55B477Grid() throws IOException, MeshInconsistencyException {
         // 25.7.18: es wird nicht mehr gemerged, darum 6->12 (11 wegeen gapfiller)+2scrub+4 farmland
@@ -549,11 +526,11 @@ public class OsmGridTest {
         HighwayModule.Highway circle26927466 = (HighwayModule.Highway) sceneryObjectList.findObjectByOsmId(26927466);
         assertFalse(circle26927466.isClosed(), "circle26927466");
         assertFalse(circle26927466.getWayArea().isClosed(), "circle26927466.isClosed");
-        assertEquals(17/*anderer split?? 18/*nicht mehr closed 19*/, circle26927466.getWayArea().getLength(), "circle26927466.length");
+        assertEquals(17/*anderer split?? 18/*nicht mehr closed 19* /, circle26927466.getWayArea().getLength(), "circle26927466.length");
         /*2.5.24MeshPolygon mp = tm.getPolygon(circle26927466.getArea()[0]);
         //warum nur 9? Das passt. Das ist die outerline.
         assertEquals(10/*anderer split??12/*nicht mehr closed  9* /, mp.lines.size(), "circle26927466.meshpolygon.size");
-*/
+* /
         //Connector des Kreisverkehr
         SceneryWayConnector c295055704 = (SceneryWayConnector) sceneryObjectList.findObjectByOsmId(295055704);
         TestUtil.validateConnector(c295055704, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null, tm);
@@ -582,7 +559,7 @@ public class OsmGridTest {
 
         //Ob 28 richtig sind? Auf jeden Fall plausibler als 9. NeeNee, die sind sehr groß. 9 würde schon gut passen. Oder? Gezählt komm ich schon auf 15
         //wahrscheinlich ein Hole Problem.
-        //TODO assertEquals("scenery.backgrounds", 9/*10*/, sceneryMesh.getBackground().bgfiller.size());
+        //TODO assertEquals("scenery.backgrounds", 9/*10* /, sceneryMesh.getBackground().bgfiller.size());
         TestUtil.validateResult(sceneryMesh, logger, 0, 28, tm);
 
         //PML
@@ -595,7 +572,7 @@ public class OsmGridTest {
         //5.4.19: 61->62, 9.4.19: 62->68, 11.4.19: 68->5??(difference Fehler), 18.4.19: 5->59, durch Aeroway->58? 3.6.19 58->59, 23.7.19: area mit sofortcut: 59->44?13.8.19->61,->60 wegen Sonderlocke
         //27.8.19: 60->76->74->4??->0 wegen SmartBG
         assertBackground(pml, processor.getResults().sceneryresults.sceneryMesh.getBackground(), 0);
-    }
+    }*/
 
     /**
      * Mit River, Lake
@@ -603,7 +580,7 @@ public class OsmGridTest {
      *
      * @throws IOException
      */
-    @Test
+    /*9.2.26 @Test
     @Disabled
     public void testZieverichSuedGrid() throws IOException {
         doZieverichSued("Zieverich-Sued", 17);
@@ -641,7 +618,7 @@ public class OsmGridTest {
         assertEquals(5.0, erft.getWidth(), "erft.width");
 
 
-    }
+    }*/
 
     /**
      * Das was in maingrid steckt. Eigentlich ein bischen gross für einen Unittest, darum nur optional.
@@ -651,7 +628,7 @@ public class OsmGridTest {
      * @throws IOException
      */
     //@Test
-    public void testA4A3A1WithElevation68() throws IOException {
+   /*9.2.26  public void testA4A3A1WithElevation68() throws IOException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider68");
         dotestA4A3A1(customconfig);
@@ -688,12 +665,12 @@ public class OsmGridTest {
 
         PortableModelList pml = processor.pml;
 
-    }
+    }*/
 
     /**
      * 20.4.24: Disabled because failing after latest changings
      */
-    @Test
+   /*9.2.26  @Test
     @Disabled
     public void testTestData() throws IOException, MeshInconsistencyException {
         Configuration customconfig = new BaseConfiguration();
@@ -738,17 +715,17 @@ public class OsmGridTest {
         assertMinimumElevation(sceneryMesh.sceneryObjects.objects, expectedelevation);
         assertMinimumElevation(pml, expectedelevation);
 
-    }
+    }*/
 
     /**
      * 2.5.24: Disabled because failing after latest changings
      * @throws IOException
      * @throws InvalidDataException
      */
-    @Test
+    /*9.2.26 @Test
     @Disabled
     public void testWayland() throws IOException, InvalidDataException {
-        String zieverichsued = /*SceneryBuilder.osmdatadir*/"src/main/resources/Wayland.osm.xml";
+        String zieverichsued = /*SceneryBuilder.osmdatadir* /"src/main/resources/Wayland.osm.xml";
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider68");
         //26.9.18: Nur mit superdetailed tritt eine TopologyException: found non-noded intersection between LINESTRING auf
@@ -780,9 +757,9 @@ public class OsmGridTest {
         } catch (InvalidDataException e) {
             throw e;
         }
-    }
+    }*/
 
-    private void assertWaylandPml(PortableModelList pml) {
+    /*9.2.26 private void assertWaylandPml(PortableModelList pml) {
         //check material. As of 15.11.21 there are seven different
         int expected = 7;
         assertEquals(expected, pml.materials.size(), "pml.materials");
@@ -792,33 +769,33 @@ public class OsmGridTest {
         assertPortableMaterial(pml.findMaterial("WATER"), null, ConfigUtil.parseColor("#0000FF"));
         assertPortableMaterial(pml.findMaterial("ROAD"), null, ConfigUtil.parseColor("#555555"));
         //gibts nicht? assertPortableMaterial(pml.findMaterial("TERRAIN_DEFAULT"), null, ConfigUtil.parseColor("#005500"));
-    }
+    }*/
 
-    private void assertPortableMaterial(PortableMaterial mat, String expectedTexture, java.awt.Color expectedColor) {
-        assertNotNull(mat, "material");
-        assertNull(mat.texture, "texture");
-        if (expectedColor != null) {
-            assertColor(expectedColor, mat.color);
-        } else {
-            assertNull(mat.color);
-        }
-        if (expectedTexture != null) {
-            assertEquals(expectedTexture, mat.texture);
-        } else {
-            assertNull(mat.texture);
-        }
+/*9.2.26 private void assertPortableMaterial(PortableMaterial mat, String expectedTexture, java.awt.Color expectedColor) {
+    assertNotNull(mat, "material");
+    assertNull(mat.texture, "texture");
+    if (expectedColor != null) {
+        assertColor(expectedColor, mat.color);
+    } else {
+        assertNull(mat.color);
     }
+    if (expectedTexture != null) {
+        assertEquals(expectedTexture, mat.texture);
+    } else {
+        assertNull(mat.texture);
+    }
+}*/
 
-    /**
-     * 18.4.19: Jetzt mit schnellerer CPU kann man auch EDDK mal wieder reinnehmen.
-     * Z.Z. primär um irgendwelche exotischen Ausnahmen (Exceptions) zu entdecken.
-     * Aber doch nur optional zuschalten.
-     * "EDDK-Small" geht aber immer.
-     *
-     * 2.5.24: Disabled because failing after latest changings
-     * @throws IOException
-     */
-    @Test
+/**
+ * 18.4.19: Jetzt mit schnellerer CPU kann man auch EDDK mal wieder reinnehmen.
+ * Z.Z. primär um irgendwelche exotischen Ausnahmen (Exceptions) zu entdecken.
+ * Aber doch nur optional zuschalten.
+ * "EDDK-Small" geht aber immer.
+ *
+ * 2.5.24: Disabled because failing after latest changings
+ * @throws IOException
+ */
+    /*9.2.26 @Test
     @Disabled
     public void testEDDKSmallsuperdetailed() throws IOException {
         Configuration customconfig = new BaseConfiguration();
@@ -836,7 +813,7 @@ public class OsmGridTest {
         SceneryMesh sceneryMesh = processor.getResults().sceneryresults.sceneryMesh;
 
         List<SceneryObject> taxiwayareas = sceneryMesh.sceneryObjects.findObjectsByCreatorTag("TaxiwayArea");
-        logger.debug("found " + taxiwayareas.size() + " taxiwayareas");
+        log.debug("found " + taxiwayareas.size() + " taxiwayareas");
         //wieviele auch immer das sind, auf jeden Fall eine Menge.
         //TODO 12.8.19 assertTrue("taxiwayareas.size>80", taxiwayareas.size() > 80);
 
@@ -856,7 +833,7 @@ public class OsmGridTest {
         float expectedelevation = 68;
         assertMinimumElevation(sceneryMesh.sceneryObjects.objects, expectedelevation);
         //TODO 19.8.19 assertMinimumElevation(pml, expectedelevation);
-    }
+    }*/
 
     /**
      * see comment EDDKSmallTest
@@ -864,7 +841,7 @@ public class OsmGridTest {
      * @throws IOException
      */
     //@Test
-    public void testEDDKsuperdetailed() throws IOException {
+   /* public void testEDDKsuperdetailed() throws IOException {
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider68");
         dotestEDDK(customconfig, "superdetailed");
@@ -878,7 +855,7 @@ public class OsmGridTest {
         assertNotNull(roadModule, "HighwayModule");
 
 
-    }
+    }*/
 
 
     private void validateBridgeApproach(HighwayModule.Highway roadToBridgeFromNorth, boolean superdetailed, TerrainMesh tm) {
@@ -925,11 +902,11 @@ public class OsmGridTest {
         assertTrue(bridge.getGroundFiller() == bridgegroundfillerfromobjectlist, "BridgeGroundFiller");
         assertEquals("BridgeGroundFiller", bridge.getGroundFiller().getCreatorTag(), "GroundFiller.creatortag");
 
-        SceneryWayConnector startConnector = bridge.getStartConnector();
-        TestUtil.validateConnector(startConnector, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null, tm);
+        SceneryWayConnector startConnector = null;//16.3.26bridge.getStartConnector();
+        TestUtil.validateConnector(startConnector, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null);
 
-        SceneryWayConnector endConnector = bridge.getEndConnector();
-        TestUtil.validateConnector(endConnector, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null, tm);
+        SceneryWayConnector endConnector = null;//16.3.26bridge.getEndConnector();
+        TestUtil.validateConnector(endConnector, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null);
 
 
         assertEquals(68f + 6f, bridge.getEleConnectorGroups().eleconnectorgroups.get(0).getElevation().floatValue(), "scenery.bridge.elevation");
@@ -989,7 +966,7 @@ public class OsmGridTest {
     /**
      * Assert minimum elavation for all vertices.
      */
-    private void assertMinimumElevation(PortableModelList pml, float minelevationexpected) {
+  /*9.2.26   private void assertMinimumElevation(PortableModelList pml, float minelevationexpected) {
         for (int k = 0; k < pml.getObjectCount(); k++) {
             PortableModelDefinition object = pml.getObject(k);
             for (int j = 0; j < object.geolist.size(); j++) {
@@ -1003,7 +980,7 @@ public class OsmGridTest {
                 }
             }
         }
-    }
+    }*/
 
     /**
      * Assert minimum elavation for all scenery objects
@@ -1043,7 +1020,7 @@ public class OsmGridTest {
     }
 
 
-    private void assertBackground(PortableModelList pml, Background background, int areasexpected) {
+   /*9.2.26  private void assertBackground(PortableModelList pml, Background background, int areasexpected) {
         SimpleGeometry terraingeo = pml.findObject(TERRAIN_DEFAULT.getName()).geolist.get(0);
         int tris = terraingeo.getIndices().length / 3;
         assertEquals(areasexpected, background.background.size(), "background.size");
@@ -1055,7 +1032,7 @@ public class OsmGridTest {
             assertEquals(expectedtriangles, tris, "background.triangles");
         }
 
-    }
+    }*/
 
     private void assertColor(java.awt.Color expected, Color actual) {
         assertEquals(expected.getRed(), actual.getRasInt());

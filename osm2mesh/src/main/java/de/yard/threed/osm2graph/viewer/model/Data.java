@@ -4,7 +4,7 @@ package de.yard.threed.osm2graph.viewer.model;
 import de.yard.threed.osm2graph.osm.MainGrid;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
+
 
 import java.io.File;
 import java.util.Observable;
@@ -14,7 +14,6 @@ public class Data extends Observable {
 	private Configuration config = new BaseConfiguration();
 	private File osmFile = null;
 //	private ConversionFacade.Results conversionResults = null;
-	Logger logger = Logger.getLogger(Data.class);
 	public MainGrid mainGrid;
 
 	public Configuration getConfig() {

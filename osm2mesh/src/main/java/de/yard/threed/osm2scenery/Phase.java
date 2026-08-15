@@ -1,6 +1,6 @@
 package de.yard.threed.osm2scenery;
 
-import org.apache.log4j.Logger;
+
 
 /**
  * Wohl doch sinnvoll, sowas zu haben.
@@ -30,7 +30,6 @@ public enum Phase {
     ELEVATION(60);
     
     public int level;
-    static Logger logger = Logger.getLogger(Phase.class.getName());
 
     public static Phase current = null;
     private static long currentPhaseStartmillis = 0;
@@ -41,7 +40,7 @@ public enum Phase {
 
     public static void updatePhase(Phase phase) {
         if (current != null) {
-            logger.info("Completed phase " + current + ". Took " + ((System.currentTimeMillis() - currentPhaseStartmillis) / 1000) + " seconds. Starting "+phase);
+            //18.3.26 log.info("Completed phase " + current + ". Took " + ((System.currentTimeMillis() - currentPhaseStartmillis) / 1000) + " seconds. Starting "+phase);
         }
         current = phase;
         currentPhaseStartmillis = System.currentTimeMillis();

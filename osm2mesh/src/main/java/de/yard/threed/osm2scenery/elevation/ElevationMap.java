@@ -9,8 +9,9 @@ import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2world.JTSConversionUtil;
 import de.yard.threed.osm2world.MapNode;
 import de.yard.threed.osm2world.VectorXZ;
-import de.yard.threed.traffic.geodesy.ElevationProvider;
-import org.apache.log4j.Logger;
+import de.yard.threed.trafficcore.ElevationProvider;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,8 +27,8 @@ import java.util.Map;
  * <p>
  * Created on 26.07.18.
  */
+@Slf4j
 public class ElevationMap {
-    Logger logger = Logger.getLogger(ElevationMap.class);
     private static ElevationMap instance = null;
     // unveraenderliche Fixpunkte
     Map fixes;
@@ -87,7 +88,7 @@ public class ElevationMap {
     public double getAverage() {
         Double average = fixings.getWeightedAverage(null);
         if (average == null) {
-            logger.error("no known elavation. Using N0,E0 .");
+            log.error("no known elavation. Using N0,E0 .");
             // 3.8.18: Eine Default Elevation ist doch Quatsch
             average = elevationProvider.getElevation(0, 0);
             return average;//defaultElevation;
@@ -182,10 +183,10 @@ public class ElevationMap {
     public void registerElevation(Coordinate c, Double elevation, EleConnectorGroup sfo) {
         if (cmap.get(c) != null) {
             // kommt z.B. an Gridcellpunkten vor. Und noch bei den Groundfillern.
-            //logger.warn("multiple elevation for "+c);
+            //log.warn("multiple elevation for "+c);
         }
         if (elevation/*sfo.getElevation()*/ == null) {
-            logger.warn("elevation isType null");
+            log.warn("elevation isType null");
         }
         cmap.put(c, elevation);//new ElevatedCoordinate(elevation,sfo));
     }
@@ -198,13 +199,13 @@ public class ElevationMap {
      */
     public Double getElevationForCoordinate(Coordinate coordinate) {
         if (!cmap.containsKey(coordinate)) {
-            logger.warn("no elevation found for " + coordinate);
+            log.warn("no elevation found for " + coordinate);
             return null;
         }
 
         /*EleConnectorGroup*/Double e = cmap.get(coordinate);
         if (e == null) {
-            logger.warn("no elevation set for " + coordinate);
+            log.warn("no elevation set for " + coordinate);
             return null;
         }
         return e/*.getElevation()*/;
@@ -237,7 +238,7 @@ public class ElevationMap {
         /*26.7.19 siehe header for (MapNode n : EleConnectorGroup.gridCellBounds.gridnodes) {
             EleConnectorGroup eleConnectorGroup = EleConnectorGroup.elegroups.get(n.getOsmId());
             if (!eleConnectorGroup.isFixed()) {
-                logger.warn("not fixed");
+                log.warn("not fixed");
             }
             //TODO 30.8.18:die coordinate berechnung ist doof
             registerElevation(JTSConversionUtil.vectorXZToJTSCoordinate(n.getPos()), /*eleConnectorGroup.getElevation(),* / eleConnectorGroup.getElevation(),null);

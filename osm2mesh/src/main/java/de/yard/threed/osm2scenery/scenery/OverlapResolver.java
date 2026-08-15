@@ -2,17 +2,20 @@ package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
+import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.PolygonSubtractResult;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2world.Material;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,8 +25,8 @@ import java.util.List;
  * Resolves different types of overlaping areas.
  * <p>
  */
+@Slf4j
 public class OverlapResolver {
-    static Logger logger = Logger.getLogger(OverlapResolver.class);
 
     /**
      * Resolves the potential overlap of an area with other areas.
@@ -50,16 +53,16 @@ public class OverlapResolver {
     public static void reCheck(SceneryFlatObject sceneryAreaObject, List<SceneryObject> objects, TerrainMesh tm) {
         List<SceneryFlatObject> overlaps = SceneryObjectList.getTerrainOverlaps(sceneryAreaObject, objects);
         if (overlaps.size() > 0) {
-            logger.warn(overlaps.size() + " unresolved overlaps remaining for " + sceneryAreaObject.toString());
+            log.warn(overlaps.size() + " unresolved overlaps remaining for " + sceneryAreaObject.toString());
             for (AbstractArea aa : sceneryAreaObject.getArea()) {
-                logger.warn(" overlapping isType " + aa.getPolygon(tm));
+                log.warn(" overlapping isType " + aa.getPolygon(tm));
             }
 
             for (SceneryFlatObject overlap : overlaps) {
                 if (overlap.getArea().length > 1) {
-                    logger.error("unexpected multiple area");
+                    log.error("unexpected multiple area");
                 }
-                logger.warn("overlapped isType " + overlap.getArea()[0].getPolygon(tm));
+                log.warn("overlapped isType " + overlap.getArea()[0].getPolygon(tm));
             }
             SceneryContext.getInstance().unresolvedoverlaps += overlaps.size();
         }
@@ -70,13 +73,14 @@ public class OverlapResolver {
      * Resolve der inner overlaps ohne jeden Connector.
      * Keine Connector anpacken. Das ist knifflig und wird woanders gemacht.
      */
-    public static void resolveInnerWayOverlaps(SceneryWayObject wayToReduce, AbstractArea overlappedarea, TerrainMesh tm) {
+    public static void resolveInnerWayOverlaps(SceneryWayObject wayToReduce, AbstractArea overlappedarea, TerrainMesh tm) throws MeshInconsistencyException {
         WayArea wayArea = wayToReduce.getWayArea();
 
         for (int i = 1; i < wayArea.getLength() - 1; i++) {
-            if (wayToReduce.innerConnectorMap.get(i) == null) {
+            Util.nomore();
+            /*18.3.26 if (wayToReduce.innerConnectorMap.get(i) == null) {
                 resolveSingleWayOverlap(wayArea, i, overlappedarea, tm);
-            }
+            }*/
         }
     }
 
@@ -84,37 +88,37 @@ public class OverlapResolver {
      * resolve way overlap by reducing the way at some specific location if required.
      * Returns new CoordinatePair if way was reduced, otherwise null.
      */
-    public static CoordinatePair resolveSingleWayOverlap(WayArea wayToReduce, int position, AbstractArea overlappedarea, TerrainMesh tm) {
+    public static CoordinatePair resolveSingleWayOverlap(WayArea wayToReduce, int position, AbstractArea overlappedarea, TerrainMesh tm) throws MeshInconsistencyException {
         //double check to avoid unnecessary operations
         /*lass ich mal if (!wayToReduce.overlaps(overlappedarea)) {
             return;
         }*/
         if (wayToReduce == null) {
-            logger.error("invalid usage");
+            log.error("invalid usage");
             return null;
         }
         CoordinatePair reduced = null;
-        CoordinatePair[] pair = wayToReduce.getMultiplePair(position);
-        if (pair == null || pair.length != 1) {
-            logger.error("resolve:not yet");
+        CoordinatePair/*19.3.26 []*/ pair = wayToReduce.getMultiplePair(position);
+        if (pair == null /*19.3.26 || pair.length != 1*/) {
+            log.error("resolve:not yet");
             return reduced;
         }
         Polygon polygon = overlappedarea.getPolygon(tm);
         //TODO zu gross?iterativ
         double offset = 1;
         //nur wirklich coordinates innerhalb bearbeiten
-        if ((JtsUtil.findVertexIndex(pair[0].left(), polygon.getCoordinates()) == -1 && JtsUtil.isPartOfPolygon(pair[0].left(), polygon)) ||
-                (JtsUtil.findVertexIndex(pair[0].right(), polygon.getCoordinates()) == -1 && JtsUtil.isPartOfPolygon(pair[0].right(), polygon))) {
+        if ((JtsUtil.findVertexIndex(pair.left(), polygon.getCoordinates()) == -1 && JtsUtil.isPartOfPolygon(pair.left(), polygon)) ||
+                (JtsUtil.findVertexIndex(pair.right(), polygon.getCoordinates()) == -1 && JtsUtil.isPartOfPolygon(pair.right(), polygon))) {
             /*if (node.getOsmId() == 1353883859) {
                     int h = 9;
                 }*/
             reduced = wayToReduce.reduce(position, offset, tm);
             if (!wayToReduce.replace(new int[]{position}, reduced)) {
-                logger.error("replace for adjust failed at way " + wayToReduce.parentInfo);
+                log.error("replace for adjust failed at way " + wayToReduce.parentInfo);
                 reduced = null;
             } else {
                 if (SceneryBuilder.OverlapResolverDebugLog) {
-                    logger.debug("overlapping way coordinates reduced");
+                    log.debug("overlapping way coordinates reduced");
                 }
             }
 
@@ -132,7 +136,7 @@ public class OverlapResolver {
             s += overlap.toString() + ",";
         }
         if (SceneryBuilder.OverlapResolverDebugLog) {
-            logger.debug("area " + osmid + " overlaps " + overlaps.size() + " existing(" + s + "). Trying to resolve.");
+            log.debug("area " + osmid + " overlaps " + overlaps.size() + " existing(" + s + "). Trying to resolve.");
         }
         if (osmid == 225794253) {
             int h = 9;
@@ -175,14 +179,14 @@ public class OverlapResolver {
             for (AbstractArea overlaparea : overlapobject.getArea()) {
                 List<PolygonSubtractResult> poliesWithoutOverlap = JtsUtil.subtractPolygons(area.poly.polygon, overlaparea.getPolygon(tm));
                 if (poliesWithoutOverlap == null) {
-                    //logger.debug("no overlap for current area to resolve");
+                    //log.debug("no overlap for current area to resolve");
                 } else {
 
                     switch (poliesWithoutOverlap.size()) {
                         case 1:
                             // Apparently only a slight overlap.
                             if (SceneryBuilder.OverlapResolverDebugLog) {
-                                logger.debug("area " + osmid + " slightly overlaps area of " + overlapobject.getOsmIdsAsString());
+                                log.debug("area " + osmid + " slightly overlaps area of " + overlapobject.getOsmIdsAsString());
                             }
                             if (poliesWithoutOverlap.get(0).seam != null) {
                                 //iterativ möglichst wenig verkleinern.
@@ -200,13 +204,13 @@ public class OverlapResolver {
                                     offset += 1;
                                 } while (result == null && offset < 10);
                                 if (result == null) {
-                                    logger.warn("reducing polygon failed. Using empty.");
+                                    log.warn("reducing polygon failed. Using empty.");
                                 } else {
                                     return Arrays.asList(new AbstractArea[]{result});
                                 }
                             } else {
                                 //error? Was ist das?
-                                logger.warn("no seam; cannot resolve. Setting empty");
+                                log.warn("no seam; cannot resolve. Setting empty");
                             }
                             break;
                         case 2:
@@ -214,7 +218,7 @@ public class OverlapResolver {
                             // Erster Ansatz ist ein kleiner "Graben" zwischen den beiden Splithaelften statt eine echte Seam.
                             // Vielleicht auch immer, denn es gibt noch waytoareafiller.
                             if (SceneryBuilder.OverlapResolverDebugLog) {
-                                logger.debug("area " + osmid + " split into two");
+                                log.debug("area " + osmid + " split into two");
                             }
                             polydiffs.addAll(poliesWithoutOverlap);
                             Polygon[] p = new Polygon[2];
@@ -228,18 +232,18 @@ public class OverlapResolver {
                                     //1.8m breiter Gap.
                                     p[i] = reducePolygonAtSeamPoints(polydiff.polygon, polydiff.seam, 1.8);
                                     if (p[i] == null) {
-                                        logger.warn("reducing polygon failed. Using empty.");
+                                        log.warn("reducing polygon failed. Using empty.");
                                     } else {
                                         overallresult.add(new Area(p[i], material));
                                     }
                                 } else {
                                     //muss es doch geben?
-                                    logger.error("no seam between " + osmid + " and splitted poly.");
+                                    log.error("no seam between " + osmid + " and splitted poly.");
                                 }
                             }
                             return overallresult;
                         default:
-                            logger.warn("unexpected diff result size " + poliesWithoutOverlap.size());
+                            log.warn("unexpected diff result size " + poliesWithoutOverlap.size());
                     }
                 }
             }
@@ -261,7 +265,7 @@ public class OverlapResolver {
         }
         while (newp == null && offset > 0.1);
         if (newp == null) {
-            logger.warn("finally invalid split polygon created for " /*+ osmid*/);
+            log.warn("finally invalid split polygon created for " /*+ osmid*/);
             SceneryContext.getInstance().warnings.add("invalid polygon created");
             return null;//JtsUtil.createEmptyPolygon();
         }

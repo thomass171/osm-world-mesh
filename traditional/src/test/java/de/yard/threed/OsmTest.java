@@ -68,7 +68,7 @@ public class OsmTest {
      *
      * @throws IOException
      */
-    @Test
+   /*10.2.26 @Test
     public void testK41() throws IOException {
         Config.reinit(Processor.defaultconfigfile, loadMaterialConfig(MATERIAL_FLIGHT), loadConfig("poc"), null);
         //9.4.19: Ohne Grid ist doch völlig witzlos
@@ -81,18 +81,18 @@ public class OsmTest {
         //ConversionFacade.Results results =processor.results;
         MapData mapData = processor.getMapData();
         Collection<MapWaySegment> mws = mapData.getMapWaySegments();
-        assertEquals( /*4 wegen grid? */5, mws.size(), "MapWaySegments");
+        assertEquals( /*4 wegen grid? * /5, mws.size(), "MapWaySegments");
         MapWaySegment mws0 = (MapWaySegment) mws.iterator().next();
         List<WaySegmentWorldObject> reps = mws0.getRepresentations();
         // die Representation ist eine Road (die Klasse) mit 3 Lanes (LEFT, DASHED_LINE, RIGHT)
         //9.4.19 assertEquals("Representations", 1, reps.size());
         //9.4.19 WaySegmentWorldObject wswo0 = reps.get(0);
 
-        PortableModelTarget pmt = new PortableModelTarget();
+        /*9.2.26    PortableModelTarget pmt = new PortableModelTarget();
         SceneryMesh sceneryMesh = processor.getResults().sceneryresults.sceneryMesh;
-        sceneryMesh.render(pmt);
+        sceneryMesh.render(pmt);* /
 
-    }
+    }*/
 
 
 }

@@ -1,29 +1,26 @@
 package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import de.yard.threed.core.Pair;
 import de.yard.threed.core.Vector2;
 import de.yard.threed.core.Vector3;
 import de.yard.threed.graph.GraphNode;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
-import de.yard.threed.osm2graph.osm.OsmUtil;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
-import de.yard.threed.osm2scenery.polygon20.OsmWay;
+import de.yard.threed.osm2scenery.polygon20.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.GraphComponent;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.scenery.components.WayTerrainMeshAdder;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
-import de.yard.threed.osm2world.GroundState;
-import de.yard.threed.osm2world.MapNode;
-import de.yard.threed.osm2world.MapWay;
-import de.yard.threed.osm2world.MapWaySegment;
-import de.yard.threed.osm2world.Material;
-import de.yard.threed.osm2world.VectorXZ;
+import de.yard.threed.osm2world.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,17 +35,21 @@ import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.ROAD;
  * <p>
  * 4.4.19: Ein Way ist meistens ein "StandardWay" (WayArea), mit immer paarweise links/rechts Coordinates, auch nach einem cut.
  * Und pro einem solchen Pärchen gibt es genau eine EleConnectorgroup.
- *
+ * <p>
  * 7.5.24: Might also be build from DB, so many properties might be null.
+ * 13.2.26: Polygon is created by terrainmeshadder in super class
+ * 18.3.26: No longer mid connector. Instaed a way is split into segments. An SceneryWayObject instance is only for one segment.
  * <p>
  * Created on 26.07.18.
  */
+@Slf4j
 public class SceneryWayObject extends SceneryFlatObject {
-    public MapWay mapWay;
+    // 18.3.26:Only a segment instead of full way to avoid mid connector
+    public MapWaySegment2 mapWay;
     //corresponds to mapway segments
     GraphComponent graphComponent = null;
-    public SceneryWayConnector startConnector = null;
-    public SceneryWayConnector endConnector = null;
+    public MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ startConnector = null;
+    public MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ endConnector = null;
     //jetzt in abstractArea Coordinate[] uncutcoord;
     //public LineSegment baselineStart;
     //LineSegment baselineEnd;
@@ -56,18 +57,18 @@ public class SceneryWayObject extends SceneryFlatObject {
     //10.7.19 private double cliplenStart = 0, cliplenEnd = 0;
     // private boolean standardway = true;
     WidthProvider widthProvider;
-    //DEADEND isType just the default
+    //DEADEND is just the default
     public WayOuterMode startMode = WayOuterMode.DEADEND, endMode = WayOuterMode.DEADEND;
     //start/end bezogen aufs grid
-    public int startNode, endNode;
+    //17.3.2 all nodes are effective meanwhile public int startNode, endNode;
     public List<SceneryWayConnector> innerConnector;
-    //logische way position->connector
-    public Map<Integer, SceneryWayConnector> innerConnectorMap;
-    public List<MapNode> effectiveNodes;
+    //index of node ->connector
+    // 18.3.26 no longer mid connector private Map<Integer, MeshWayConnector/*7.3.26SceneryWayConnector*/> innerConnectorMap=new HashMap<>();
+    //17.3.2 all nodes are effective meanwhile public List<MapNode> effectiveNodes;
     // 7.5.24: The persisted OSM way
-    public OsmWay osmWay;
+    public long osmWayId;
 
-    protected SceneryWayObject(String creatortag, MapWay mapWay, Material material, Category category, WidthProvider widthProvider, SceneryContext sceneryContext) {
+    public SceneryWayObject(String creatortag, MapWaySegment2 mapWay, Material material, Category category, WidthProvider widthProvider, SceneryContext sceneryContext) {
         super(creatortag, material, category, null/*new WayArea(material)*/);
         this.mapWay = mapWay;
         this.widthProvider = widthProvider;
@@ -76,9 +77,9 @@ public class SceneryWayObject extends SceneryFlatObject {
         //11.4.19: Die soll doch wohl nachgehalten werden
         osmIds.add(mapWay.getOsmId());
         setNameFromOsm(mapWay.getTags());
-        startNode = 0;
-        endNode = mapWay.getMapNodes().size() - 1;
-        int firstgridnode = OsmUtil.getFirstGridNode(mapWay);
+        //17.3.26 no longer needed startNode = 0;
+        //17.3.26 no longer needed endNode = mapWay.getMapNodes().size() - 1;
+        /*17.3.26 we no longer care about this int firstgridnode = OsmUtil.getFirstGridNode(mapWay);
         if (firstgridnode != -1) {
             if (firstgridnode > 0) {
                 if (mapWay.getStartNode().location == MapNode.Location.OUTSIDEGRID) {
@@ -118,20 +119,21 @@ public class SceneryWayObject extends SceneryFlatObject {
                 //all outside
                 startNode = endNode = -1;
             }
-        }
+        } end of //17.3.26 we no longer care about this */
 
-        effectiveNodes = new ArrayList();
+        /*17.3.26 no longer needed effectiveNodes = new ArrayList();
         for (int i = startNode; startNode != -1 && i <= endNode; i++) {
             effectiveNodes.add(mapWay.getMapNodes().get(i));
-        }
+        }*/
         terrainMeshAdder = new WayTerrainMeshAdder(this);
+        osmWayId = mapWay.getOsmId();
     }
 
     /**
      * 7.5.24: Additional constructor for building from persistence/DB.
      * Its not yet clear what is needed here.
      */
-    public SceneryWayObject(OsmWay osmWay){
+    public SceneryWayObject(OsmWay osmWay) {
         super(""/*creatortag*/, null/*material*/, null/*category*/, null/*new WayArea(material)*/);
 
     }
@@ -144,7 +146,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         elevations = new EleConnectorGroupSet();
         for (int i = 0; i < mapWay.getMapNodes().size(); i++) {
             MapNode node = mapWay.getMapNodes().get(i);
-            if (node.location != MapNode.Location.OUTSIDEGRID) {
+            //17.3.26 we no longer care about if (node.location != MapNode.Location.OUTSIDEGRID) {
                 EleConnectorGroup eleConnectorGroup = getEleConnectorGroup(node);
                 getEleConnectorGroups().add(eleConnectorGroup);
             /*if (ElevationMap.hasInstance() && ElevationMap.getInstance().isGridNode(node)) {
@@ -153,12 +155,12 @@ public class SceneryWayObject extends SceneryFlatObject {
                 if (ElevationMap.isGridNode(node)) {
                     EleConnectorGroup.gridCellBounds.additionalGridnodes.add(node);
                 }
-            }
+            //}
         }
     }
 
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/  GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException {
         createPolygon(widthProvider.getWidth(), gridbounds, sceneryContext);
         return null;
     }
@@ -178,31 +180,33 @@ public class SceneryWayObject extends SceneryFlatObject {
      *
      * @param width
      */
-    private/*protected*/ void createPolygon(double width, GridCellBounds gridbounds, SceneryContext sceneryContext) {
+    private/*protected*/ void createPolygon(double width, GridCellBounds gridbounds, SceneryContext sceneryContext) throws MeshInconsistencyException {
         this.width = width;
         //polygon = MapDataHelper.getOutlinePolygon(mapWay, width);
         if (mapWay.getOsmId() == 107468171) {
             int h = 9;
         }
-        if (effectiveNodes.size() < 2) {
-            logger.info("only " + effectiveNodes.size() + " effective nodes for way " + mapWay.getOsmId() + ". Setting to empty");
+        if (mapWay.getMapNodes().size() < 2) {
+            log.info("only " + mapWay.getMapNodes().size() + " effective nodes for way " + mapWay.getOsmId() + ". Setting to empty");
             flatComponent = new AbstractArea[]{AbstractArea.EMPTYAREA};
         } else {
-            AbstractArea area = WayArea.buildOutlinePolygonFromCenterLine(graphComponent.getCenterLine(), effectiveNodes/* mapWay.getMapNodes()*/, width, this, material);
+            AbstractArea area = WayArea.buildOutlinePolygonFromCenterLine(graphComponent.getCenterLine(), mapWay.getMapNodes()/* mapWay.getMapNodes()*/, width, this, material, mapWay);
             if (area == null) {
                 flatComponent = new AbstractArea[]{AbstractArea.EMPTYAREA};
             } else {
                 area.parentInfo = this.toString();
                 flatComponent = new AbstractArea[]{area};
                 if (flatComponent[0] instanceof WayArea) {
-                    ((WayArea) flatComponent[0]).osmid = mapWay.getOsmId();
+                    ((WayArea) flatComponent[0]).mapWay = mapWay;
                 }
                 //Für P20 die Segmente zwischen Connector separat durchgehen. Dann kann ein intermediate Connector zunächst wie
                 //ein EndConnector behandelt werden.
                 //10.7.19:NeeNee. Bei MidConnector bleibt der Way erhalten, bekommt nur 4 andere Coordinates
+                /*18.3.26 no longer special handling for mid connector. It is just a connector and like start/end
+                created before the way.
                 if (getArea()[0] instanceof WayArea) {
                     extendMidwayConnector(sceneryContext);
-                }
+                }*/
             }
         }
     }
@@ -210,53 +214,53 @@ public class SceneryWayObject extends SceneryFlatObject {
     /**
      * Den Polygon fuer die inner Connector erweitern.
      */
-    private void extendMidwayConnector(SceneryContext sceneryContext) {
+    /*18.3.26 we no longer have mid connector duto MapWaySegment2 private void extendMidwayConnector(SceneryContext sceneryContext) {
         WayArea wayArea = getWayArea();
-        if (effectiveNodes/*mapWay.getMapNodes()*/.size() != wayArea.getLength()) {
-            logger.error("mapnode list inconsistent");
+        if (mapWay.getMapNodes()/*mapWay.getMapNodes()* /.size() != wayArea.getLength()) {
+            log.error("mapnode list inconsistent");
             return;
         }
         innerConnector = new ArrayList<>();
         innerConnectorMap = new HashMap<>();
-        for (int i = 1; i < effectiveNodes/*mapWay.getMapNodes()*/.size() - 1; i++) {
-            MapNode mapNode = effectiveNodes/*mapWay.getMapNodes()*/.get(i);
+        for (int i = 1; i < mapWay.getMapNodes()/*mapWay.getMapNodes()* /.size() - 1; i++) {
+            MapNode mapNode = mapWay.getMapNodes()/*mapWay.getMapNodes()* /.get(i);
             SceneryWayConnector connector = sceneryContext.wayMap.getConnector(ROAD, mapNode.getOsmId());
             if (connector != null) {
                 if (connector.getType() != SceneryWayConnector.WayConnectorType.SIMPLE_INNER_SINGLE_JUNCTION &&
                         connector.getType() != SceneryWayConnector.WayConnectorType.SIMPLE_INNER_DOUBLE_JUNCTION/* &&
-                        connector.getType() != SceneryWayConnector.WayConnectorType.CROSSING*/) {
-                    logger.error("inconsistent inner connector " + connector.getType() + " at node " + mapNode.getOsmId());
+                        connector.getType() != SceneryWayConnector.WayConnectorType.CROSSING* /) {
+                    log.error("inconsistent inner connector " + connector.getType() + " at node " + mapNode.getOsmId());
                 } else {
                     Integer position = getWayArea().getPosition(mapNode);
                     if (position != null) {
                         innerConnector.add(connector);
-                        innerConnectorMap.put(position, connector);
+                        innerConnectorMap.put(position, null/*TODO connector* /);
                         double offset = 3.5;
                         CoordinatePair s0 = wayArea.shift(position, -offset);
                         CoordinatePair s1 = wayArea.shift(position, offset);
                         if (s0 != null && s1 != null) {
                             if (!wayArea.replace(position, new CoordinatePair[]{s0, s1})) {
-                                logger.debug("Trying smaller offset for inner connector additional pair");
+                                log.debug("Trying smaller offset for inner connector additional pair");
                                 offset = 0.5;
                                 s0 = wayArea.shift(position, -offset);
                                 s1 = wayArea.shift(position, offset);
                                 if (s0 != null && s1 != null) {
                                     if (!wayArea.replace(position, new CoordinatePair[]{s0, s1})) {
-                                        logger.warn("Smaller offset failed too");
+                                        log.warn("Smaller offset failed too");
                                     }
                                 }
                             }
                         }
                     } else {
-                        logger.warn("wasn das?");
+                        log.warn("wasn das?");
                     }
                 }
             }
         }
-    }
+    }*/
 
     /**
-     * Abschneiden des Way an einem Ende. Z.B. weil eine Junction angelegt wurde.
+     * Clip way at both ends, eg. for attaching the way to a connector.
      * Die wegfallenden EleConnector werden durch den der Junction ersetzt (was i.d.R. immer dieselben sein
      * dürften).
      * Weil der clip erstmal nur für Junction ist, wird nicht per Polygon, senkrecht an einem Ende geschnitten.
@@ -265,7 +269,7 @@ public class SceneryWayObject extends SceneryFlatObject {
      * 10.7.19: Nee, umgekehrt.
      */
     @Override
-    public void clip(/*10.7.19 boolean atstart, double len*/TerrainMesh tm) {
+    public void clip(/*10.7.19 boolean atstart, double len*/TerrainMesh tm) throws MeshInconsistencyException {
 
         if (isClipped) {
             return;
@@ -282,19 +286,20 @@ public class SceneryWayObject extends SceneryFlatObject {
         }
 
         if (flatComponent == null || flatComponent[0].uncutcoord == null) {
-            logger.error("too early for clip. coord doesnt exist");
+            log.error("too early for clip. coord/polygon doesnt exist");
             return;
         }
         if (!isValid()) {
-            logger.error("way not valid, no clip");
+            log.error("way not valid, no clip");
             return;
         }
         if (!(flatComponent[0] instanceof WayArea)) {
-            logger.error("no way area, no clip");
+            log.error("no way area, no clip");
             return;
         }
-        // logger.debug("clip of way");
+        // log.debug("clip of way");
 
+        SceneryProjection projection = tm.getGridCellBounds().getProjection();
 
         WayArea wayArea = (WayArea) flatComponent[0];
         //Der Connector gibt die Coordinates vor. Er hat beim createPolygon schon den clip vorbereitet.
@@ -303,27 +308,30 @@ public class SceneryWayObject extends SceneryFlatObject {
             case DEADEND:
                 break;
             case CONNECTOR:
-                CoordinatePair attachpair = startConnector.getAttachCoordinates(mapWay);
+                /*CoordinatePair*/
+                prepareForConnector(startConnector);
+                Pair<MeshNode,MeshNode> attachpair = (Pair<MeshNode, MeshNode>) startConnector.getAttachCoordinates(mapWay.getOsmId(), mapWay.getStartHeading());
                 if (attachpair != null) {
                     if (isClosed()) {
-                        if (!wayArea.replaceStartEnd(attachpair)) {
-                            logger.error("replace for clip failed at connector " + startConnector.getOsmIdsAsString());
+                        if (!wayArea.replaceStartEnd(MeshHelper.projectNodePair(attachpair,projection))) {
+                            log.error("replace for clip failed at connector " + startConnector.getOsmId());
                         }
                     } else {
-                        if (!wayArea.replaceStart(attachpair)) {
-                            logger.error("replace for clip failed at connector " + startConnector.getOsmIdsAsString());
+                        if (!wayArea.replaceStart(MeshHelper.projectNodePair(attachpair,projection))) {
+                            log.error("replace for clip failed at connector " + startConnector.getOsmId());
                         }
                     }
                     // Manche Connector erstellen für den minor attach ein additionl pair, das hier in den Way eingebaut wird.
-                    if (startConnector.additionalmain0pair != null) {
+                     /*7.3.26 if (startConnector.additionalmain0pair != null) {
                         if (startConnector.majorway0 == -1) {
-                            logger.error("startconnector without major0:" + startConnector.node.getOsmId());
+                            log.error("startconnector without major0:" + startConnector.node.getOsmId());
                         } else {
-                            if (startConnector.getMajor0().getArea()[0] == wayArea) {
+                            Util.notyet();
+                            /*23.2.26 TODO if (startConnector.getMajor0().getArea()[0] == wayArea) {
                                 wayArea.replaceStart(new CoordinatePair[]{wayArea.getStartPair(tm)[0], startConnector.additionalmain0pair});
-                            }
+                            }* /
                         }
-                    }
+                    }*/
                 } else {
                     SceneryContext.getInstance().warnings.add("no attach");
                     failureCounter++;
@@ -335,24 +343,28 @@ public class SceneryWayObject extends SceneryFlatObject {
                 case DEADEND:
                     break;
                 case CONNECTOR:
-                    CoordinatePair attachpair = endConnector.getAttachCoordinates(mapWay);
+                    prepareForConnector(endConnector);
+                    /*CoordinatePair*/Pair<MeshNode,MeshNode> attachpair = (Pair<MeshNode, MeshNode>) endConnector.getAttachCoordinates(mapWay.getOsmId(),mapWay.getEndHeading());
+                    attachpair=new Pair<>(attachpair.getSecond(),attachpair.getFirst());
                     if (attachpair != null) {
-                        if (!((WayArea) flatComponent[0]).replaceEnd(attachpair)) {
-                            logger.error("replace for clip failed at connector " + endConnector.getOsmIdsAsString());
+                        if (!((WayArea) flatComponent[0]).replaceEnd(MeshHelper.projectNodePair(attachpair,projection))) {
+                            log.error("replace for clip failed at connector " + endConnector.getOsmId());
                         }
                         // Manche Connector erstellen für den minor attach ein additionl pair, das hier in den Way eingebaut wird.
-                        if (endConnector.additionalmain0pair != null) {
+                        /*7.3.26 if (endConnector.additionalmain0pair != null) {
                             if (endConnector.majorway0 == -1) {
-                                logger.error("endconnector without major0:" + endConnector.node.getOsmId());
+                                log.error("endconnector without major0:" + endConnector.node.getOsmId());
                             } else {
-                                if (endConnector.getMajor0().getArea()[0] == wayArea) {
+                                Util.notyet();
+                                /*23.2.26 TODO  if (endConnector.getMajor0().getArea()[0] == wayArea) {
                                     wayArea.replaceEnd(new CoordinatePair[]{endConnector.additionalmain0pair, wayArea.getEndPair()[0]});
-                                }
+                                }* /
                             }
-                        }
+                        }*/
                     } else {
-                        SceneryContext.getInstance().warnings.add("no attach");
-                        failureCounter++;
+                        //SceneryContext.getInstance().warnings.add("no attach");
+                        //failureCounter++;
+                        throw new MeshInconsistencyException("no attach coordinates at end of "+mapWay.getOsmId());
                     }
                     break;
             }
@@ -360,28 +372,50 @@ public class SceneryWayObject extends SceneryFlatObject {
     }
 
     /**
+     * 16.4.26: More than the start/end pair of the way might be inside the connector.
+     * But for now we don't ix it on this level because it is an indicator for a not
+     * suitable wayconnector type.
+     */
+    private void prepareForConnector(MeshPolygon/*MeshWayConnector*/ connector) throws MeshInconsistencyException {
+        connector.getGeoPolygon();
+    }
+
+    /**
+     * The 2026 way without TerrainMeshAdder
+     *
+     * @return
+     */
+    @Override
+    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+
+        // TODO 10.3.26 save 'meshWay' like meshconnector
+        WayTerrainMeshAdder.persistWay(this, tm);
+        return ;
+    }
+
+    /**
      * start/end werden im connector resolved
      *
      * @param overlap
      */
-    public void resolveWayOverlaps(AbstractArea overlap, TerrainMesh tm) {
+    public void resolveWayOverlaps(AbstractArea overlap, TerrainMesh tm) throws MeshInconsistencyException {
         WayArea wayArea = getWayArea();
 
-        if (startConnector != null) {
+        /*7.3.26 if (startConnector != null) {
             startConnector.resolveOverlaps(overlap, tm);
-        }
+        }*/
         /*CoordinatePair reduced = OverlapResolver.resolveSingleWayOverlap(getWayArea(),0,overlap);
         if (reduced!=null){
-            logger.debug("unhandled start conn reduce at connector. Might be resolved by counterpart. ");
+            log.debug("unhandled start conn reduce at connector. Might be resolved by counterpart. ");
         }*/
         if (wayArea == null) {
-            logger.error("no way");
+            log.error("no way");
             return;
         }
         for (int i = 1; i < wayArea.getLength() - 1; i++) {
             /*CoordinatePair[] pair = wayToReduce.getMultiplePair(i);
             if (pair.length != 1) {
-                logger.error("not yet");
+                log.error("not yet");
                 return;
             }
             Polygon polygon = overlappedarea.getPolygon();
@@ -393,17 +427,17 @@ public class SceneryWayObject extends SceneryFlatObject {
                 }* /
                 CoordinatePair reduced = wayToReduce.reduce(i, offset);
                 if (!wayToReduce.replace(new int[]{i}, reduced)) {
-                    logger.error("replace for adjust failed at way " + wayToReduce.parentInfo);
+                    log.error("replace for adjust failed at way " + wayToReduce.parentInfo);
                 }
             }*/
         }
        /*  reduced = OverlapResolver.resolveSingleWayOverlap(getWayArea(),wayArea.getLength()-1,overlap);
         if (reduced!=null){
-            logger.debug("unhandled end conn reduce. Might be resolved by counterpart.");
+            log.debug("unhandled end conn reduce. Might be resolved by counterpart.");
         }*/
-        if (endConnector != null) {
+        /*7.3.26 if (endConnector != null) {
             endConnector.resolveOverlaps(overlap, tm);
-        }
+        }*/
     }
 
     /**
@@ -424,7 +458,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         if (flatComponent != null && !flatComponent[0].isEmpty(tm)) {
             if (isCut) {
                 //Util.notyet();
-                //13.8.19: wofuer ist das?? logger.warn("Ignoring cut area for elevation");
+                //13.8.19: wofuer ist das?? log.warn("Ignoring cut area for elevation");
             }
 
             flatComponent[0].registerCoordinatesToElegroups(elevations, tm);
@@ -445,9 +479,9 @@ public class SceneryWayObject extends SceneryFlatObject {
 
     public void addToWayMap(Category category, SceneryContext sceneryContext) {
         sceneryContext.wayMap.registerWayAtNode(category, mapWay.getStartNode(), this);
-        for (MapWaySegment seg : mapWay.getMapWaySegments()) {
+        /*18.3.26 Still needed? For what?? for (MapWaySegment seg : mapWay.getMapWaySegments()) {
             sceneryContext.wayMap.registerWayAtNode(category, seg.getEndNode(), this);
-        }
+        }*/
     }
 
     /**
@@ -463,8 +497,8 @@ public class SceneryWayObject extends SceneryFlatObject {
     public EleConnectorGroupSet getSharedEleConnectorGroups() {
         EleConnectorGroupSet egr = new EleConnectorGroupSet();
         Map<Long, SceneryWayConnector> wayconnectors = SceneryContext.getInstance().wayMap.getConnectorMapForCategory(getCategory());
-        for (int i = 0; i < effectiveNodes/*mapWay.getMapNodes()*/.size(); i++) {
-            MapNode mapNode = effectiveNodes/*mapWay.getMapNodes()*/.get(i);
+        for (int i = 0; i < mapWay.getMapNodes()/*mapWay.getMapNodes()*/.size(); i++) {
+            MapNode mapNode = mapWay.getMapNodes()/*mapWay.getMapNodes()*/.get(i);
             SceneryNodeObject wayconnector = wayconnectors.get(mapNode.getOsmId());
             if (wayconnector != null) {
                 egr.addAll(wayconnector.elevations.eleconnectorgroups);
@@ -474,7 +508,7 @@ public class SceneryWayObject extends SceneryFlatObject {
                     egr.add(EleConnectorGroup.elegroups.get(mapNode.getOsmId()));
                 } else {
                     //start/end
-                    if (i == 0 || i == effectiveNodes/*mapWay.getMapNodes()*/.size() - 1) {
+                    if (i == 0 || i == mapWay.getMapNodes()/*mapWay.getMapNodes()*/.size() - 1) {
                         egr.add(EleConnectorGroup.elegroups.get(mapNode.getOsmId()));
                     }
                 }
@@ -546,11 +580,11 @@ public class SceneryWayObject extends SceneryFlatObject {
         List<EleConnectorGroup> egrs = getEleConnectorGroups().eleconnectorgroups;
         EleConnectorGroup lastgr = egrs.get(0);
         if (lastgr.getElevation() == null) {
-            logger.error("no elevation in getFirst group");
+            log.error("no elevation in getFirst group");
             return;
         }
         if (egrs.get(egrs.size() - 1).getElevation() == null) {
-            logger.error("no elevation in last group");
+            log.error("no elevation in last group");
             return;
         }
         for (int i = 1; i < egrs.size(); i++) {
@@ -570,7 +604,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         }
         for (EleConnectorGroup egr : egrs) {
             if (!egr.isFixed()) {
-                logger.error("still unfixed group");
+                log.error("still unfixed group");
                 return;
             }
         }
@@ -586,7 +620,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         for (int i = 0; i < all.size(); i++) {
             EleConnectorGroup eg = all.get(i);
             if (!eg.isFixed()) {
-                //logger.debug("Setting average "+average);
+                //log.debug("Setting average "+average);
                 eg.setElevation(average);
             }
         }*/
@@ -603,20 +637,20 @@ public class SceneryWayObject extends SceneryFlatObject {
         }
         super.calculateElevations(tm);
         if (graphComponent != null) {
-            for (int i = 0; i < effectiveNodes/*mapWay.getMapNodes()*/.size(); i++) {
-                MapNode mapNode = effectiveNodes/*mapWay.getMapNodes()*/.get(i);
+            for (int i = 0; i < mapWay.getMapNodes()/*mapWay.getMapNodes()*/.size(); i++) {
+                MapNode mapNode = mapWay.getMapNodes()/*mapWay.getMapNodes()*/.get(i);
                 GraphNode gn = graphComponent.findNodeFromOsmNode(mapNode);
                 EleConnectorGroup eleConnectorGroup = getEleConnectorGroups().getEleConnectorGroup(mapNode);
                 if (eleConnectorGroup == null) {
-                    logger.error("eleConnectorGroup==null");
+                    log.error("eleConnectorGroup==null");
                     continue;
                 }
                 if (eleConnectorGroup.getElevation() == null) {
-                    logger.error("eleConnectorGroup.getElevation()==null");
+                    log.error("eleConnectorGroup.getElevation()==null");
                     continue;
                 }
                 if (gn == null) {
-                    logger.error("graph node ==null");
+                    log.error("graph node ==null");
                     continue;
                 }
                 double elevation = eleConnectorGroup.getElevation();
@@ -634,7 +668,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         EleConnectorGroup eleConnectorGroup = elevations.getEleConnectorGroup(bridgenode);
         if (eleConnectorGroup == null) {
             //kann passieren, wenn die bridgenode ausserhabl des grid liegt.
-            logger.debug("bridge not raised due to missing elegroup for" + mapWay.getOsmId() + ". Bridge node " + bridgenode + " out of grid?");
+            log.debug("bridge not raised due to missing elegroup for" + mapWay.getOsmId() + ". Bridge node " + bridgenode + " out of grid?");
             return;
         }
         eleConnectorGroup.setGroundState(GroundState.ABOVE);
@@ -663,7 +697,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         return l;*/
     }
 
-    public void setStartConnector(SceneryWayConnector startConnector) {
+    public void setStartConnector(MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ startConnector) {
         if (mapWay.getOsmId() == 107468171 || mapWay.getOsmId() == 23696494) {
             int h = 9;
         }
@@ -672,31 +706,31 @@ public class SceneryWayObject extends SceneryFlatObject {
         //this.startMode.wayConnector = startConnector;
     }
 
-    public SceneryWayConnector getStartConnector() {
+    public MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ getStartConnector() {
         return startConnector;
     }
 
-    public void setEndConnector(SceneryWayConnector endConnector) {
+    public void setEndConnector(MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ endConnector) {
         this.endConnector = endConnector;
         this.endMode = WayOuterMode.CONNECTOR;
         //this.endMode.wayConnector = endConnector;
     }
 
-    public SceneryWayConnector getEndConnector() {
+    public MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ getEndConnector() {
         if (endConnector == null) {
             int h = 9;
         }
         return endConnector;
     }
 
-    public SceneryWayConnector getOppositeConnector(SceneryWayConnector connector) {
+    public MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ getOppositeConnector(SceneryWayConnector connector) {
         if (connector == startConnector) {
             return endConnector;
         }
         if (connector == endConnector) {
             return startConnector;
         }
-        logger.error("invalid usage");
+        log.error("invalid usage");
         return null;
     }
 
@@ -719,11 +753,11 @@ public class SceneryWayObject extends SceneryFlatObject {
     }
 
     public MapNode getStartNode() {
-        return mapWay.getMapNodes().get(startNode);
+        return mapWay.getMapNodes().get(0/*startNode*/);
     }
 
     public MapNode getEndNode() {
-        return mapWay.getMapNodes().get(endNode);
+        return mapWay.getMapNodes().get(mapWay.getMapNodes().size() - 1/*endnode*/);
     }
 
     /**
@@ -735,9 +769,9 @@ public class SceneryWayObject extends SceneryFlatObject {
      * 7.9.19: Da kann auch ein multiple pair kommen. Da muss der Aufrufer dann mal sehen.
      * 27.3.24: TerrainMesh not available??!!
      */
-    public CoordinatePair[] getPairRelatedFromNode(MapNode node, int index/*, TerrainMesh tm*/) {
+    public CoordinatePair/*19.3.26 []*/ getPairRelatedFromNode(MapNode node, int index/*, TerrainMesh tm*/) {
         TerrainMesh tm = null;
-        CoordinatePair[] pair = null;
+        CoordinatePair/*19.3.26 []*/ pair = null;
         //bei Connector muss evtl multiple genutzt werden? Hmm, etwas unklar im Moment.
         //7.9.19: Ja, das ist wichtig an manchen Connector.
         if (node == getStartNode()) {
@@ -746,7 +780,7 @@ public class SceneryWayObject extends SceneryFlatObject {
             if (node == getEndNode()) {
                 pair = getWayArea().getMultiplePair(getWayArea().getLength() - 1 - index);
                 //die order der pairs tauschen, damit sie aus Sicht von "node" sind.
-                switch (pair.length) {
+                /*19.3.26 switch (pair.length) {
                     case 1:
                         break;
                     case 2:
@@ -755,13 +789,13 @@ public class SceneryWayObject extends SceneryFlatObject {
                         pair[1] = p;
                         break;
                     default:
-                        logger.error("getPairRelatedFromNode: not yet");
-                }
+                        log.error("getPairRelatedFromNode: not yet");
+                }*/
             }
         }
         if (pair == null) {
             int h = 9;
-            logger.error("no pair in " + this.toString());
+            log.error("no pair in " + this.toString());
             pair = getWayArea().getMultiplePair(0);
         }
         return pair;//new LineSegment(pair.left(), pair.right());
@@ -774,21 +808,21 @@ public class SceneryWayObject extends SceneryFlatObject {
             return  false;
         }
         if (flatComponent.poly.uncutPolygon.getCoordinates().length % 2 == 0) {
-            logger.debug("way " + getOsmIdsAsString() + " never was standard with " + flatComponent.poly.uncutPolygon.getCoordinates().length + "uncut coordinates");
+            log.debug("way " + getOsmIdsAsString() + " never was standard with " + flatComponent.poly.uncutPolygon.getCoordinates().length + "uncut coordinates");
             standardway = false;
         }
         if (flatComponent.poly.polygon.length != 1) {
-            logger.debug("multiple polygons. no standard.");
+            log.debug("multiple polygons. no standard.");
             standardway = false;
         } else {
             if (flatComponent.poly.polygon[0].getCoordinates().length == 0) {
                 // vielleicht beim cut ganz rausgefallen.
-                logger.debug("way " + getOsmIdsAsString() + " isType no standard with " + flatComponent.poly.polygon[0].getCoordinates().length + "coordinates");
+                log.debug("way " + getOsmIdsAsString() + " isType no standard with " + flatComponent.poly.polygon[0].getCoordinates().length + "coordinates");
                 standardway = false;
                 flatComponent = AbstractArea.EMPTYAREA;
             } else {
                 if (flatComponent.poly.polygon[0].getCoordinates().length % 2 == 0) {
-                    logger.debug("way " + getOsmIdsAsString() + " isType no standard with " + flatComponent.poly.polygon[0].getCoordinates().length + "coordinates");
+                    log.debug("way " + getOsmIdsAsString() + " isType no standard with " + flatComponent.poly.polygon[0].getCoordinates().length + "coordinates");
                     standardway = false;
                 }
             }
@@ -796,7 +830,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         if (!standardway && !flatComponent.isEmpty()) {
             if (flatComponent.material.getName().equals(Materials.ROAD.getName())) {
                 //ASPHALT hat kein STRIP_FIT
-                logger.debug("switching from material ROAD to ASPHALT");
+                log.debug("switching from material ROAD to ASPHALT");
                 flatComponent.material = ASPHALT;
             }
         }
@@ -829,41 +863,68 @@ public class SceneryWayObject extends SceneryFlatObject {
      */
     public CoordinatePair shiftStartOrEnd(MapNode node, double v) {
         if (!(flatComponent[0] instanceof WayArea)) {
-            logger.error("reduce: area isType no way: " + mapWay.getOsmId());
+            log.error("reduce: area isType no way: " + mapWay.getOsmId());
             return null;
         }
         WayArea wa = (WayArea) flatComponent[0];
-        if (isStartNode(node)) {
-            return wa.shiftStart(v);
-        }
-        if (isEndNode(node)) {
-            return wa.shiftEnd(-v);
-        }
-        logger.error("neither start nor end node");
-        return null;
+        return wa.shiftStartOrEnd(node, v);
     }
 
     public boolean isClosed() {
+        // should be OK to use "==" here
         return getStartNode() == getEndNode();
     }
 
     /**
      * Convert a CoordinatePair from "start" orientation to orientation from "node", which must be either start or end.
      */
-    public CoordinatePair toNodeOrientation(MapNode node, CoordinatePair coordinatePair) {
-        if (isEndNode(node)) {
+    public static CoordinatePair toNodeOrientation(MapNode node, MapWaySegment2 mapWay, CoordinatePair coordinatePair) {
+        if (mapWay.isEndNode(node)) {
             return coordinatePair.swap();
         } else {
-            if (isStartNode(node)) {
+            if (mapWay.isStartNode(node)) {
                 return coordinatePair;
             }
         }
-        logger.error("neither start nor end");
+        //23.2.26 log.error("neither start nor end");
         return null;
     }
 
+    public WayOuterMode getStartMode() {
+        return startMode;
+    }
+
+    public WayOuterMode getEndMode() {
+        return endMode;
+    }
+
+    /*not needed public void addConnector(MeshWayConnector meshWayConnector) {
+        long connectorOsmId = meshWayConnector.getOsmId();
+        if (connectorOsmId==getStartNode().getOsmId()) {
+            setStartConnector(meshWayConnector);
+        }else {
+            if (connectorOsmId==getEndNode().getOsmId()) {
+                setEndConnector(meshWayConnector);
+            }else{
+                innerConnectorMap.put(getPosition(meshWayConnector.getOsmId()),meshWayConnector);
+                splitWayByMidConnector();
+            }
+        }
+    }*/
+
+    public Integer getPosition(long osmId) {
+        int index=0;
+        for (MapNode n:mapWay.getMapNodes()){
+            if (n.getOsmId()==osmId){
+                return index;
+            }
+            index++;
+        }
+        return -1;
+    }
+
     public static enum WayOuterMode {
-        GRIDBOUNDARY, CONNECTOR, DEADEND;
+        /*17.3.26 we no longer care about this GRIDBOUNDARY,*/ CONNECTOR, DEADEND;
         //Fatal public SceneryWayConnector wayConnector;
         //Fatal public int gridboundarynode = -1;
     }
@@ -875,11 +936,11 @@ public class SceneryWayObject extends SceneryFlatObject {
         return l;
     }
 
-    @Override
+   /*16.2.26  @Override
     public boolean isPartOfMesh(TerrainMesh tm) {
         if (!(getArea()[0] instanceof WayArea)) {
             return false;
         }
         return getWayArea().getLeftLines(tm) != null && getWayArea().getRightLines(tm) != null;
-    }
+    }*/
 }

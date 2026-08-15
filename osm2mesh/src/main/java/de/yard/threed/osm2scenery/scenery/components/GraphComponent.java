@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.scenery.components;
 
+import de.yard.threed.core.Pair;
 import de.yard.threed.core.Vector2;
 import de.yard.threed.core.Vector3;
 import de.yard.threed.graph.Graph;
@@ -44,12 +45,12 @@ public class GraphComponent extends de.yard.threed.graph.GraphComponent {
         Graph graph = sceneryContext/*3.4.24 SceneryContext.getInstance()*/.getGraph(category);
         this.category = category;
 
-        for (MapWaySegment line : parent.mapWay.getMapWaySegments()) {
+        for (Pair<MapNode,MapNode> line : parent.mapWay.getMapWayLines()) {
             //13.8.19: Segment ausserhalb skippen
-            if (line.getStartNode().location == MapNode.Location.OUTSIDEGRID || line.getEndNode().location == MapNode.Location.OUTSIDEGRID) {
+            /*17.3.26 we no longer care about if (line.getStartNode().location == MapNode.Location.OUTSIDEGRID || line.getEndNode().location == MapNode.Location.OUTSIDEGRID) {
                 //ignore
-            } else {
-                GraphEdge edge = addSegmentToGraph(graph, line, parent.id);
+            } else*/ {
+                GraphEdge edge = addSegmentToGraph(graph, line, parent.id, parent.mapWay.getOsmId());
                 edge.customdata = this;
                 edgelist.add(edge);
             }
@@ -88,10 +89,10 @@ public class GraphComponent extends de.yard.threed.graph.GraphComponent {
      * @param layer
      * @return
      */
-    public static GraphEdge addSegmentToGraph(Graph graph, MapWaySegment line, int layer) {
-        GraphNode n1 = addGraphNodeToGraph(graph, line.getStartNode());
-        GraphNode n2 = addGraphNodeToGraph(graph, line.getEndNode());
-        return graph.connectNodes(n1, n2, "" + line.getOsmWay().id, layer);
+    public static GraphEdge addSegmentToGraph(Graph graph, Pair<MapNode,MapNode>  line, int layer, long osmWayId) {
+        GraphNode n1 = addGraphNodeToGraph(graph, line.getFirst());
+        GraphNode n2 = addGraphNodeToGraph(graph, line.getSecond());
+        return graph.connectNodes(n1, n2, "" + osmWayId, layer);
     }
 
     public static GraphNode addGraphNodeToGraph(Graph graph, MapNode mapNode) {

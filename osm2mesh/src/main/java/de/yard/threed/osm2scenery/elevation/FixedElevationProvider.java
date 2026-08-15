@@ -1,7 +1,7 @@
 package de.yard.threed.osm2scenery.elevation;
 
 
-import de.yard.threed.traffic.geodesy.ElevationProvider;
+import de.yard.threed.trafficcore.ElevationProvider;
 
 /**
  *  //28.7.18: bis einer richtig laueft.

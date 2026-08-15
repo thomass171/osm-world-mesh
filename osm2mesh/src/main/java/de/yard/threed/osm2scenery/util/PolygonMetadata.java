@@ -6,7 +6,8 @@ import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2world.JTSConversionUtil;
 import de.yard.threed.osm2world.MapNode;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,8 +21,8 @@ import java.util.Map;
  * <p>
  * Created on 26.07.18.
  */
+@Slf4j
 public class PolygonMetadata {
-    Logger logger = Logger.getLogger(PolygonMetadata.class);
     //Mapping osmnode->Coordinates
     private Map<MapNode, List<Coordinate>> nodemap = new HashMap<>();
     //um die Herkunft einer Coordinate nachzuhalten. Wuerde aber auch ueber Elegroup gehen. Darum deprecated
@@ -52,7 +53,7 @@ public class PolygonMetadata {
         }
         v.add(c);
         if (coormap.containsKey(c)) {
-            logger.warn("Coordinate already registered. Will get lost.");
+            log.warn("Coordinate already registered. Will get lost.");
         }
         coormap.put(c, osmid);
         EleCoordinate e = new EleCoordinate(c);
@@ -84,7 +85,7 @@ public class PolygonMetadata {
         List<Coordinate> clist = nodemap.get(node);
         if (clist==null){
             //?? 12.6.19
-            logger.warn("no clist??");
+            log.warn("no clist??");
             return new ArrayList(eleconnectormap.values());
         }
         List<EleCoordinate> eles = new ArrayList<>();
@@ -106,7 +107,7 @@ public class PolygonMetadata {
         EleCoordinate e = eleconnectormap.get(coor);
         if (e == null) {
             //Der cut ist dafuer die häufigste Ursache (und Triangulation). Erstmal nicht mehr loggen, weil es zu oft vorkommt.
-            //logger.warn("no eleconnector found for coordinate. polygon cut? Using nearest");
+            //log.warn("no eleconnector found for coordinate. polygon cut? Using nearest");
             List<Coordinate> allc = new ArrayList<>(eleconnectormap.keySet());
             int index = JtsUtil.findClosestVertexIndex(coor, allc);
             if (index == -1) {

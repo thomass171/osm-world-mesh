@@ -1,4 +1,4 @@
-package de.yard.owm.services.util;
+package de.yard.threed.osm2scenery.util;
 
 import de.yard.threed.osm2world.MapBasedTagGroup;
 import de.yard.threed.osm2world.OSMData;
@@ -29,8 +29,6 @@ import org.xml.sax.SAXParseException;
 import javax.xml.parsers.SAXParser;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringBufferInputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;

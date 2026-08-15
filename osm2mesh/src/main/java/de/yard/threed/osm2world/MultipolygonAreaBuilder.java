@@ -620,7 +620,7 @@ public class MultipolygonAreaBuilder {
 				COASTLINE_NODE_TAGS, nodeId + 1);
 		osmData.getNodes().add(osmNode);
 				
-		MapNode mapNode = new MapNode(pos, osmNode,null);
+		MapNode mapNode = new MapNode(pos, osmNode/*17.3.26 ,null*/);
 		mapNodes.add(mapNode);
 		nodeMap.put(osmNode, mapNode);
 		

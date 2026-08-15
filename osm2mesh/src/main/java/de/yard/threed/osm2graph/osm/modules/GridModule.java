@@ -11,11 +11,11 @@ package de.yard.threed.osm2graph.osm.modules;
  */
 /*public class GridModule extends ConfigurableWorldModule {
     public List<Road> roads = new ArrayList<>();
-    static Logger logger = Logger.getLogger(GridModule.class);
+    static Logger logger = log.getLogger(GridModule.class);
 
     @Override
     public void applyTo(MapData mapdata) {
-        // logger.debug("apply " + grid);
+        // log.debug("apply " + grid);
         // 24.5.18: TODO Irgendwie ist es doch Kokelores, das offenbar jedes Segment als Road definiert wird. Und auch das mit dem Wayset
         for (MapWay mapWay : mapdata.getMapWays()) {
             if (RoadModule.isRoad(mapWay.getTags())) {
@@ -40,7 +40,7 @@ package de.yard.threed.osm2graph.osm.modules;
            roads.add(road);
             }
         }
-        logger.debug(""+roads.size()+" roads created.");
+        log.debug(""+roads.size()+" roads created.");
     }
 
     Bucket handleNode(MapNode mapnode,MapWay mapway, MapData mapdata) {

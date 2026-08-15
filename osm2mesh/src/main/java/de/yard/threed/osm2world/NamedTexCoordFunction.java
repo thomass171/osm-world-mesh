@@ -1,7 +1,9 @@
 package de.yard.threed.osm2world;
 
-import org.apache.log4j.Logger;
 
+
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +16,7 @@ import static java.lang.Math.abs;
  * { Target}s may also provide special implementations for them
  * (e.g. as a specialized shader).
  */
+@Slf4j
 public enum NamedTexCoordFunction implements TexCoordFunction {
 
     /**
@@ -71,8 +74,6 @@ public enum NamedTexCoordFunction implements TexCoordFunction {
      */
     LANDSCAPE2000;
 
-    Logger logger = Logger.getLogger(NamedTexCoordFunction.class);
-
     /**
      * 12.7.19: Returns null in the case of error instead of throwing an exception.
      * @param vs
@@ -101,7 +102,7 @@ public enum NamedTexCoordFunction implements TexCoordFunction {
 
                 if (vs.size() % 3 != 0) {
                     //throw new IllegalArgumentException("not a set of triangles");
-                    logger.error("not a set of triangles");
+                    log.error("not a set of triangles");
                     return null;
                 }
 
@@ -156,7 +157,7 @@ public enum NamedTexCoordFunction implements TexCoordFunction {
 
                 if (vs.size() % 2 == 1) {
                     //throw new IllegalArgumentException("not a triangle strip wall");
-                    logger.error("not a triangle strip wall");
+                    log.error("not a triangle strip wall");
                     return null;
                 }
 

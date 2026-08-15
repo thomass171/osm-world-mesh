@@ -34,10 +34,11 @@ import de.yard.threed.osm2world.TerrainInterpolator;
 import de.yard.threed.osm2world.VectorXYZ;
 import de.yard.threed.osm2world.WorldObject;
 import de.yard.threed.osm2world.ZeroInterpolator;
-import de.yard.threed.traffic.geodesy.ElevationProvider;
+import de.yard.threed.trafficcore.ElevationProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang.time.StopWatch;
-import org.apache.log4j.Logger;
+
 import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 
 import java.io.IOException;
@@ -54,10 +55,14 @@ import static java.util.Collections.emptyList;
  * in the correct order.
  * Instanciated by build() method.
  * <p>
- * Abgeleitet vom OSM2World ConversionFacade.java
+ * Derived vom OSM2World ConversionFacade.java
+ * 11.2.26: This is the legacy way of building a tile from scratch (OSM data) in one process.
+ * This logic was cloned to OsmService for DB style.
+ *
+ *
  */
+@Slf4j
 public class SceneryConversionFacade {
-    Logger logger = Logger.getLogger(SceneryConversionFacade.class.getName());
     OSMData osmData = null;
     MapData mapData = null;
     List<SceneryModule> worldModules = null;
@@ -195,7 +200,7 @@ public class SceneryConversionFacade {
      * @throws BoundingBoxSizeException for oversized bounding boxes
      */
     public Results createRepresentations(GridCellBounds targetBounds, SceneryProjection mapProjection)
-            throws IOException, BoundingBoxSizeException {
+            throws IOException, BoundingBoxSizeException, MeshInconsistencyException {
 
         Configuration compositeConfiguration = Config.getCurrentConfiguration();
         init(compositeConfiguration);
@@ -231,7 +236,7 @@ public class SceneryConversionFacade {
         for (String modulename : modulelist) {
             //String modulename = (String) modconfig.getString("name");
             if (Config.getCurrentConfiguration().getBoolean("modules." + modulename + ".enabled")) {
-                //logger.debug("Building module " + modulename);
+                //log.debug("Building module " + modulename);
                 try {
                     String classname = Config.getCurrentConfiguration().getString("modules." + modulename + ".class");
                     //9.4.19 classname = classname.replaceAll(".*\\.modules", "de.yard.threed.osm2scenery.modules");
@@ -239,7 +244,7 @@ public class SceneryConversionFacade {
                     SceneryModule instance = (SceneryModule) clazz.newInstance();
                     worldModules.add(instance);
                 } catch (Exception e) {
-                    logger.error("Failure loading module " + modulename);
+                    log.error("Failure loading module " + modulename);
                     e.printStackTrace();
                 }
             }
@@ -299,10 +304,10 @@ public class SceneryConversionFacade {
         Phase.updatePhase(Phase.WAYS);
         processCycle(sceneryMesh, WAY);
 
-        logger.info("Resolving way overlaps");
+        log.info("Resolving way overlaps");
         sceneryMesh.resolveWaysAndConnectorOverlaps();
         SceneryContext.getInstance().overlappingways = sceneryMesh.checkForOverlappingAreas(true);
-        logger.debug("After resolving still " + SceneryContext.getInstance().overlappingways + " overlapping terrain provider way areas");
+        log.debug("After resolving still " + SceneryContext.getInstance().overlappingways + " overlapping terrain provider way areas");
 
         //Ermitteln, was unter den Bridges ist und die Approaches der Bridges. Dazu werden die Polygone gebraucht.
         //13.7.19 nicht mehr sceneryMesh.completeBridgeRelations();
@@ -322,7 +327,7 @@ public class SceneryConversionFacade {
             processCycle(sceneryMesh, cycle);
         }
         SceneryContext.getInstance().overlappingterrain = sceneryMesh.checkForOverlappingAreas(true);
-        logger.debug(SceneryContext.getInstance().overlappingterrain + " overlapping terrain areas");
+        log.debug(SceneryContext.getInstance().overlappingterrain + " overlapping terrain areas");
 
         //erst wenn alle Polygone/Areas da sind, können adjacent areas ermittelt werden.
         SceneryMesh.connectAreas(sceneryMesh.sceneryObjects.objects);
@@ -336,24 +341,24 @@ public class SceneryConversionFacade {
         // Vor den Supplements das Mesh erstellen. Die Supplements koennen dann daran anschliessen, muessen aber nicht (oder auch teilweise).
         // Ohne Smartgrid kann das nicht konsistent werden.
         Phase.updatePhase(Phase.TERRAINMESH);
-        logger.info("Initializing terrain mesh with " + sceneryMesh.sceneryObjects.size() + " scenery objects (ways and areas).");
+        log.info("Initializing terrain mesh with " + sceneryMesh.sceneryObjects.size() + " scenery objects (ways and areas).");
         if (SceneryBuilder.FTR_SMARTGRID) {
             sceneryMesh.terrainMesh = TerrainMesh.init(targetBounds);
             //sonst geht waytoarea filler nicht if (SceneryBuilder.FTR_SMARTBG) {
             //erst die Ways, danach areas, um Komplkationen zu vermeiden.
             try{
-            logger.info("adding ways to terrain mesh");
+            log.info("adding ways to terrain mesh");
             sceneryMesh.terrainMesh.addWays(sceneryMesh.sceneryObjects.objects);
-            logger.info("adding areas to terrain mesh");
+            log.info("adding areas to terrain mesh");
             sceneryMesh.terrainMesh.addAreas(sceneryMesh.sceneryObjects.objects);
-            } catch (OsmProcessException e) {
+            } catch (OsmProcessException|MeshInconsistencyException e) {
                 throw new RuntimeException(e);
             }
         }
 
         //Supplements anlegen und verarbeiten
         Phase.updatePhase(Phase.SUPPLEMENTS);
-        logger.info("Creating supplements for " + sceneryMesh.sceneryObjects.size() + " scenery objects.");
+        log.info("Creating supplements for " + sceneryMesh.sceneryObjects.size() + " scenery objects.");
 
         for (SceneryModule module : worldModules) {
             //Das durefen definitionsgemaess nur Supplements mit Cycle SUPPLEMENT sein.
@@ -367,7 +372,7 @@ public class SceneryConversionFacade {
             }
         }
         processCycle(sceneryMesh, SUPPLEMENT);
-        logger.info("Resolving supplement overlaps");
+        log.info("Resolving supplement overlaps");
         sceneryMesh.resolveSupplementOverlaps(sceneryMesh.terrainMesh);
         // wenn durch Supplements overlaps entstanden sind, wird das mit Sicherheit zu Problemen im TerrainMesh führen.
         // SceneryContext.getInstance().unresolvedoverlaps ist aber nur der Zaehler fuer versuchte und gescheiterte!
@@ -377,13 +382,13 @@ public class SceneryConversionFacade {
         if (SceneryContext.getInstance().overlappingTerrainWithSupplements > 0) {
             comment = "" + SceneryContext.getInstance().overlappingTerrainWithSupplements + " terrain overlaps";
         }
-        logger.info("Created " + SceneryObjectList.findObjectsByCycle(sceneryMesh.sceneryObjects.objects,SUPPLEMENT).size() + " supplements. Now " + sceneryMesh.sceneryObjects.size() + " scenery objects (" +
+        log.info("Created " + SceneryObjectList.findObjectsByCycle(sceneryMesh.sceneryObjects.objects,SUPPLEMENT).size() + " supplements. Now " + sceneryMesh.sceneryObjects.size() + " scenery objects (" +
                 comment + ").Start adding to mesh.");
 
         // Supplements muessen auch ins TerrainMesh
         try {
             sceneryMesh.terrainMesh.addSupplements(SceneryObjectList.findObjectsByCycle(sceneryMesh.sceneryObjects.objects, SUPPLEMENT));
-        } catch (OsmProcessException e) {
+        } catch (OsmProcessException|MeshInconsistencyException e) {
             throw new RuntimeException(e);
         }
         boolean meshValid = false;
@@ -393,9 +398,9 @@ public class SceneryConversionFacade {
             meshValid=false;
         }
         //gap filler sind zwar auch supplements. Aber die haengen sich schon selber ins mesh.
-        logger.info("Supplements added to terrain mesh (mesh " + ((meshValid) ? "valid" : "invalid") + "). Creating gap filler");
+        log.info("Supplements added to terrain mesh (mesh " + ((meshValid) ? "valid" : "invalid") + "). Creating gap filler");
         int cnt = sceneryMesh.createWayToAreaFiller();
-        logger.info("Created " + cnt + " gap filler");
+        log.info("Created " + cnt + " gap filler");
 
         Phase.updatePhase(Phase.BACKGROUND);
         sceneryMesh.createBackground();
@@ -439,7 +444,7 @@ public class SceneryConversionFacade {
         ElevationProvider elevationProvider = null;
 
         if (elevationProvidername != null && targetBounds != null) {
-            logger.info("Elevation Provider isType " + elevationProvidername);
+            log.info("Elevation Provider isType " + elevationProvidername);
             String classname = elevationProvidername;// + ".class";
             try {
                 Class clazz = Class.forName(classname);
@@ -464,7 +469,7 @@ public class SceneryConversionFacade {
                 e.printStackTrace();
             }
         } else {
-            logger.info("No Elevation provider or nor grid. Elevation not calculated");
+            log.info("No Elevation provider or nor grid. Elevation not calculated");
         }
 
 
@@ -488,7 +493,7 @@ public class SceneryConversionFacade {
 
     }
 
-    private void processCycle(SceneryMesh sceneryMesh, SceneryObject.Cycle cycle) {
+    private void processCycle(SceneryMesh sceneryMesh, SceneryObject.Cycle cycle) throws MeshInconsistencyException {
         //Phase.updatePhase(Phase.POLYGONS);
         //sceneryMesh.createNonWaysPolygons();
         List<ScenerySupplementAreaObject> supplements = sceneryMesh.createPolygons(cycle, sceneryMesh.sceneryObjects.objects, sceneryMesh.gridbounds, sceneryMesh.terrainMesh, SceneryContext.getInstance());
@@ -565,13 +570,13 @@ public class SceneryConversionFacade {
                 }
             } catch (ConstraintEnforcementException enforcementException) {
                 // just warning because it just happens
-                logger.warn("Caught ConstraintEnforcementException");
+                log.warn("Caught ConstraintEnforcementException");
             } catch (InvalidGeometryException invalidGeometryException) {
                 // just warning because it just happens
-                logger.warn("Caught InvalidGeometryException");
+                log.warn("Caught InvalidGeometryException");
             } catch (Exception exception) {
                 // just warning because it just happens
-                logger.warn("Caught general Exception", exception);
+                log.warn("Caught general Exception", exception);
             }
         }
 

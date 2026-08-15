@@ -4,7 +4,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.core.Vector2;
 import de.yard.threed.core.Vector3;
 import de.yard.threed.osm2world.*;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 
 import java.util.ArrayList;
@@ -15,8 +15,8 @@ import java.util.List;
  * 1.5.19: Klar. Aber normals fehlen. Zumindest optional. Wie uvs.
  * Created on 13.07.18.
  */
+@Slf4j
 public class VertexData {
-    Logger logger = Logger.getLogger(VertexData.class);
 
     public List<VectorXZ> uvs = null;
     public List<Coordinate> vertices;
@@ -66,12 +66,12 @@ public class VertexData {
                 break;
 
             default:
-                logger.error("unknown type " + primitive.type);
+                log.error("unknown type " + primitive.type);
                 //TODO andere Typen
         }
         String msg = validate();
         if (msg != null) {
-            logger.error("" + msg);
+            log.error("" + msg);
         }
     }
 
@@ -87,11 +87,11 @@ public class VertexData {
 
     public void add(VertexData vd) {
         if ((uvs == null) != (vd.uvs == null)) {
-            logger.error("inconsistent uv lists. Ignroring add.");
+            log.error("inconsistent uv lists. Ignroring add.");
             return;
         }
         if ((normals == null) != (vd.normals == null)) {
-            logger.error("inconsistent normals lists. Ignroring add.");
+            log.error("inconsistent normals lists. Ignroring add.");
             return;
         }
         int vsize=vertices.size();
@@ -126,7 +126,7 @@ public class VertexData {
      */
     public int[] createTriangleStripIndices(List<Coordinate> vertices) {
         if (vertices.size() % 2 == 1) {
-            logger.error("not a triangle strip ");
+            log.error("not a triangle strip ");
             return null;
         }
         int len = vertices.size() / 2;
@@ -151,7 +151,7 @@ public class VertexData {
 
     public int[] createTriangleIndices(List<Coordinate> vertices) {
         if (vertices.size() % 3 != 0) {
-            logger.error("not a triangle list ");
+            log.error("not a triangle list ");
             return null;
         }
         int trianglecnt = vertices.size() / 3;

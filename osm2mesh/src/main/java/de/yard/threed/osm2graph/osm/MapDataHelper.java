@@ -16,7 +16,8 @@ import de.yard.threed.osm2world.MapWaySegment;
 import de.yard.threed.osm2world.OSMNode;
 import de.yard.threed.osm2world.SimplePolygonXZ;
 import de.yard.threed.osm2world.VectorXZ;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,10 +26,10 @@ import java.util.List;
 /**
  * Created on 01.06.18.
  */
+@Slf4j
 public class MapDataHelper {
 
     private final MapData mapData;
-    static Logger logger = Logger.getLogger(MapDataHelper.class.getName());
 
 
     public MapDataHelper(MapData mapData) {
@@ -184,7 +185,7 @@ public class MapDataHelper {
         GeometryFactory geometryFactory = new GeometryFactory();
         if (uncutcoord.length < 4) {
             // even possible?
-            logger.warn("invalid polygon with uncutcoord.length=" + uncutcoord.length);
+            log.warn("invalid polygon with uncutcoord.length=" + uncutcoord.length);
             // will fail later with NPE
             return null;
         }
@@ -192,7 +193,7 @@ public class MapDataHelper {
         if (polygon.isValid()) {
             poly = new SmartPolygon(polygon, polygonMetadata);
         } else {
-            logger.warn("createSmartPolygon: invalid polygon created.");
+            log.warn("createSmartPolygon: invalid polygon created.");
             return null;
         }
         return poly;
@@ -216,14 +217,14 @@ public class MapDataHelper {
             outlinePolygonXZ = new SimplePolygonXZ(outlineLoopXZ);
             broken = outlinePolygonXZ.isClockwise();
         } catch (InvalidGeometryException e) {
-            logger.error("InvalidGeometryException: broken outline");
+            log.error("InvalidGeometryException: broken outline");
 
             broken = true;
             //connectors = EleConnectorGroup.EMPTY;
             return null;
         } catch (Exception e) {
             // IllegalArgumentException kommt auch schon mal
-            logger.error("Exception: broken outline", e);
+            log.error("Exception: broken outline", e);
 
             broken = true;
             //connectors = EleConnectorGroup.EMPTY;
@@ -248,7 +249,7 @@ public class MapDataHelper {
             MapNode node = mapWay.getMapNodes().get(i);
             OSMNode gridosmnode = OsmUtil.buildDummyNode(node.getOsmNode().lat, node.getOsmNode().lon);
             VectorXZ xz = node.getPos();
-            MapNode dummynode = new MapNode(xz, gridosmnode,null);
+            MapNode dummynode = new MapNode(xz, gridosmnode/*17.3.26 ,null*/);
             // Orgiginal OSM way mal nicht ablegen
             if (dummyway == null) {
                 dummyway = new MapWay(dummynode, null);

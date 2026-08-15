@@ -8,10 +8,12 @@ import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.PolygonSubtractResult;
 import de.yard.threed.osm2scenery.SceneryObjectList;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2world.Material;
 import de.yard.threed.osm2world.Materials;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,15 +24,15 @@ import java.util.List;
  * <p>
  * Created on 13.08.18.
  */
+@Slf4j
 public class Background {
-    static Logger logger = Logger.getLogger(Background.class);
     static boolean avoidholes = false;
 
     public List<BackgroundElement> background = null;
     public Material material = Materials.TERRAIN_DEFAULT;
     private List<Area> bgfiller = new ArrayList<>();
 
-    public Background(Polygon polygon) {
+    public Background(Polygon polygon) throws MeshInconsistencyException {
         background = new ArrayList<>();
         if (!SceneryBuilder.FTR_SMARTBG) {
             addToList(polygon, background);
@@ -46,7 +48,7 @@ public class Background {
      * <p>
      * Effektiv leere Areas werden uebergangen.
      */
-    public void insert(SceneryFlatObject area, boolean cutonly, TerrainMesh tm) {
+    public void insert(SceneryFlatObject area, boolean cutonly, TerrainMesh tm) throws MeshInconsistencyException {
         //SceneryArea area=sceneryObject.getSceneryArea();
         if (/*background != null &&*/ !area.isTerrainProvider()) {
             return;
@@ -56,7 +58,7 @@ public class Background {
         if (area.getUncutPolygon() == null) {
             //19.4.19: Sowas gibt es, z.B. Connector. Keine Meldung wert.
             //TODO aber prüfen über empty
-            //logger.warn("no polygon. Skipping! creatortag=" + area.creatortag);
+            //log.warn("no polygon. Skipping! creatortag=" + area.creatortag);
             //return;
             //23.7.19: uncut gibt es nicht mehr immer
             if (area.getArea() == null) {
@@ -73,7 +75,7 @@ public class Background {
         for (Polygon p : polygonToUse) {
             if (p != null) {
                 if (!p.isValid()) {
-                    logger.warn("invalid polygon. Skipping! creatortag=" + area.creatortag);
+                    log.warn("invalid polygon. Skipping! creatortag=" + area.creatortag);
                 } else {
 
                     List<Coordinate> newcoordinates = null;
@@ -102,12 +104,12 @@ public class Background {
      * 24.7.19: When die area schon cut ist, kann ein Polygon mit Hole entstehen,dass exakt auf einer Kante liegt. Das scheitert dann evtl. Triangulation. Darum dann
      * das Hole entfernen.
      */
-    public List<Coordinate> cut(Polygon uncutarea, boolean alreadycut) {
+    public List<Coordinate> cut(Polygon uncutarea, boolean alreadycut) throws MeshInconsistencyException {
         List<BackgroundElement> newbackground = new ArrayList<>();
 
 
         if (!uncutarea.isValid()) {
-            logger.error("invalid uncutarea");
+            log.error("invalid uncutarea");
         }
         for (BackgroundElement be : background) {
             Polygon pePolygon = be.polygon;
@@ -115,14 +117,14 @@ public class Background {
                 List<PolygonSubtractResult> diff = JtsUtil.subtractPolygons(pePolygon, uncutarea);
                 if (diff == null || diff.size() == 0) {
                     //4.9.19:nicht loggenmswert
-                    //logger.error("no diff found");
+                    //log.error("no diff found");
                 } else {
                     for (PolygonSubtractResult p0 : diff) {
                         Polygon bep = p0.polygon;
                         if (bep.getNumInteriorRing() == 1 && alreadycut) {
                             Polygon bepwithouthole = JtsUtil.removeHoleOnEdge(bep);
                             if (bepwithouthole != null) {
-                                logger.debug("hole removed from polygon");
+                                log.debug("hole removed from polygon");
                                 bep = bepwithouthole;
                             }
                         }
@@ -144,7 +146,7 @@ public class Background {
                 }
             }
         }
-        //logger.debug("cut: new background elements: " + newbackground.size() + " with area " + getArea()+". Before were "+background.size());
+        //log.debug("cut: new background elements: " + newbackground.size() + " with area " + getArea()+". Before were "+background.size());
         background = newbackground;
         return newcoordinates;
 
@@ -176,12 +178,12 @@ public class Background {
      * @param polygon
      * @param list
      */
-    private static void addToList(Polygon polygon, List<BackgroundElement> list) {
+    private static void addToList(Polygon polygon, List<BackgroundElement> list) throws MeshInconsistencyException {
         if (polygon.isEmpty()) {
             return;
         }
         if (avoidholes && polygon.getNumInteriorRing() > 0) {
-            logger.debug("background polygon has hole. Trying to remove");
+            log.debug("background polygon has hole. Trying to remove");
             Polygon[] splitresult = JtsUtil.removeHoleFromPolygonBySplitting(polygon);
             if (splitresult != null) {
                 for (Polygon p : splitresult) {
@@ -217,13 +219,13 @@ public class Background {
                     try {
                         soareas = soareas.union(p);
                     } catch (TopologyException e) {
-                        logger.error("union failed:" + e.getMessage());
+                        log.error("union failed:" + e.getMessage());
                     }
                 }
             }
         }
-        logger.debug("sum of known objects has " + soareas.getNumGeometries() + " polygons");
-        logger.debug("current background has " + background.size() + " elements");
+        log.debug("sum of known objects has " + soareas.getNumGeometries() + " polygons");
+        log.debug("current background has " + background.size() + " elements");
 
     }
 

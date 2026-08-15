@@ -4,7 +4,8 @@ import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2world.MapNode;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,8 +23,8 @@ import java.util.Map;
  *
  * Created on 24.08.18.
  */
+@Slf4j
 public class WayMap {
-    Logger logger = Logger.getLogger(WayMap.class);
     //MapNode->alle Ways dazu. Von einem Way werden aber nur Start/End registriert. NeeNee, sehr haufig
     //gibt es eine junction auf einer Zwischennode. Darum müssen alle rein.
     //24.8.18: die logische Trennung hatte was statt alles in einer map, evtl. ueber Category?
@@ -74,7 +75,7 @@ public class WayMap {
     public void addConnector(SceneryObject.Category category, MapNode node, SceneryWayConnector sceneryNodeObject) {
         Map<Long, SceneryWayConnector> map = getConnectorMapForCategory(category);
         if (map.get(node.getOsmId()) != null) {
-            logger.error("duplicate entry");
+            log.error("duplicate entry");
         }
         map.put(node.getOsmId(),sceneryNodeObject);
     }

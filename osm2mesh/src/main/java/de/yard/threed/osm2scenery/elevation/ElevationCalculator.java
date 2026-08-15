@@ -16,8 +16,9 @@ import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.util.PolygonMetadata;
-import de.yard.threed.traffic.geodesy.ElevationProvider;
-import org.apache.log4j.Logger;
+import de.yard.threed.trafficcore.ElevationProvider;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.List;
 
@@ -46,8 +47,8 @@ import java.util.List;
  * <p>
  * Created on 27.07.18.
  */
+@Slf4j
 public class ElevationCalculator {
-    static Logger logger = Logger.getLogger(ElevationCalculator.class);
 
     public static void fixElevationGroups(SceneryObjectList sceneryObjects, ElevationProvider elevationProvider, SceneryContext sceneryContext) {
         //1 Gridgrenzen sind schon in ElevationMap
@@ -145,7 +146,7 @@ public class ElevationCalculator {
                     // 12.6.19: Kann aber auch durch Triangulation passieren, oder? Und Lazycut. Darum erst später loggen.
                     boolean success = findEgrGroupForCoordinate(coord[i], sceneryObjects.objects);
                     if (!success) {
-                        logger.warn("no group found for bg point " + coord[i] + ". ");
+                        log.warn("no group found for bg point " + coord[i] + ". ");
                         SceneryContext.getInstance().warnings.add("no group found for bg point " + coord[i] + ". ");
                         elevation = findElevationForCoordinate(coord[i]);
 
@@ -168,7 +169,7 @@ public class ElevationCalculator {
         }
         for (AbstractArea be : background.getBgfiller()) {
             if (be.isEmpty(tm)) {
-                logger.warn("empty BG filler?");
+                log.warn("empty BG filler?");
             } else {
                 calculateElevationsForCoordinates(be.getPolygon(tm).getCoordinates(), null, tm);
                 calculateElevationsForVertexCoordinates(be.getVertexData().vertices, null, tm);
@@ -209,7 +210,7 @@ public class ElevationCalculator {
         }
         /*elevations.add(ElevationMap.getInstance().cmap.get(coordinate));
         if (elevations.size() == 0) {
-            logger.warn("no elevation found for " + coordinate);
+            log.warn("no elevation found for " + coordinate);
             return 0;
         }
         if (elevations.size() == 1) {
@@ -234,7 +235,7 @@ public class ElevationCalculator {
         if (elevation == null) {
             //wie kann das sein? Mit Triangulation kann das doch nicht zu tun haben.
             //30.8.18: An den GridEnter fehlt ja noch der cut. TODO
-            logger.error("elevation not found for background");
+            log.error("elevation not found for background");
             ElevationMap.getInstance().problemlist.add(coordinate);
             elevation = ElevationMap.getInstance().getElevationForClosestCoordinate(coordinate);
         }
@@ -247,7 +248,7 @@ public class ElevationCalculator {
                 max = e;
             }
         }
-        logger.info("multiple elevations " + s + " found for " + coordinate + ". Using " + max);
+        log.info("multiple elevations " + s + " found for " + coordinate + ". Using " + max);
         return max;*/
     }
 
@@ -277,7 +278,7 @@ public class ElevationCalculator {
         Double efound = null;
         if (vertexData == null || vertexData.vertices == null) {
             //19.7.19: Betrachte ich nicht mehr als warning?
-            logger.warn("calculateElevationsForPolygon: poly has no vertex data. Skipping elevation");
+            log.warn("calculateElevationsForPolygon: poly has no vertex data. Skipping elevation");
             return;
         }
         calculateElevationsForVertexCoordinates(vertexData.vertices, debuglabel, tm);
@@ -306,11 +307,11 @@ public class ElevationCalculator {
             EleConnectorGroup eleConnectorGroup = EleConnectorGroup.getGroup(c, false, "for polygon " + debuglabel, false, tm);
             Double elevation = Double.valueOf(0);
             if (eleConnectorGroup == null) {
-                logger.warn("group for coordinate " + c + " not found (using 0) in " + debuglabel);
+                log.warn("group for coordinate " + c + " not found (using 0) in " + debuglabel);
             } else {
                 elevation = eleConnectorGroup.getElevation();
                 if (elevation == null) {
-                    logger.warn("no elevation set in group. ussng 0.");
+                    log.warn("no elevation set in group. ussng 0.");
                     elevation = Double.valueOf(0);
                 }
             }
@@ -337,7 +338,7 @@ public class ElevationCalculator {
                 //13.8.19: Das mit PolygonBoundary wird jetzt nicht mehr gemacht. Und auch nicht metadaten. Die Coordinate MUSS im TerrainMesh da sein.
                 boolean onBoundary = false;//JtsUtil.onBoundary(c, poly);
                 if (!onBoundary) {
-                    logger.debug("group for vertex not found:" + c + ", onBoundary=" + onBoundary + " for creatortag " + debuglabel);
+                    log.debug("group for vertex not found:" + c + ", onBoundary=" + onBoundary + " for creatortag " + debuglabel);
                     SceneryContext.getInstance().warnings.add("group for vertex not found:" + c + ", onBoundary=" + onBoundary + " for creatortag " + debuglabel);
                 }
                 if (onBoundary) {
@@ -347,7 +348,7 @@ public class ElevationCalculator {
                     EleConnectorGroup g1 = EleConnectorGroup.getGroup(s[0].p1, false, "for boundary", false, tm);
                     if (g0 == null || g1 == null || g0.getElevation() == null || g1.getElevation() == null) {
                         //wie kommt das denn schon wieder?
-                        logger.error("g0 or g1 isType null");
+                        log.error("g0 or g1 isType null");
                     } else {
                         elevation = Double.valueOf((g0.getElevation() + g1.getElevation()) / 2f);
                     }
@@ -362,7 +363,7 @@ public class ElevationCalculator {
                         }
                     }*/
                     if (eleConnectorGroup == null) {
-                        logger.warn("still no group for vertex:" + c);
+                        log.warn("still no group for vertex:" + c);
                     } else {
                         elevation = eleConnectorGroup.getElevation();
                     }
@@ -372,7 +373,7 @@ public class ElevationCalculator {
             }
             // durch possible interpolation there isType no group here.
             if (elevation == null) {
-                logger.warn("no elevation foundp. eleConnectorGroup=" + eleConnectorGroup);
+                log.warn("no elevation foundp. eleConnectorGroup=" + eleConnectorGroup);
                 elevation = Double.valueOf(0);
             }
 
@@ -446,7 +447,7 @@ public class ElevationCalculator {
      */
     private static void elevateArea(SceneryFlatObject area, ElevationProvider elevationProvider) {
         if (area.getEleConnectorGroups() == null) {
-            logger.error("no ele group");
+            log.error("no ele group");
         }
         if (area.getOsmIdsAsString().contains("231544305")) {
             int h = 9;

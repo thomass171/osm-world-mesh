@@ -3,13 +3,7 @@ package de.yard.owm.services.persistence;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapsId;
-import javax.persistence.Table;
+import jakarta.persistence.*;
 
 /**
  *
@@ -24,19 +18,19 @@ public class PersistedOsmWayNode {
     @Getter
     PersistedOsmWayNodeKey id;
 
-    @ManyToOne
+    /*24.3.26 @ManyToOne
     @MapsId("osmwayId")
     @JoinColumn(name = "osmway_id")
     @Setter
     @Getter
-    PersistedOsmWay osmWay;
+    PersistedOsmWay osmWay;*/
 
-    @ManyToOne
+   /*24.3.26  @ManyToOne
     @MapsId("osmnodeId")
     @JoinColumn(name = "osmnode_id")
     @Setter
     @Getter
-    PersistedOsmNode osmNode;
+    PersistedOsmNode osmNode;*/
 
     @Column(name = "index")
     @Setter
@@ -51,8 +45,8 @@ public class PersistedOsmWayNode {
         this.id = new PersistedOsmWayNodeKey();
         this.id.setOsmWayId(osmWay.getId());
         this.id.setOsmNodeId(osmNode.getId());
-        this.osmWay = osmWay;
-        this.osmNode = osmNode;
+        /*24.3.26 this.osmWay = osmWay;
+        this.osmNode = osmNode;*/
         this.index = index;
     }
 }

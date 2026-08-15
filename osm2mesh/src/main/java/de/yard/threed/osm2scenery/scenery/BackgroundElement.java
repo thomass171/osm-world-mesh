@@ -2,13 +2,14 @@ package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.osm2graph.osm.VertexData;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 /**
  * Created on 02.08.18.
  */
+@Slf4j
 public class BackgroundElement {
-    Logger logger = Logger.getLogger(BackgroundElement.class);
     //kein EleGroup. Der BG muss sich das aus den angrenzenden Objekten raussuchen
     //Macht er auch, aber zum Speichern ist die Group einfach prfaktisch.
     //public EleConnectorGroupSet eleConnectorGroupSet;
@@ -20,7 +21,7 @@ public class BackgroundElement {
         this.polygon=polygon;
         if (polygon.getCoordinates().length < 4) {
             //kein warn sondern error, weil ja nichts erzeugt wird
-            logger.error("inconsistent? empty polygon");
+            log.error("inconsistent? empty polygon");
            
         }
     }

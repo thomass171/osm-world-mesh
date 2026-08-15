@@ -11,7 +11,7 @@ import de.yard.threed.osm2scenery.polygon20.OsmNode;
 import de.yard.threed.osm2scenery.polygon20.OsmWay;
 import de.yard.threed.osm2world.MetricMapProjection;
 import de.yard.threed.osm2world.O2WOriginMapProjection;
-import de.yard.threed.traffic.geodesy.GeoCoordinate;
+import de.yard.threed.core.GeoCoordinate;
 import org.springframework.security.core.parameters.P;
 
 import java.util.ArrayList;
@@ -21,15 +21,21 @@ public class PersistedMeshFactory implements MeshFactory {
 
     public MetricMapProjection projection;
     TerrainMeshManager terrainMeshManager;
+    PersistedMesh persistedMesh;
 
-    public PersistedMeshFactory(MetricMapProjection projection, TerrainMeshManager terrainMeshManager) {
+    public PersistedMeshFactory(String meshName, MetricMapProjection projection, TerrainMeshManager terrainMeshManager) {
         this.projection = projection;
         this.terrainMeshManager = terrainMeshManager;
+        this.persistedMesh = terrainMeshManager.findMesh(meshName);
+        if (persistedMesh == null) {
+            throw new RuntimeException("mesh not found:" + meshName);
+        }
     }
 
     @Override
     public MeshNode buildMeshNode(Coordinate coordinate) {
         PersistedMeshNode newNode = new PersistedMeshNode(coordinate, projection.unproject(coordinate));
+        newNode.setPersistedMesh(persistedMesh);
         // persist it to give it an id which is needed for equals.
         terrainMeshManager.persistNode(newNode);
         return newNode;
@@ -78,7 +84,7 @@ public class PersistedMeshFactory implements MeshFactory {
         for (Coordinate c : coordinates) {
             PersistedMeshNode existingNode = null;//TODO find
             if (existingNode == null) {
-                existingNode = new PersistedMeshNode(c,GeoCoordinate.fromLatLon(projection.unproject(c), c.z)/*, projection*/);
+                existingNode = new PersistedMeshNode(c, GeoCoordinate.fromLatLon(projection.unproject(c), c.z)/*, projection*/);
             }
             if (lastNode != null) {
                 lines.add(new PersistedMeshLine(lastNode, existingNode));

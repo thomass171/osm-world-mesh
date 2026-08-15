@@ -4,12 +4,13 @@ import com.vividsolutions.jts.algorithm.CGAlgorithms;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Polygon;
-import de.yard.threed.osm2scenery.util.Poly2TriTriangulationUtil;
+//import de.yard.threed.osm2scenery.util.Poly2TriTriangulationUtil;
 import de.yard.threed.osm2world.Material;
 import de.yard.threed.osm2world.TexCoordFunction;
 import de.yard.threed.osm2world.VectorXYZ;
 import de.yard.threed.osm2world.VectorXZ;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +21,8 @@ import static de.yard.threed.osm2world.TexCoordUtil.texCoordLists;
 /**
  * Created on 13.07.18.
  */
+@Slf4j
 public class TextureUtil {
-    static Logger logger = Logger.getLogger(TextureUtil.class);
 
     /**
      * erst triangluate und dann texturieren, denn triangulate kann weitere Vertices anlegen.
@@ -81,7 +82,7 @@ public class TextureUtil {
         }
         List<List<VectorXZ>> uvs = triangleTexCoordLists(vs, material, defaulttexCoordFunction);
         if (uvs.size() == 0) {
-            logger.error("no uv. No texture defined in config file for material '" + material.getName() + "'?");
+            log.error("no uv. No texture defined in config file for material '" + material.getName() + "'?");
             return null;
         }
         return uvs.get(0);
@@ -110,15 +111,15 @@ public class TextureUtil {
         Collection<VectorXZ> points*/) {
 
         if (!polygon.isValid()) {
-            logger.warn("triangulate:Polygon not valid");
+            log.warn("triangulate:Polygon not valid");
         }
         if (polygon.getNumInteriorRing() > 0) {
             //kein warning, das kann passieren
-            //logger.debug("triangulate:Polygon has holes");
+            //log.debug("triangulate:Polygon has holes");
         }
         if (polygon.getCoordinates().length < 4) {
             //kein warn sondern error, weil ja nichts erzeugt wird
-            logger.error("inconsistent? empty polygon");
+            log.error("inconsistent? empty polygon");
             return null;
         }
 
@@ -140,13 +141,13 @@ public class TextureUtil {
             //already logged. Dann per EarClipping. der kann keine Holes? 9.8.18: Doch, kann er.
             //aber mit vielen Holes ist der extrem!! langsam
             //triangles = JtsUtil.triangulatePolygonByEarClippingRespectingHoles(polygon);
-            //logger.debug("using poly2tri");
-            triangles = Poly2TriTriangulationUtil.triangulate(polygon);
+            //log.debug("using poly2tri");
+            //9.2.26 triangles = Poly2TriTriangulationUtil.triangulate(polygon);
         }
 
         if (triangles == null) {
             String details = "" + polygon.getNumInteriorRing() + " holes," + polygon.getExteriorRing().getCoordinates().length + " points";
-            logger.error("Triangulation finally failed(" + details + "):" + JtsUtil.toWKT(polygon));
+            log.error("Triangulation finally failed(" + details + "):" + JtsUtil.toWKT(polygon));
             return null;
         }
 
@@ -185,7 +186,7 @@ public class TextureUtil {
     private static void setIndex(int[] indices, int index, int offset, Coordinate[] coords, List<Coordinate> vertices) {
         int idx = JtsUtil.findVertexIndex(coords[offset], vertices);
         if (idx == -1) {
-            //logger.warn("vertex not found");
+            //log.warn("vertex not found");
             vertices.add(coords[offset]);
             idx = vertices.size() - 1;
         }

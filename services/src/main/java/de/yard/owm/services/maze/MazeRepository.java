@@ -1,5 +1,7 @@
 package de.yard.owm.services.maze;
 
+import de.yard.owm.services.persistence.PersistedOsmWay;
+import org.springframework.data.repository.ListCrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -10,7 +12,7 @@ import java.util.List;
 
 @CrossOrigin
 @RepositoryRestResource(collectionResourceRel = "mazes", path = "mazes")
-public interface MazeRepository extends PagingAndSortingRepository<Maze, Long> {
+public interface MazeRepository extends PagingAndSortingRepository<Maze, Long>, ListCrudRepository<Maze, Long> {
 
     List<Maze> findByCreatedBy(@Param("createdBy") String name);
 

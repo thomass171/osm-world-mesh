@@ -1,8 +1,6 @@
 package de.yard.threed.osm2graph;
 
 import de.yard.threed.graph.GraphExporter;
-import de.yard.threed.javacommon.ConfigurationByEnv;
-import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.javanative.ConfigurationHelper;
 import de.yard.threed.osm2graph.osm.Aerodrome;
 import de.yard.threed.osm2graph.osm.GeoJson;
@@ -19,16 +17,12 @@ import de.yard.threed.osm2world.OSMData;
 import de.yard.threed.osm2world.OSMNode;
 import de.yard.threed.osm2world.Tag;
 import de.yard.threed.osm2world.VectorXZ;
-import de.yard.threed.tools.GltfBuilder;
-import de.yard.threed.tools.GltfBuilderResult;
-import de.yard.threed.tools.GltfProcessor;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
 import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 
 import java.io.File;
@@ -52,10 +46,12 @@ import static de.yard.threed.javanative.ConfigurationHelper.loadSingleConfig;
  * <p>
  * Verwendbar auch aus Servlet.
  * Created on 05.05.18.
+ *
+ * 24.3.26 we no longer have runtime dependency to module-java-common, so no SimpleHeadlessPlatform and GltfBuilder. Anyway
+ * this class should move to some client package of Spring services.
  */
 public class SceneryBuilder {
 
-    static Logger logger = Logger.getLogger(SceneryBuilder.class.getName());
     public static final String osmdatadir = "/Users/thomas/osmdata";
     public static final int BUILDMODE_2D = 0;// 0 = 2D projected without elevation. Relief durch z.B. Bruecken gibt es aber schon. Ansonsten ist Elevation aber 0.
     public static final int BUILDMODE_2DE = 1;   // 1 = 2D projected with elevation
@@ -93,7 +89,7 @@ public class SceneryBuilder {
         FTR_DYNAMICGRID = false;
         FTR_SMARTGRID = true;
     }
-
+/*24.3.26 see header
     public static void main(String[] args) {
 
         try {
@@ -144,7 +140,7 @@ public class SceneryBuilder {
 
             SceneryBuilder sb = new SceneryBuilder();
 
-            ProcessResults processResults = sb.execute(inputfile/*osmdatadir + "/" + inputfile + ".osm.xml"*/, lodconfigsuffix, gridfile, /*outdir, inputfile,*/ false, customconfig,materialconfigsuffix);
+            ProcessResults processResults = sb.execute(inputfile/*osmdatadir + "/" + inputfile + ".osm.xml"* /, lodconfigsuffix, gridfile, /*outdir, inputfile,* / false, customconfig,materialconfigsuffix);
 
             writeOutput(processResults, outdir, destinationfilename);
 
@@ -157,7 +153,7 @@ public class SceneryBuilder {
     }
 
     private static void writeOutput(ProcessResults processResults, String outputdir, String destinationfilename) throws IOException {
-        logger.debug("Writing output to " + outputdir + " with name " + destinationfilename);
+        log.debug("Writing output to " + outputdir + " with name " + destinationfilename);
         if (outputdir != null) {
             new GltfProcessor().writeGltfOutput(outputdir + "/tiles", destinationfilename, processResults.gltfstring.gltfstring, processResults.gltfstring.bin);
             // 2.8.18: z im graph nicht negieren. Why?
@@ -218,16 +214,16 @@ public class SceneryBuilder {
 
         processor.pml = pmt.pml;
         processor.pmt = pmt;
-
-        GltfBuilder gltfBuilder = new GltfBuilder();
+return null;
+       /*24.3.26 see header GltfBuilder gltfBuilder = new GltfBuilder();
         GltfBuilderResult gltfstring = gltfBuilder.process(pmt.pml);
 
-        logger.info("Building for " + inputfile + " took xxx");
+        log.info("Building for " + inputfile + " took xxx");
         processResults.processor = processor;
         processResults.results = processor.getResults();
         processResults.gltfstring = gltfstring;
         processResults.gridCellBounds = gridCellBounds;
-        return processResults;
+        return processResults;*/
     }
 
     public static List<MapArea> findByTag(Collection<MapArea> mapAreas, Tag tag) {
@@ -240,10 +236,10 @@ public class SceneryBuilder {
         return l;
     }
 
-    static void firstgjson() throws IOException {
+    /*27.2.26static void firstgjson() throws IOException {
         Aerodrome aerodrome = Aerodrome.serviceWays();
         GeoJson.exportWaySet(aerodrome.serviceways);
-    }
+    }*/
 
     public static Configuration loadMaterialConfig(String configfilesuffix) {
         return loadConfig("material-"+configfilesuffix);
@@ -282,7 +278,7 @@ public class SceneryBuilder {
 
     /**
      * Das ist doch doof. Dafuer habe ich doch die Configs.
-     */
+     * /
     /*public static void configureForBuildMode(Configuration customconfig, int buildmode) {
         //Der Default Provider, der OOTB immer 68 liefert.
         //Das ist doch doof. 
@@ -296,13 +292,13 @@ public class SceneryBuilder {
                 break;* /
         }
 
-    }*/
+    }* /
     public static Map<OSMNode, MapNode> buildNodeMap(OSMData osmData, List<MapNode> mapNodes, O2WMapProjection mapProjection) {
         final Map<OSMNode, MapNode> nodeMap = new HashMap<OSMNode, MapNode>();
 
         for (OSMNode node : osmData.getNodes()) {
             VectorXZ nodePos = mapProjection.calcPos(node.lat, node.lon);
-            MapNode mapNode = new MapNode(nodePos, node, null);
+            MapNode mapNode = new MapNode(nodePos, node/*17.3.26 , null* /);
             if (mapNodes != null) {
                 mapNodes.add(mapNode);
             }
@@ -334,5 +330,5 @@ public class SceneryBuilder {
             return null;
 
         }
-    }
+    }end of 24.3.26 comment */
 }

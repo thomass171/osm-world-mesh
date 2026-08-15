@@ -1,11 +1,11 @@
 package de.yard.threed.osm2graph;
 
 
-import de.yard.threed.core.loader.PortableModelList;
+import de.yard.threed.core.Util;
+import de.yard.threed.core.loader.PortableModel;
 import de.yard.threed.graph.Graph;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.Processor;
-import de.yard.threed.tools.GltfBuilderResult;
 
 /**
  * The result of a Processor.
@@ -19,10 +19,11 @@ public class ProcessResults {
     public RenderData results;
     public Graph roadGraph;
     public Graph railwayGraph;
-    public GltfBuilderResult gltfstring;
+    //24.3.26 public GltfBuilderResult gltfstring;
     public GridCellBounds gridCellBounds;
 
-    public PortableModelList getPortableModelList() {
-        return processor.pml;
+    public PortableModel getPortableModelList() {
+        Util.notyet();
+        return null;//processor.pml;
     }
 }

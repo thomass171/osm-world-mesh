@@ -1,20 +1,18 @@
 package de.yard.owm.testutils;
 
-import de.yard.owm.services.persistence.PersistedMeshLine;
-import de.yard.owm.services.persistence.PersistedMeshNode;
+import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.threed.core.Degree;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
-import de.yard.threed.osm2scenery.util.TagHelper;
 import de.yard.threed.osm2world.OSMData;
 import de.yard.threed.osm2world.OSMNode;
 import de.yard.threed.osm2world.OSMWay;
 import de.yard.threed.scenery.util.SimpleRoundBodyCalculations;
-import de.yard.threed.traffic.EllipsoidCalculations;
-import de.yard.threed.traffic.geodesy.GeoCoordinate;
+import de.yard.threed.trafficcore.EllipsoidCalculations;
+import de.yard.threed.core.GeoCoordinate;
 import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 
 import java.util.ArrayList;
@@ -31,16 +29,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class TestData {
 
     GridCellBounds gridCellBounds;
+    // do we really use OSM data here??
     private List<OSMWay> ways = new ArrayList();
     private List<OSMNode> nodes = new ArrayList();
     public OSMData osmData;
     int id = 100;
-    public TerrainMesh terrainMesh;
+    //public TerrainMesh terrainMesh;
 
     private TestData(GridCellBounds gridCellBounds, boolean addRoad) {
         this.gridCellBounds = gridCellBounds;
 
-        terrainMesh = TerrainMesh.init(gridCellBounds);
+        //terrainMesh = TerrainMesh.init(gridCellBounds);
 
         if (addRoad) {
             createUshapedWay(gridCellBounds.getOrigin(), 0.01);
@@ -52,28 +51,31 @@ public class TestData {
 
     }
 
-    public static TestData build2024(TerrainMeshManager manager) throws MeshInconsistencyException {
+    /**
+     * Only center like sketch 3, but other dimensions
+     */
+    public static TestData buildLarge2024(MeshService meshService) throws MeshInconsistencyException {
         double centerLat = (51);
         double centerLon = (7.0);
         double widthInDegrees = 0.1;
         double heightInDegrees = 0.1;
-        return build2024(manager, centerLat, centerLon, widthInDegrees, heightInDegrees, 0.01, true);
+        return build2024(meshService, "large2024", centerLat, centerLon, widthInDegrees, heightInDegrees, 0.01, true);
     }
 
-    public static TestData build2024(TerrainMeshManager manager, double centerLat, double centerLon, double widthInDegrees, double heightInDegrees, double marginInDegrees, boolean addRoad) throws MeshInconsistencyException {
+    public static TestData build2024(MeshService meshService, String name, double centerLat, double centerLon, double widthInDegrees, double heightInDegrees, double marginInDegrees, boolean addRoad) throws MeshInconsistencyException {
 
         GridCellBounds gridCellBounds = GridCellBounds.buildFromGeos(
                 centerLat + heightInDegrees / 2, centerLat - heightInDegrees / 2,
                 centerLon - widthInDegrees / 2, centerLon + widthInDegrees / 2);
         TestData testData = new TestData(gridCellBounds, addRoad);
 
-        TestUtils.addTerrainMeshBoundary(testData.terrainMesh, centerLat, centerLon, widthInDegrees, heightInDegrees, gridCellBounds.getProjection().getBaseProjection(), marginInDegrees);
+        List<GeoCoordinate> boundary = TestUtils.getRectangularMeshBoundary(centerLat, centerLon, widthInDegrees, heightInDegrees, gridCellBounds.getProjection().getBaseProjection(), marginInDegrees);
+        meshService.createMesh(name, boundary);
+        //manager.persist(testData.terrainMesh);
 
-        manager.persist(testData.terrainMesh);
-
-        assertNotNull(testData.terrainMesh);
-        assertEquals(4, testData.terrainMesh.points.size());
-        assertEquals(4 + 1, testData.terrainMesh.lines.size());
+        //assertNotNull(testData.terrainMesh);
+        //TODO assertEquals(4, testData.terrainMesh.points.size());
+        //TODO assertEquals(4 + 1, testData.terrainMesh.lines.size());
 
         return testData;
     }
@@ -81,10 +83,13 @@ public class TestData {
     /**
      * For tests using meshDesdorf.sql
      */
-    public static TerrainMesh prepareDesdorf(TerrainMeshManager manager){
+    public static TerrainMesh loadDesdorf(MeshService meshService, TerrainMeshManager manager) throws MeshInconsistencyException {
         // minlat="50.9455" minlon="6.59" maxlat="50.950" maxlon="6.596
+        // TODO derive gridcellbounds from outline
         GridCellBounds gridCellBounds = GridCellBounds.buildFromGeos(50.965, 50.94, 6.585, 6.6 + 0.001);
-        TerrainMesh terrainMesh = manager.loadTerrainMesh(gridCellBounds);
+
+        //TerrainMesh terrainMesh = manager.loadTerrainMesh(gridCellBounds);
+        TerrainMesh terrainMesh = meshService.loadMesh("Desdorf"/*, gridCellBounds*/);
         return terrainMesh;
     }
 

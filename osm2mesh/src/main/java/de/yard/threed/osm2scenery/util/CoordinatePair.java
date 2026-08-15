@@ -4,7 +4,8 @@ import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.core.Pair;
 
 /**
- * For Simplification
+ * For Simplification.
+ * On ways left/right apply in direction of way.
  */
 public class CoordinatePair extends Pair<Coordinate, Coordinate> {
     public CoordinatePair(Coordinate first, Coordinate second) {

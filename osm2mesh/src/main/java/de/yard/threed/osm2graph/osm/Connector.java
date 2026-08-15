@@ -1,7 +1,7 @@
 package de.yard.threed.osm2graph.osm;
 
 import de.yard.threed.core.Degree;
-import de.yard.threed.traffic.geodesy.GeoCoordinate;
+import de.yard.threed.core.GeoCoordinate;
 
 import java.util.ArrayList;
 import java.util.List;

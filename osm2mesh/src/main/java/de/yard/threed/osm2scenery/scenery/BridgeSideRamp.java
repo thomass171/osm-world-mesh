@@ -9,14 +9,17 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2world.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 /**
  * Skizze 69
  */
+@Slf4j
 public class BridgeSideRamp extends ScenerySupplementAreaObject {
     BridgeModule.BridgeHead bridgeHead;
     MapNode rampNode = null;
@@ -49,10 +52,10 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
      * Noch keine Overlaperkennung.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
 
         if (bridgeHead == null || bridgeHead.backline == null) {
-            logger.error("incomplete bridge head");
+            log.error("incomplete bridge head");
             return null;
         }
 
@@ -77,7 +80,7 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
         }
         if (bridgeHead.connectedWayTooShortForRamp){
             //erst jetzt pruefen, weil die Refernzpunkte trotzdem gesetzt werden sollen.
-            logger.debug("connectedWayTooShortForRamp at head"+bridgeHead.headNode.getOsmId());
+            log.debug("connectedWayTooShortForRamp at head"+bridgeHead.headNode.getOsmId());
             flatComponent=new AbstractArea[]{AbstractArea.EMPTYAREA};
 
         }else {
@@ -105,16 +108,19 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
     public void resolveSupplementOverlaps(List<SceneryFlatObject> overlaps, TerrainMesh tm){
         int h=9;
         // das kann man bestimmt auch eleganter lösen.
-        logger.debug("setting overlapping bridge ramp to empty for bridge"+bridgeHead.bridge.mapWay.getOsmId());
+        log.debug("setting overlapping bridge ramp to empty for bridge"+bridgeHead.bridge.mapWay.getOsmId());
         flatComponent[0]= AbstractArea.EMPTYAREA;
     }
 
     /**
      * Geht ueber den BridgeTerrainMeshAdder in SceneryFlatObject. Methode ist hier nur zur Doku dass das so ist.
+     *
+     * @return
      */
     @Override
-    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException {
+    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
         super.addToTerrainMesh(tm);
+        return ;
     }
 
     @Override

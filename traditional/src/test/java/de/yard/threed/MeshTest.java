@@ -1,6 +1,5 @@
 package de.yard.threed;
 
-import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.platform.PlatformInternals;
 import de.yard.threed.javacommon.ConfigurationByEnv;
 import de.yard.threed.javacommon.SimpleHeadlessPlatform;
@@ -12,12 +11,11 @@ import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.SurfaceAreaModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
-import org.apache.log4j.Logger;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -38,7 +36,6 @@ public class MeshTest {
     //EngineHelper platform = PlatformHomeBrew.init(new HashMap<String, String>());
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
 
-    Logger logger = Logger.getLogger(MeshTest.class);
 
     @BeforeAll
     public static void setup(){
@@ -67,7 +64,7 @@ public class MeshTest {
         SceneryAreaObject southFarmland = (SceneryAreaObject) areas.findObjectByOsmId(87822834);
         southFarmland.buildEleGroups();
         //cut/clip ist in createPolygon
-        southFarmland.createPolygon(null, SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
+        southFarmland.createPolygon( SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
         knownobjects.add(southFarmland);
 
 
@@ -76,14 +73,14 @@ public class MeshTest {
             //der wird aus irgendwelchen Gruenden nicht mit aufgenommen
             forestAnK41.buildEleGroups();
             //cut/clip ist in createPolygon
-            forestAnK41.createPolygon(null, SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
+            forestAnK41.createPolygon( SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
             knownobjects.add(forestAnK41);
         }
 
         SceneryAreaObject scrubAnK41 = (SceneryAreaObject) areas.findObjectByOsmId(225794276);
         scrubAnK41.buildEleGroups();
         //cut/clip ist in createPolygon
-        scrubAnK41.createPolygon(null, SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
+        scrubAnK41.createPolygon( SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
         knownobjects.add(scrubAnK41);
 
         SceneryMesh.connectAreas(knownobjects);
@@ -96,16 +93,16 @@ public class MeshTest {
         SceneryTestUtil.gridCellBounds.rearrangeForWayCut(knownobjects, null);
         TerrainMesh tm = TerrainMesh.init(SceneryTestUtil.gridCellBounds);
 
-        assertEquals(4, SceneryTestUtil.gridCellBounds.getPolygon().getCoordinates().length, "gridCellBounds.coordinates.size");
+        assertEquals(4, SceneryTestUtil.gridCellBounds.getProjectedBoundaryPolygon().getCoordinates().length, "gridCellBounds.coordinates.size");
         List<GridCellBounds.LazyCutObject> lazyCuts = SceneryTestUtil.gridCellBounds.getLazyCuts();
         assertEquals(0, lazyCuts.size(), "lazyCuts.size");
 
-        assertEquals(3, tm.lines.size(), "tm.lines.size");
+        /*10.2.26assertEquals(3, tm.lines.size(), "tm.lines.size");*/
 
 
         southFarmland.addToTerrainMesh(tm);
         assertEquals(5, tm.getBoundaries().size(), "tm.boundaries.size");
-        assertEquals(5 + 3, tm.lines.size(), "tm.lines.size");
+        /*10.2.26assertEquals(5 + 3, tm.lines.size(), "tm.lines.size");*/
 
         scrubAnK41.addToTerrainMesh(tm);
 

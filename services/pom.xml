@@ -19,36 +19,57 @@
     </properties>
 
     <dependencies>
-        <!-- junit comes from parent, jupiter is part of spring-boot-starter-test? -->
+        <!--  jupiter is part of spring-boot-starter-test? -->
+        <dependency>
+            <!-- Springboot uses jupiter 5.10-->
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.10.1</version>
+            <scope>test</scope>
+        </dependency>
+        <!--too old?? <dependency>
+            <!- - This is not the jupiter wiremock extension which needs Java >= 9 - ->
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock-jre8</artifactId>
+            <version>2.35.0</version>
+            <scope>test</scope>
+        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>2.7.10</version>
+            <version>${springboot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-rest</artifactId>
-            <version>2.7.10</version>
+            <version>${springboot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>2.7.10</version>
+            <version>${springboot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-            <version>2.7.10</version>
+            <version>${springboot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
-            <version>2.7.10</version>
+            <version>${springboot.version}</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>8.4.4</version>
+            <!-- 10.1.0 requires Postgres > 14 -->
+            <version>9.22.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -71,15 +92,23 @@
             <artifactId>commons-cli</artifactId>
             <version>1.3.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.30</version>
-        </dependency>
-        <dependency>
+        <!--23.3.26 <dependency>
+             <groupId>org.slf4j</groupId>
+             <artifactId>slf4j-api</artifactId>
+             <version>1.7.30</version>
+         </dependency>-->
+         <!--16.2.26 should be migrated and removed-->
+        <!--23.3.26 not working with SpringBoot 3.2, so removed-->
+       <!-- <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.30</version>
+        </dependency>-->
+        <!-- to avoid ClassNotFoundException: javax.xml.bind.JAXBException-->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>3.0.1</version>
         </dependency>
 
         <dependency>
@@ -117,19 +146,19 @@
             <artifactId>jts-app</artifactId>
             <version>1.14.0</version>
         </dependency>
-        <dependency>
-            <!--3rd party jar-->
+        <!--<dependency>
+            <!- -3rd party jar- ->
             <groupId>poly2tri</groupId>
             <artifactId>poly2tri</artifactId>
             <version>0.1.1</version>
-        </dependency>
+        </dependency>-->
         <!-- temporary dependencies to tcp -->
         <dependency>
             <groupId>de.yard.tcp-22</groupId>
             <artifactId>module-core</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
-        <dependency>
+        <!--25.3.26 <dependency>
             <groupId>de.yard.tcp-22</groupId>
             <artifactId>module-engine</artifactId>
             <version>1.0.0-SNAPSHOT</version>
@@ -138,11 +167,18 @@
             <groupId>de.yard.tcp-22</groupId>
             <artifactId>module-traffic</artifactId>
             <version>1.0.0-SNAPSHOT</version>
-        </dependency>
+        </dependency>-->
+        <!--tools needed for GLTF builder. Imposes module-java-common with old httpclient and conflicting  slf4j-api-1.7.36.jar-->
         <dependency>
             <groupId>de.yard.tcp-22</groupId>
             <artifactId>module-tools</artifactId>
             <version>1.0.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>de.yard.tcp-22</groupId>
@@ -153,8 +189,14 @@
             <groupId>de.yard.tcp-22</groupId>
             <artifactId>module-java-native</artifactId>
             <version>1.0.0-SNAPSHOT</version>
+           <!-- <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>-->
         </dependency>
-        <dependency>
+        <!--25.3.26 <dependency>
             <groupId>de.yard.tcp-flightgear</groupId>
             <artifactId>module-flightgear</artifactId>
             <version>1.0.0-SNAPSHOT</version>
@@ -163,7 +205,7 @@
             <groupId>de.yard.tcp-flightgear</groupId>
             <artifactId>module-traffic-fg</artifactId>
             <version>1.0.0-SNAPSHOT</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>de.yard.osm-world-mesh</groupId>
             <artifactId>module-osm2mesh</artifactId>
@@ -192,7 +234,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-            <version>2.7.10</version>
+            <version>${springboot.version}</version>
         </dependency>
         <!--<dependency>
             <groupId>com.h2database</groupId>
@@ -207,18 +249,20 @@
             <scope>test</scope>
         </dependency>-->
         <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5 -->
-        <dependency>
+        <!--24.2.26 httpclient imposes conflicting dependency to slf4j-api <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
             <version>${hc.client5.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
+
+        </dependency>-->
+        <!--24.2.26 httpclient imposes conflicting dependency to slf4j-api <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5-fluent</artifactId>
             <version>${hc.client5.version}</version>
             <scope>test</scope>
-        </dependency>
+
+        </dependency>-->
         <!-- own project dependencies -->
         <dependency>
             <groupId>de.yard.tcp-22</groupId>
@@ -273,9 +317,9 @@
                 <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-maven-plugin -->
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>8.4.4</version>
+                <version>9.22.3</version>
                 <configuration>
-                    <url>jdbc:postgresql://localhost:5432/worldmesh</url>
+                    <url>jdbc:postgresql://192.168.98.151:5432/worldmesh</url>
                     <user>worldmesh</user>
                     <password>worldmesh</password>
                     <schemas>

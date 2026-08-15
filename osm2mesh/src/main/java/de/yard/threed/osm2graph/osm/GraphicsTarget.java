@@ -6,8 +6,6 @@ import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.Util;
 import de.yard.threed.core.Vector3;
 import de.yard.threed.core.geometry.SimpleGeometry;
-import de.yard.threed.javacommon.ImageUtils;
-import de.yard.threed.javacommon.JALog;
 import de.yard.threed.osm2graph.viewer.Viewer2D;
 import de.yard.threed.osm2scenery.RenderedObject;
 import de.yard.threed.osm2scenery.SceneryRenderer;
@@ -28,8 +26,9 @@ import de.yard.threed.osm2world.VectorXYZ;
 import de.yard.threed.osm2world.VectorXYZList;
 import de.yard.threed.osm2world.VectorXZ;
 import de.yard.threed.osm2world.WorldObject;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
+
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -48,10 +47,9 @@ import java.util.Map;
  * 10.7.18: Das Zeichnen mit Texturen erfordert kompliziertes Mapping (), dass normalerweise die GPU macht. Darum lasse ich die Option
  * weg und stelle stattdessen bei Markieren eines Triangles den dazugehörigen Ausschnitt aus der Textur in einem eigenen Fenster dar.
  */
-
+@Slf4j
 public class GraphicsTarget extends AbstractTarget implements SceneryRenderer {
     public final Tile tile;
-    Logger logger = Logger.getLogger(GraphicsTarget.class);
     private boolean wireframe;
     HashMap<String, PolygonOrigin> polygonMapping = new HashMap<String, PolygonOrigin>();
     public int trianglestrips = 0;
@@ -86,7 +84,7 @@ public class GraphicsTarget extends AbstractTarget implements SceneryRenderer {
     }
 
     public void drawShape(Material material, SimpleClosedShapeXZ shape, VectorXYZ point, VectorXYZ frontVector, VectorXYZ upVector) {
-        logger.warn("drawShape:not yet");
+        log.warn("drawShape:not yet");
 
     }
 
@@ -94,7 +92,7 @@ public class GraphicsTarget extends AbstractTarget implements SceneryRenderer {
      * Wird z.B. für RAIL_SHAPE verwendet. Brauch ich erstmal nicht
      */
     public void drawExtrudedShape(Material material, ShapeXZ shape, List<VectorXYZ> path, List<VectorXYZ> upVectors, List<Double> scaleFactors, List<List<VectorXZ>> texCoordLists, EnumSet<ExtrudeOption> options) {
-        logger.warn("drawExtrudedShape:not yet");
+        log.warn("drawExtrudedShape:not yet");
     }
 
     public void drawBox(Material material, VectorXYZ bottomCenter, VectorXZ faceDirection, double height, double width, double depth) {
@@ -114,11 +112,11 @@ public class GraphicsTarget extends AbstractTarget implements SceneryRenderer {
     }
 
     public void drawConvexPolygon(Material material, List vs, List texCoordLists) {
-        logger.warn("drawConvexPolygon:not yet");
+        log.warn("drawConvexPolygon:not yet");
     }
 
     public void drawTriangleFan(Material material, List vs, List texCoordLists) {
-        logger.warn("drawTriangleFan:not yet");
+        log.warn("drawTriangleFan:not yet");
     }
 
     /**
@@ -154,7 +152,7 @@ public class GraphicsTarget extends AbstractTarget implements SceneryRenderer {
         /*if (osmOrigin != null && osmOrigin.outlinePolygonXZ != null) {
             draw2Dxz("", null, material, osmOrigin.outlinePolygonXZ.getVertices(), texCoordLists);
         } else {
-            logger.warn("not yet");
+            log.warn("not yet");
         }*/
         SimpleGeometry geo = buildGeometryForTriangles(triangles, texCoordLists, osmOrigin);
         String creatortag = "";//(osmOrigin != null) ? osmOrigin.creatortag : "";
@@ -169,7 +167,7 @@ public class GraphicsTarget extends AbstractTarget implements SceneryRenderer {
      */
     //29.5.18 @Override
    /*30.7.19  public void draw2Dxz(String label, OsmOrigin polygonOrigin, Material material, List<VectorXZ> poly, List<List<VectorXZ>> texCoordLists) {
-        //zu viel logger.debug("draw2d  ");
+        //zu viel log.debug("draw2d  ");
         //tile.drawText(60, 30, "hallo");
         //SimplePolygonXZ poly = owo.getOutlinePolygonXZ();
         PolygonInformation pinfo;
@@ -197,7 +195,7 @@ public class GraphicsTarget extends AbstractTarget implements SceneryRenderer {
     }*/
 
     public void draw(AbstractAreaWorldObject awo) {
-        logger.debug("draw awo " + awo.toString());
+        log.debug("draw awo " + awo.toString());
         //29.5.18 tile.drawText(120, 30, "hallo");
         SimplePolygonXZ poly = awo.getOutlinePolygonXZ();
         //29.5.18tile.drawPolygon(poly.getVertices(),Color.orange);
@@ -311,10 +309,11 @@ public class GraphicsTarget extends AbstractTarget implements SceneryRenderer {
         if (textures.get(name) == null) {
             BufferedImage tex = null;
             try {
-                tex = ImageUtils.loadImageFromFile(new JALog(GraphicsTarget.class), new FileInputStream(new File(Viewer2D.texturedir + "/" + name)), name);
+                Util.nomore();
+                //24.3.26 after removing dependencies, shouldn't be here any longer anyway                tex = ImageUtils.loadImageFromFile(new JALog(GraphicsTarget.class), new FileInputStream(new File(Viewer2D.texturedir + "/" + name)), name);
                 //tex == null already logged
-            } catch (FileNotFoundException e) {
-                logger.error("File not found", e);
+            } catch (/*FileNotFound*/Exception e) {
+                log.error("File not found", e);
             }
             if (tex != null) {
                 textures.put(name, tex);

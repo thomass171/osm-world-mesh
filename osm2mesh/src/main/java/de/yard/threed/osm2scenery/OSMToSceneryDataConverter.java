@@ -6,39 +6,9 @@ import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
-import de.yard.threed.osm2world.AxisAlignedBoundingBoxXZ;
-import de.yard.threed.osm2world.FaultTolerantIterationUtil;
-import de.yard.threed.osm2world.GeometryUtil;
-import de.yard.threed.osm2world.HardcodedRuleset;
-import de.yard.threed.osm2world.InvalidGeometryException;
-import de.yard.threed.osm2world.JTSConversionUtil;
-import de.yard.threed.osm2world.LineSegmentXZ;
-import de.yard.threed.osm2world.MapArea;
-import de.yard.threed.osm2world.MapAreaCreateException;
-import de.yard.threed.osm2world.MapAreaSegment;
-import de.yard.threed.osm2world.MapData;
-import de.yard.threed.osm2world.MapDataIndex;
-import de.yard.threed.osm2world.MapElement;
-import de.yard.threed.osm2world.MapIntersectionGrid;
-import de.yard.threed.osm2world.MapIntersectionWW;
-import de.yard.threed.osm2world.MapNode;
-import de.yard.threed.osm2world.MapOverlapAA;
-import de.yard.threed.osm2world.MapOverlapNA;
-import de.yard.threed.osm2world.MapOverlapType;
-import de.yard.threed.osm2world.MapOverlapWA;
-import de.yard.threed.osm2world.MapWay;
-import de.yard.threed.osm2world.MapWaySegment;
-import de.yard.threed.osm2world.MultipolygonAreaBuilder;
-import de.yard.threed.osm2world.OSMData;
-import de.yard.threed.osm2world.OSMNode;
-import de.yard.threed.osm2world.OSMRelation;
-import de.yard.threed.osm2world.OSMWay;
-import de.yard.threed.osm2world.PolygonWithHolesXZ;
-import de.yard.threed.osm2world.Ruleset;
-import de.yard.threed.osm2world.SimplePolygonXZ;
-import de.yard.threed.osm2world.Tag;
-import de.yard.threed.osm2world.VectorXZ;
-import org.apache.log4j.Logger;
+import de.yard.threed.osm2world.*;
+
+import lombok.extern.slf4j.Slf4j;
 import org.openstreetmap.osmosis.core.domain.v0_6.Bound;
 
 import java.io.IOException;
@@ -68,8 +38,8 @@ import static java.util.Collections.emptyList;
  * <p>
  * converts { OSMData} into the internal map data representation
  */
+@Slf4j
 public class OSMToSceneryDataConverter {
-    Logger logger = Logger.getLogger(OSMToSceneryDataConverter.class.getName());
     private final Ruleset ruleset = new HardcodedRuleset();
 
     private final SceneryProjection mapProjection;
@@ -150,7 +120,7 @@ public class OSMToSceneryDataConverter {
 
                         }
                     } catch (MapAreaCreateException e) {
-                        logger.error("MapArea create failed:" + e.getMessage());
+                        log.error("MapArea create failed:" + e.getMessage());
                     }
                 }
 
@@ -205,9 +175,9 @@ public class OSMToSceneryDataConverter {
                             boundaryMapNode.addAdjacentArea(mapArea);
                         }
                     } catch (MapAreaCreateException e) {
-                        logger.error("MapArea create failed:" + e.getMessage());
+                        log.error("MapArea create failed:" + e.getMessage());
                     } catch (InvalidGeometryException e) {
-                        logger.error("MapArea create failed:" + e.getMessage());
+                        log.error("MapArea create failed:" + e.getMessage());
                     }
 
                     //break;
@@ -265,7 +235,7 @@ public class OSMToSceneryDataConverter {
                     if (newWay != null) {
                         newWays.add(newWay);
                     } else {
-                        logger.warn("split of closed way failed (too complex??, way will be ignored):" + way.id);
+                        log.warn("split of closed way failed (too complex??, way will be ignored):" + way.id);
                     }
                 } else {
                     Integer pIndex;
@@ -288,7 +258,7 @@ public class OSMToSceneryDataConverter {
                             }
                         }
                         if (newWay == null) {
-                            logger.warn("split of closed way failed (too complex??, way will be ignored):" + way.id);
+                            log.warn("split of closed way failed (too complex??, way will be ignored):" + way.id);
 
                         }
                     }
@@ -301,7 +271,7 @@ public class OSMToSceneryDataConverter {
             if (way.id == 26927466) {
                 int osmid = 6;
             }
-            addWay(way, mapWays, mapWaySegs);
+            addWay(way, mapWays, mapWaySegs, osmData.getWays());
         }
     }
 
@@ -349,7 +319,7 @@ public class OSMToSceneryDataConverter {
         }
         OSMWay newWay = OsmUtil.buildDummyWay(way.tags, nl);
         return newWay;
-        //logger.warn("split of closed way failed (too complex??, way will be ignored):" + way.id);
+        //log.warn("split of closed way failed (too complex??, way will be ignored):" + way.id);
         //return null;
     }
 
@@ -379,27 +349,31 @@ public class OSMToSceneryDataConverter {
      * @param mapWays
      * @param mapWaySegs
      */
-    private void addWay(OSMWay way, List<MapWay> mapWays, Collection<MapWaySegment> mapWaySegs) {
+    private void addWay(OSMWay way, List<MapWay> mapWays, Collection<MapWaySegment> mapWaySegs, Collection<OSMWay> allWays) {
         OSMNode previousNode = null;
         MapWay mapWay = null;
         if (way.id == 26927466) {
             int h = 9;
         }
-        for (OSMNode node : way.getNodes()) {
+        MapWaySegment2 currentSegment=null;
+        for (int i=0;i<way.getNodes().size();i++) {
+            OSMNode node = way.getNodes().get(i);
             if (previousNode == null) {
                 mapWay = new MapWay(nodeMap.get(node), way);
+                currentSegment = new MapWaySegment2(mapWay,i,-1 ,mapWay.segment2s.size());
+                mapWay.addSegment(currentSegment);
             } else {
                 MapNode mapNode = nodeMap.get(node);
                 MapNode prevMapNode = nodeMap.get(previousNode);
                 if (targetBounds.isPreDbStyle()) {
                     if (wayCrossesGridBoundary(targetBounds, prevMapNode, mapNode)) {
                         // dann am Schnittpunkt eine Dummy Mapnode einbauen.
-                        Geometry gridnodepos = targetBounds.getPolygon().getExteriorRing().intersection(
+                        Geometry gridnodepos = targetBounds.getProjectedBoundaryPolygon().getExteriorRing().intersection(
                                 JtsUtil.createLine(JTSConversionUtil.vectorXZToJTSCoordinate(prevMapNode.getPos()),
                                         JTSConversionUtil.vectorXZToJTSCoordinate(mapNode.getPos())));
                         VectorXZ xz = JTSConversionUtil.vectorXZFromJTSCoordinate(gridnodepos.getCoordinates()[0]);
                         OSMNode gridosmnode = OsmUtil.buildDummyNode(mapProjection, xz);
-                        MapNode gridnode = new MapNode(xz, gridosmnode, MapNode.Location.GRIDNODE);
+                        MapNode gridnode = new MapNode(xz, gridosmnode/*17.3.26 , MapNode.Location.GRIDNODE*/);
                         addSegment(way, prevMapNode, gridnode, mapWaySegs, mapWay);
                         previousNode = gridosmnode;
                         prevMapNode = gridnode;
@@ -408,13 +382,33 @@ public class OSMToSceneryDataConverter {
                     }
                 }
                 addSegment(way, prevMapNode, mapNode, mapWaySegs, mapWay);
+                if (i<way.getNodes().size()-1 && !isExclusiveForWay(mapNode,way.id,allWays)){
+                    currentSegment.endNode=i;
+                    currentSegment = new MapWaySegment2(mapWay,i,-1,mapWay.segment2s.size());
+                    mapWay.addSegment(currentSegment);
+                }
             }
 
             previousNode = node;
         }
         if (mapWay != null && mapWay.getEndNode() != null) {
+            currentSegment.endNode=way.getNodes().size()-1;
             mapWays.add(mapWay);
         }
+    }
+
+    private boolean isExclusiveForWay(MapNode mapNode, long wayId, Collection<OSMWay> allWays) {
+        for (OSMWay osmWay:allWays){
+            if (osmWay.id!=wayId ){
+                for (OSMNode node:osmWay.getNodes()){
+                    if (node.id== mapNode.getOsmId()){
+                        // also used in other way
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     void addSegment(OSMWay way, MapNode prevMapNode, MapNode mapNode, Collection<MapWaySegment> mapWaySegs, MapWay mapWay) {
@@ -428,12 +422,14 @@ public class OSMToSceneryDataConverter {
     /**
      * Um Mapdata nachtraeglich zu erweitern.
      * 30.5.2019
+     * 18.3.26: Still needed?? Deprecated
      */
+    @Deprecated
     public void addWayToMapData(OSMWay osmWay, MapData mapData) {
         for (OSMNode n : osmWay.getNodes()) {
             createMapNode(n, mapData.getMapNodes());
         }
-        addWay(osmWay, mapData.getMapWays(), mapData.getMapWaySegments());
+        addWay(osmWay, mapData.getMapWays(), mapData.getMapWaySegments(),  Collections.emptyList());
     }
 
     /**
@@ -831,15 +827,15 @@ public class OSMToSceneryDataConverter {
 
     private void createMapNode(OSMNode node, Collection<MapNode> mapNodes) {
         VectorXZ nodePos = OsmUtil.calcPos(mapProjection, node.lat, node.lon);
-        MapNode.Location location = null;
+        /*17.3.26 we no longer care about MapNode.Location location = null;
         if (targetBounds.isPreDbStyle()) {
             if (targetBounds.isBoundaryNode(nodePos)) {
                 location = MapNode.Location.GRIDNODE;
             } else {
                 location = (targetBounds.isInside(nodePos)) ? MapNode.Location.INSIDEGRID : MapNode.Location.OUTSIDEGRID;
             }
-        }
-        MapNode mapNode = new MapNode(nodePos, node, location);
+        }*/
+        MapNode mapNode = new MapNode(nodePos, node/*null, location*/);
         mapNodes.add(mapNode);
         nodeMap.put(node, mapNode);
     }

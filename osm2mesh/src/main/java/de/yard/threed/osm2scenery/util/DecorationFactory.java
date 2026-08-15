@@ -7,15 +7,16 @@ import de.yard.threed.core.geometry.Shape;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.scenery.components.Decoration;
 import de.yard.threed.osm2scenery.scenery.components.DecorationGeometry;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 /**
  * Verwendet zumindest teilweise Shapes, weil die schon rotate, transform etc. haben.
  * 28.5.19: Deprecated zugunsten GeneralPath und DecorationTexture und tools/DecorationFactory
  */
 @Deprecated
+@Slf4j
 public class DecorationFactory {
-    static Logger logger = Logger.getLogger(DecorationFactory.class);
 
     /**
      * z.B. für Runway Nummern
@@ -64,7 +65,7 @@ public class DecorationFactory {
     public static DecorationGeometry buildPolygonFromShape(Shape shape) {
         Polygon ls = JtsUtil.createPolygon(shape);
         if (ls == null) {
-            logger.error("couldn't create polygon");
+            log.error("couldn't create polygon");
         }
         return new DecorationGeometry(ls);
     }

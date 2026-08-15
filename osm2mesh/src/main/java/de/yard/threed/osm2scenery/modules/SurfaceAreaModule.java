@@ -8,7 +8,7 @@ import de.yard.threed.osm2world.Materials;
 import de.yard.threed.osm2world.Tag;
 import de.yard.threed.osm2world.TagGroup;
 import de.yard.threed.osm2world.TriangleXZ;
-import org.apache.log4j.Logger;
+
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,7 +29,6 @@ import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.GENERICA
  * 3.6.19: (was ist "höherer Kontext"?).
  */
 public class SurfaceAreaModule extends SceneryModule {
-    static Logger logger = Logger.getLogger(SurfaceAreaModule.class.getName());
 
     /**
      * assumptions about default surfaces for certain tags
@@ -281,7 +280,7 @@ public class SurfaceAreaModule extends SceneryModule {
                         if (e.getCause() != null && e.getCause() instanceof NullPointerException) {
                             msg = "NullPointerException";
                         }
-                        logger.warn("Poly2Tri exception for " + this + ":" + msg + "... falling back to JTS triangulation.");
+                        log.warn("Poly2Tri exception for " + this + ":" + msg + "... falling back to JTS triangulation.");
                         //e.printStackTrace();
                         //System.err.println("... falling back to JTS triangulation.");
                     }

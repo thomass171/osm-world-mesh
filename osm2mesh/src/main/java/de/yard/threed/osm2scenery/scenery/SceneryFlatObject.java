@@ -14,6 +14,7 @@ import de.yard.threed.osm2scenery.SceneryRenderer;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.SimpleEleConnectorGroupFinder;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.CutResult;
@@ -21,12 +22,9 @@ import de.yard.threed.osm2scenery.scenery.components.DecoratorComponent;
 import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
 import de.yard.threed.osm2scenery.util.RenderedArea;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
-import de.yard.threed.osm2world.MapArea;
-import de.yard.threed.osm2world.MapWay;
-import de.yard.threed.osm2world.Material;
-import de.yard.threed.osm2world.OsmOrigin;
-import de.yard.threed.osm2world.VectorXZ;
-import org.apache.log4j.Logger;
+import de.yard.threed.osm2world.*;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,13 +48,13 @@ import java.util.Map;
  * <p>
  * Created on 27.07.18.
  */
+@Slf4j
 public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
-    public  Logger logger = Logger.getLogger(SceneryFlatObject.class);
-    protected static Logger slogger = Logger.getLogger(SceneryFlatObject.class);
     //flatComponent wird durch createPolygon gesetzt.
     //18.4.19: flatComponent kann in exotischen Fällen auch mal null sein, z.B. bei BridgeRamps. Dann hat das SceneryObject einfach keine Fläche.
     //23.4.19: null ist aber keine gültiger Wert. Muss dann regulär empty polygon sein um abzugrenzen, ob es (noch) gar nicht gesetzt wurde.
     //12.8.19:Multiple jetzt hier statt in der Area. Das Array soll nicht null sein, im Zweifel leer, um Loops zu vereinfachen.
+    //05.03.26: Deprecated in favor of "polygonLine"
     public AbstractArea[] flatComponent;
     public DecoratorComponent decoratorComponent = null;
     public String texturizer = "";
@@ -112,7 +110,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      */
     /*Komplikationen? public void merge(SceneryArea area) {
         if (!poly.intersects(area.poly)){
-            logger.warn("merge: no intersection");
+            log.warn("merge: no intersection");
         }
         // Evtl. liefert der union() ein MultiPolygon
         poly = (Polygon) poly.union(area.poly);
@@ -142,7 +140,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * 25.4.19: Mal eine Defaultimplementierung.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException {
         //Nothing to do. Wahrscheinlich, area/poly kam schon als Parameter.
         return null;
     }
@@ -179,7 +177,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
             for (int i = 0; i < flatComponent.length; i++) {
                 AbstractArea abstractArea = flatComponent[i];
 
-                CutResult cutResult = abstractArea.cut(gridbounds.getPolygon(), this, elevations);
+                CutResult cutResult = abstractArea.cut(gridbounds.getProjectedBoundaryPolygon(), this, elevations);
                 if (cutResult == null) {
                     //wasn das? 13.8.19: dann gab es halt keinen Cut
                     int h = 9;
@@ -230,10 +228,10 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
                         simpleEleConnectorGroupFinder = new SimpleEleConnectorGroupFinder(getEleConnectorGroups().eleconnectorgroups);
                     } else {
                         //17.8.19: strange? Z.B. bei WayToAreaFiller.
-                        //logger.warn("strange: no ele groups?");
+                        //log.warn("strange: no ele groups?");
                     }
                     if (!abstractArea.triangulateAndTexturize(simpleEleConnectorGroupFinder, tm)) {
-                        logger.error("Triangulation failed for area " + getOsmOrigin());
+                        log.error("Triangulation failed for area " + getOsmOrigin());
                         //TODO evtl. umstellen Area statt WayArea?
                     }
 
@@ -250,7 +248,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
 
     public OsmOrigin getOsmOrigin() {
         if (this instanceof SceneryWayObject) {
-            MapWay mapWay = null;
+            MapWaySegment2 mapWay = null;
             mapWay = ((SceneryWayObject) this).mapWay;
             return new OsmOrigin(creatortag, getOsmIds(), mapWay);
         }
@@ -275,7 +273,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
                 if (abstractArea.poly != null && abstractArea.poly.polygon.getCoordinates().length < 4) {
                     //kein warn sondern error, weil ja nichts erzeugt wird
                     //es kann zwischenzeitlich durcuas leere geben. Die werden nachher entfernt.
-                    //logger.error("SceneryArea:inconsistent? empty polygon");
+                    //log.error("SceneryArea:inconsistent? empty polygon");
                 }
 
             }
@@ -345,7 +343,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
             if (baseelevation != null) {
                 volumeProvider.adjustElevation(baseelevation);
             } else {
-                logger.warn("no base elevation for volume");
+                log.warn("no base elevation for volume");
             }
         }
 
@@ -359,7 +357,8 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * Das muessen die ableitenden Klassen schon selber machen. Das hier ist zum Check.
      * Jetzt mal per Component.
      */
-    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException {
+    /* 26.2.26 Now in sub classes@Override
+    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
         if (!isCut || !isClipped) {
             // DB style neither cuts nor clips.
             if (tm.getGridCellBounds().isPreDbStyle()) {
@@ -370,7 +369,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
         if (terrainMeshAdder!=null) {
             terrainMeshAdder.addToTerrainMesh(getArea(), tm);
         }
-    }
+    }*/
 
 
     /**
@@ -501,7 +500,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      */
     public AbstractArea[] getArea() {
         if (flatComponent == null) {
-            //logger.warn("shouldn't be null");
+            //log.warn("shouldn't be null");
         }
         return flatComponent;
     }
@@ -538,11 +537,11 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
             for (List<LineSegment> p : l) {
                 if (JtsUtil.onLine(coordinate, p)) {
                     //TODO richtige Group liefern
-                    //logger.debug("found BG coordinate " + coordinate + "+ on poly " + creatortag);
+                    //log.debug("found BG coordinate " + coordinate + "+ on poly " + creatortag);
                     if (elevations.size() > 0) {
                         return elevations.get(0);
                     }
-                    logger.error("but has no group");
+                    log.error("but has no group");
                 }
             }
         }*/
@@ -562,10 +561,10 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
         return false;
     }
 
-    public boolean isPartOfMesh(TerrainMesh tm) {
+    /*16.4.26 public boolean isPartOfMesh(TerrainMesh tm) {
         //TODO und die anderen? Nicht eindeutig
         return ((Area) flatComponent[0]).isPartOfMesh;
-    }
+    }*/
 
     //nicht eindeutig
     /*27.8.19 es gibt noch ispartofmesh @Deprecated
@@ -608,6 +607,16 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
     }
 
     /**
+     * For a more consistent program flow
+     * 10.3.26
+     */
+    public void cca(TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException, OsmProcessException {
+        createPolygon(/*new ArrayList<>(),*/ tm.getGridCellBounds(), tm, sceneryContext);
+        clip(tm);
+        // DB persist
+        addToTerrainMesh(tm);
+    }
+    /**
      * resolve overlaps
      * @param sfo
      */
@@ -631,7 +640,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
                     return null;
                 }*/
             } else {
-                CutResult cutResult = flatComponent[0].cut(gridbounds.getPolygon(), this, getEleConnectorGroups());
+                CutResult cutResult = flatComponent[0].cut(gridbounds.getProjectedBoundaryPolygon(), this, getEleConnectorGroups());
                 if (cutResult != null) {
                     // es ist ein Cut erfolgt
                     flatComponent = new AbstractArea[cutResult.polygons.length];

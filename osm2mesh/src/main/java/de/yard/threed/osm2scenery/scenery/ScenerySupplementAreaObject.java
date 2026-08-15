@@ -3,9 +3,7 @@ package de.yard.threed.osm2scenery.scenery;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
-import de.yard.threed.osm2scenery.polygon20.MeshFillCandidate;
-import de.yard.threed.osm2scenery.polygon20.MeshLine;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
@@ -64,14 +62,14 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
      * TODO:kein MeshPolygon??
      */
     @Deprecated
-    public ScenerySupplementAreaObject(String creatortag, MeshPolygon meshPolygon, Material material, TerrainMesh tm) {
+    public ScenerySupplementAreaObject(String creatortag, MeshPolygonOld meshPolygonOld, Material material, TerrainMesh tm) {
         //this(creatortag, (Polygon) null, material);
-        super(creatortag, material, null, new Area(meshPolygon, material, true));
+        super(creatortag, material, null, new Area(meshPolygonOld, material, true));
         // den Cycle  lege ich jetzt einfach mal so fest
         cycle = Cycle.SUPPLEMENT;
         //in area this.meshPolygon = meshPolygon;
         //die Area muss direkt eingetragen werden, sonst geht später der getMeshPolygon nicht
-        for (MeshLine meshLine : meshPolygon.lines) {
+        for (MeshLine meshLine : meshPolygonOld.lines) {
             tm.completeLine(meshLine, flatComponent[0]);
         }
         elevations = new EleConnectorGroupSet();
@@ -101,12 +99,12 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
             }
             line.right = this;
         }*/
-        MeshPolygon meshPolygon=candidate.getMeshPolygon();
-        flatComponent = new AbstractArea[]{new Area(meshPolygon, material, true)};
+        MeshPolygonOld meshPolygonOld =candidate.getMeshPolygon();
+        flatComponent = new AbstractArea[]{new Area(meshPolygonOld, material, true)};
 
         //die Area muss direkt eingetragen werden, sonst geht später der getMeshPolygon nicht
         //aber nicht per complete, denn es sind u.U. beide Areas leer. lines sind CCW
-        meshPolygon.setInner(this.flatComponent[0],candidate.leftIndicator);
+        meshPolygonOld.setInner(this.flatComponent[0],candidate.leftIndicator);
 
         //der soll ja bestehdne Groups verwenden.
         elevations = new EleConnectorGroupSet();
@@ -138,7 +136,7 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
     protected void/*EleConnectorGroupSet*/ registerCoordinatesToElegroups(TerrainMesh tm) {
         /*if (poly.wascut) {
             //Util.notyet();
-            logger.warn("Ignoring cut area for elevation");
+            log.warn("Ignoring cut area for elevation");
         }*/
 
         /*if (roadorrailway!=null) {
@@ -148,6 +146,12 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
         EleConnectorGroup egr = elevations.eleconnectorgroups.get(0);
         egr.addAll(els);*/
         //return areaElevation;
+    }
+
+    @Override
+    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+
+        return ;
     }
 
     /**

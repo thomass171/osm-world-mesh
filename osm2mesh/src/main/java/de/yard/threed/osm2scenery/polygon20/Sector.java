@@ -1,14 +1,11 @@
 package de.yard.threed.osm2scenery.polygon20;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.Degree;
 import de.yard.threed.core.Pair;
-import de.yard.threed.core.Vector2;
 import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2scenery.scenery.TerrainMesh;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,9 +14,9 @@ import java.util.List;
 /**
  * A sector CCW from 'first' to 'second'.
  */
+@Slf4j
 public class Sector extends Pair<Degree, Degree> {
 
-    static Logger logger = Logger.getLogger(Sector.class);
     MeshNode origin;
 
     public Sector(MeshNode origin, Degree first, Degree second) {
@@ -27,14 +24,14 @@ public class Sector extends Pair<Degree, Degree> {
         this.origin = origin;
     }
 
-    public List<MeshNode> getNodesOfPolygonInSector(MeshPolygon polygon) {
+    public List<MeshNode> getNodesOfPolygonInSector(MeshPolygonOld polygon) {
 
         // build triangle for sector
         double len = 10000;
         Polygon sectorTriangle = JtsUtil.createTriangleForSector(origin.getCoordinate(),
                 getFirst(), getSecond(), len);
         if (sectorTriangle == null) {
-            logger.warn("no sector triangle");
+            log.warn("no sector triangle");
             return Collections.EMPTY_LIST;
         }
 

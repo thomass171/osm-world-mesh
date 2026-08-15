@@ -1,5 +1,6 @@
 package de.yard.owm.services.osm;
 
+import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
@@ -8,17 +9,17 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
+import de.yard.threed.osm2scenery.modules.OsmClassifier;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
+import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.OsmWay;
-import de.yard.threed.osm2scenery.scenery.OsmProcessException;
-import de.yard.threed.osm2scenery.scenery.SceneryObject;
-import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
-import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
-import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.Phase;
 
+import de.yard.threed.osm2scenery.util.Selector;
 import de.yard.threed.osm2world.MapWay;
+import de.yard.threed.osm2world.MapWaySegment2;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,43 +40,79 @@ public class OsmElementService {
     @Autowired
     TerrainMeshManager terrainMeshManager;
 
+    @Autowired
+    MeshService meshService;
+
     /**
+     * Process a single OSM way. This might lead to multiple polygons.
      * Building TerrainMesh here every time might be more consistent, but is also a waste of resources.
      * Currently we consider OsmService to be the master service creating and maintaining TerrainMesh and SceneryContext.
      * However, this is the TX.
+     * 13.2.26 Meanwhile this is no TX and we create terrainmesh every time, even it is a waste of resources.
+     * 20.3.26 Moved to OsmService
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<SceneryObject> process(MapWay mapWay, List<? extends SceneryModule> modules, TerrainMesh tm, SceneryContext sceneryContext) throws OsmProcessException, MeshInconsistencyException {
+    //@Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int processXX(MapWay mapWay, List<? extends SceneryModule> modules, TerrainMesh tm, SceneryContext sceneryContext, int lod) throws MeshInconsistencyException {
 
         List<SceneryObject> sceneryObjects = new ArrayList<>();
 
         Phase.updatePhase(Phase.OBJECTS);
 
-        for (SceneryModule module : modules) {
-            SceneryObjectList areas = module.applyTo(mapWay, tm, sceneryContext);
-            sceneryObjects.addAll(areas.objects);
+        OsmClassifier classifier = OsmClassifier.classify(mapWay);
+        if (classifier == null) {
+            // unclassified
+            return 2;
         }
+        if (!classifier.lodMatches(lod)) {
+            // skipped
+            return 1;
+        }
+        //  for (SceneryModule module : modules) {
+        SceneryModule module = classifier.getModule();//new WayModule();
+            /*Not possible here because it might be an area SceneryWayConnector fromConnector;
+            if ((fromConnector = tm.getFromConnector()) == null) {
+                fromConnector = wayModule.createConnector();
+            }
+            SceneryWayConnector toConnector;
+            if ((fromConnector = tm.getFromConnector()) == null) {
+                fromConnector = wayModule.createConnector();
+            }*/
+        //SceneryObjectList areas =
+        for (MapWaySegment2 segment : mapWay.segment2s) {
+            module.applyTo(segment, meshService.loadMesh(tm.meshName), sceneryContext);
+        }
+        // No longer collect scenery objects but immediately persist these
+        //sceneryObjects.addAll(areas.objects);
+        /*18.3.26 Still needed ?? for (SceneryObject area : areas.objects) {
+            //tm.addWays();
+            // connector??
+            SceneryWayObject way = (SceneryWayObject) area;
+            //way.addToTerrainMesh(this);
+            //persist
+        }*/
+
+        //}
         // objects are only in sceneryObjects and not yet in TerrainMesh
 
         // not sure whether persist is good here
-        for (SceneryObject sceneryObject : sceneryObjects) {
+        /*13.2.26 persist already happened?? for (SceneryObject sceneryObject : sceneryObjects) {
             if (sceneryObject instanceof SceneryWayObject swo) {
                 swo.osmWay = tm.meshFactoryInstance.buildOsmWay(swo.mapWay.getOsmId(),
                         swo.mapWay.getMapNodes().stream().map(osmNode -> osmNode.getOsmId()).collect(Collectors.toList()));
             }
-        }
+        }*/
 
-        Phase.updatePhase(Phase.ELEGROUPS);
+        /*13.2.26 TODO Phase.updatePhase(Phase.ELEGROUPS);
 
         //4.4.19 schon gemacht? sceneryMesh.createConnections();
         //Bridgeapproaches werden fuer Polygon gebraucht.
         //24.4.19: Und die brauchen Elegroups für die Groundstates.
         EleConnectorGroup.clear();
         //TODO 29.3.24 EleConnectorGroup.init((GridCellBounds) targetBounds, mapProjection);
-        SceneryMesh.createElevationGroups(sceneryObjects);
+        SceneryMesh.createElevationGroups(sceneryObjects);*/
 
         // 23.5.19 buildBridgeApproaches besser in Phasen abstrahieren?
-        SceneryMesh.buildBridgeApproaches(sceneryObjects, sceneryContext);
+        // 13.2.26 TODO SceneryMesh.buildBridgeApproaches(sceneryObjects, sceneryContext);
 
         // Eine halbwegs schlüssige Klassifizierung (z.B. Garage) der Objekte geht erst jetzt, wenn der Kontext bekannt ist.
         /*3.4.24 skip for now until its clear how to do Phase.updatePhase(Phase.CLASSIFY);
@@ -86,8 +123,8 @@ public class OsmElementService {
         //20.8.19: ist doch zu frueh sceneryMesh.connectAreas(sceneryMesh.sceneryObjects.objects);
 
         //erst dann, wenn alle Objekte und Verbindungen bekannt sind, die Polygone dazu erstellen
-        Phase.updatePhase(Phase.WAYS);
-        processCycle(WAY, tm, sceneryObjects, tm.getGridCellBounds(), sceneryContext);
+        /*13.2.26 no longer needed?? Phase.updatePhase(Phase.WAYS);
+        processCycle(WAY, tm, sceneryObjects, tm.getGridCellBounds(), sceneryContext);*/
 
             /*26.3.24 TODO
 
@@ -119,17 +156,17 @@ public class OsmElementService {
            end of TODO */
 
         //erst wenn alle Polygone/Areas da sind, können adjacent areas ermittelt werden.
-        SceneryMesh.connectAreas(sceneryObjects);
+        //TODO later?? SceneryMesh.connectAreas(sceneryObjects);
 
         //Konsistenzcheck. OSM Objekte sind jetzt alle angelegt. Supplements darf noch nicht geben.
-        List<SceneryObject> supples = SceneryObjectList.findObjectsByCycle(sceneryObjects, SUPPLEMENT);
+        /*13.2.26 no in meshService? List<SceneryObject> supples = SceneryObjectList.findObjectsByCycle(sceneryObjects, SUPPLEMENT);
         if (supples.size() > 0) {
             throw new RuntimeException("supplements not yet expected");
-        }
+        }*/
 
         // Vor den Supplements das Mesh erstellen. Die Supplements koennen dann daran anschliessen, muessen aber nicht (oder auch teilweise).
         // Ohne Smartgrid kann das nicht konsistent werden.
-        Phase.updatePhase(Phase.TERRAINMESH);
+        /*13.2.26 no longer needed?? Phase.updatePhase(Phase.TERRAINMESH);
         log.info("Updating terrain mesh with " + sceneryObjects.size() + " scenery objects (ways and areas).");
         //sonst geht waytoarea filler nicht if (SceneryBuilder.FTR_SMARTBG) {
         //erst die Ways, danach areas, um Komplkationen zu vermeiden.
@@ -137,7 +174,7 @@ public class OsmElementService {
         log.info("adding ways to terrain mesh");
         tm.addWays(sceneryObjects);
         log.info("adding areas to terrain mesh");
-        tm.addAreas(sceneryObjects);
+        tm.addAreas(sceneryObjects);*/
 
 
         //}
@@ -203,15 +240,21 @@ public class OsmElementService {
             end of TODO */
 
         // persisting is not really needed (because its done by entity manager at TX end), but also does a final consistency check.
-        terrainMeshManager.persist(tm);
-        return sceneryObjects;
+        //13.2.26 terrainMeshManager.persist(tm);
+
+        // success
+        return 0;//sceneryObjects;
     }
 
     private void processCycle(SceneryObject.Cycle cycle, TerrainMesh tm, List<SceneryObject> sceneryObjects,
                               GridCellBounds gridbounds, SceneryContext sceneryContext) {
         //Phase.updatePhase(Phase.POLYGONS);
         //sceneryMesh.createNonWaysPolygons();
-        List<ScenerySupplementAreaObject> supplements = SceneryMesh.createPolygons(cycle, sceneryObjects, gridbounds, tm, sceneryContext);
+        try {
+            List<ScenerySupplementAreaObject> supplements = SceneryMesh.createPolygons(cycle, sceneryObjects, gridbounds, tm, sceneryContext);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         if (SceneryBuilder.FTR_OVERLAPCAUSESSUPPLEMENT) {
             //supplements verarbeiten fehlt.
             Util.notyet();

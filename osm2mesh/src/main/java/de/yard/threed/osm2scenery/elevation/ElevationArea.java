@@ -1,7 +1,8 @@
 package de.yard.threed.osm2scenery.elevation;
 
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +13,8 @@ import java.util.List;
  * 
  * Created on 01.08.18.
  */
+@Slf4j
 public class ElevationArea {
-    Logger logger = Logger.getLogger(ElevationArea.class.getName());
     public List<SceneryWayObject> unfixed = new ArrayList<>();
     // die bekannten fixed groups in dieser Menge
     private FixedEleConnectorGroupSet fixedEleConnectorGroupSet=new FixedEleConnectorGroupSet();
@@ -51,7 +52,7 @@ public class ElevationArea {
                     //24.8.18: Das ist doch äusserst fragwürdig. Connectete Ways muessen doch dieselbe Elevation haben, nicht eine average von irgendwas!
                     //13.8.19: Fuer DeadEnd kann man aber hierhin kommen.
                     if (fixedEleConnectorGroupSet.size()==0){
-                        logger.warn("No fixed elevationgroup. Using average elevation");
+                        log.warn("No fixed elevationgroup. Using average elevation");
                         elevation=ElevationMap.getInstance().getAverage();
                     }else {
                         elevation = fixedEleConnectorGroupSet.getWeightedAverage(g.location);
@@ -65,7 +66,7 @@ public class ElevationArea {
             
             // Gegenprobe
             if (!way.getEleConnectorGroups().isFixed()){
-                logger.error("way not fixed");
+                log.error("way not fixed");
             }
         }
 

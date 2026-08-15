@@ -1,16 +1,19 @@
 package de.yard.threed;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import de.yard.threed.core.GeoCoordinate;
+import de.yard.threed.core.Util;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-
+@Slf4j
 public class TraditionalMeshNode implements MeshNode {
     private Long id;
 
@@ -21,7 +24,6 @@ public class TraditionalMeshNode implements MeshNode {
     private List<MeshLine> linesOfPoint = new ArrayList();
     public Coordinate coordinate;
     public EleConnectorGroup group;
-    Logger logger = Logger.getLogger(MeshNode.class);
 
     public TraditionalMeshNode() {
 
@@ -47,6 +49,12 @@ public class TraditionalMeshNode implements MeshNode {
     }
 
     @Override
+    public GeoCoordinate getGeoCoordinate() {
+        Util.notyet();
+        return null;
+    }
+
+    @Override
     public String toString() {
         return "" + coordinate;
     }
@@ -60,7 +68,7 @@ public class TraditionalMeshNode implements MeshNode {
         //bei Way junctions gibt es auch mal 4, darum > 3.
         if (linesOfPoint.size() > 3) {
             //21.8.19:aber da ist doch was faul
-            logger.warn("too many lines at point " + coordinate + "): " + linesOfPoint.size());
+            log.warn("too many lines at point " + coordinate + "): " + linesOfPoint.size());
 
         }
         linesOfPoint.add(line);

@@ -16,6 +16,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupFinder;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
 import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
@@ -25,11 +26,9 @@ import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2scenery.util.PolygonMetadata;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
-import de.yard.threed.osm2world.MapNode;
-import de.yard.threed.osm2world.Material;
-import de.yard.threed.osm2world.NamedTexCoordFunction;
-import de.yard.threed.osm2world.VectorXZ;
-import org.apache.log4j.Logger;
+import de.yard.threed.osm2world.*;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,20 +44,20 @@ import java.util.Map;
  * nur zu Komplikationen. Darum stelle ich für Way von Polygon (bleibt aber erhalten) als Basis auf Coordinate Listen um.
  * 8.9.19: circle und andere closed way werden jetzt aber aufgebrochen.
  */
+@Slf4j
 public class WayArea extends AbstractArea {
-    static Logger logger = Logger.getLogger(WayArea.class);
     //Mapping von einer logischen Position auf die dortigen Coordinates.
     //Vorhalten von Indizes macht replace mit add() sehr unuebersichtlich. Lieber Segmentlängen speichern.
     private List<Integer> positionSize = null;
-    //only for debugging
-    public long osmid;
+    //only for debugging. 23.2.26 now really needed
+    public MapWaySegment2 mapWay;//21.2.26 long osmid;
     //optionales Mapping, wenn der Way auf OSM beruht, was die Regel sein duerfte.
     Map<MapNode, Integer> node2position;
     //die Reihenfolge der Coordinates ist immer Start->End des Way. Wirklich immer?
     //9.9.19 nicht ganze line Listen vorhalten, es koennte splits z.B. durch bridges geben. Nur noch als from/to?
     //private MeshPoint  leftto, rightto;
     //private MeshLine leftfrom=null,rightfrom=null;
-    private List<MeshLineData> leftlines = null, rightlines = null;
+    //16.4.26 no longer used/needed private List<MeshLineData> leftlines = null, rightlines = null;
     //public List<MeshLine> leftlines = null, rightlines = null;
     // die neue wirkliche Representation des Way. Beide muessen immer gleich lang sein.
     // was wird denn daraus bei inner connector mit polygon? Vermutlich gehen diese lines "einfach darüber hinweg". TODO
@@ -72,11 +71,12 @@ public class WayArea extends AbstractArea {
      * @param rightline
      * @param leftline
      */
-    public WayArea(Material material, SmartPolygon poly, List<MapNode> nodelist, CoordinateList rightline, CoordinateList leftline) {
+    public WayArea(Material material, SmartPolygon poly, List<MapNode> nodelist, CoordinateList rightline, CoordinateList leftline, MapWaySegment2 mapWay) {
         super(material);
         this.poly = poly;
         this.rightline = rightline;
         this.leftline = leftline;
+        this.mapWay = mapWay;
         //Coordinate[] coors = poly.poly gon/*[0]*/.getCoordinates();
         int len = rightline.size();//(coors.length - 1) / 2;
         positionSize = new ArrayList<>();
@@ -113,7 +113,7 @@ public class WayArea extends AbstractArea {
      * 28.8.19: Bei closed ways (z.B. roundabout) sind die EndOutlines durch die Art der Berechnung (kein average an den Enden) nicht deckungsgleich. Darum
      * in solchen Fällen das Startpair auch am Ende nutzen.
      */
-    public static AbstractArea buildOutlinePolygonFromCenterLine(List<Vector2> centerline, List<MapNode> nodelist, double width, Object parent, Material material) {
+    public static AbstractArea buildOutlinePolygonFromCenterLine(List<Vector2> centerline, List<MapNode> nodelist, double width, Object parent, Material material, /*18.3.26 MapWay*/MapWaySegment2 mapWay) throws MeshInconsistencyException {
         /*if (mapWay.getOsmId() == 26927466) {
             int osmid = 6;
         }*/
@@ -138,8 +138,7 @@ public class WayArea extends AbstractArea {
             if (segcnt + 1 != centerline.size()) {
                 //13.6.19 kommt bei grossen Tiles schon mal vor
                 //throw new RuntimeException("inconsistency");
-                logger.error("inconsistency. centerline.size=" + centerline.size() + ",nodelist.size=" + nodelist.size());
-                return null;
+                throw new MeshInconsistencyException("inconsistency: centerline.size=" + centerline.size() + ",nodelist.size=" + nodelist.size());
             }
             //size==0?? TODO wasn das?
             if (nodelist.size() > 0 && nodelist.get(0) == nodelist.get(nodelist.size() - 1)) {
@@ -188,7 +187,7 @@ public class WayArea extends AbstractArea {
         leftline = leftline.reverse();
         if (uncutcoord.length < 4) {
             // even possible? Yes, eg. due to precut.
-            logger.warn("invalid polygon with uncutcoord.length=" + uncutcoord.length + ". Using empty polygon for way ?");
+            log.warn("invalid polygon with uncutcoord.length=" + uncutcoord.length + ". Using empty polygon for way ?");
             return EMPTYAREA;
         }
 
@@ -216,10 +215,10 @@ public class WayArea extends AbstractArea {
             polygon = JtsUtil.createPolygonFromWayOutlines(rightline, leftline);
         }
         if (polygon != null && polygon.isValid()) {
-            abstractArea = new WayArea(material, new SmartPolygon(polygon, polygonMetadata), nodelist, rightline, leftline);
+            abstractArea = new WayArea(material, new SmartPolygon(polygon, polygonMetadata), nodelist, rightline, leftline, mapWay);
 
         } else {
-            logger.warn("buildOutlinePolygonFromGraph: invalid polygon created for OSM way " + osmid + " with width " + width + ". Using fallback:" + polygon +
+            log.warn("buildOutlinePolygonFromGraph: invalid polygon created for OSM way " + osmid + " with width " + width + ". Using fallback:" + polygon +
                     " from centerline " + JtsUtil.createLine(centerline));
             // Dann als Fallback ueber gemergte Segemnte bauen. 5.4.19: Auch hier kann null kommen! Das ist irgendwie krumm.
             // TODO vermeiden oder anders: Damit wird getPolygonCrossLine() nicht mehr gehen
@@ -227,7 +226,7 @@ public class WayArea extends AbstractArea {
             /*flatComponent*/
             if (nodelist == null) {
                 // 24.5.19 das ist genauso fragwürdig wie die Fallbacks. Das muss sich alles noch finden.
-                logger.warn("no nodelist->no polygon");
+                log.warn("no nodelist->no polygon");
                 return null;
             }
             abstractArea.poly = MapDataHelper.getOutlinePolygon(nodelist/*mapWay*/, width);
@@ -267,8 +266,11 @@ public class WayArea extends AbstractArea {
         if (waysMachenSchonImCreateDenLazyCut) {
             return null;
         }
-        SceneryWayObject sceneryWayObject = (SceneryWayObject) abstractSceneryFlatObject;
-        //logger.debug("cut");
+        // 19.3.26 no longer especially because of "newpositionSize" which is completely confusing
+        Util.nomore();
+        return null;
+        /*SceneryWayObject sceneryWayObject = (SceneryWayObject) abstractSceneryFlatObject;
+        //log.debug("cut");
         List<MapNode> mapNodes = sceneryWayObject.mapWay.getMapNodes();
         //List<Integer> positiontoremove = new ArrayList<>();
         boolean isinside = false;
@@ -279,7 +281,7 @@ public class WayArea extends AbstractArea {
         if (elevations == null) {
             throw new RuntimeException("no ele groups");
         }
-        if (osmid == 107468171) {
+        if (mapWay.getOsmId() == 107468171) {
             int h = 9;
         }
 
@@ -290,16 +292,16 @@ public class WayArea extends AbstractArea {
         for (int i = 0; i < mapNodes.size(); i++) {
             MapNode mapNode = mapNodes.get(i);
             //10.7.19 if (MapDataHelper.isDummyNode(mapNode) || JtsUtil.contains(gridbounds, toVector2(mapNode.getPos()))) {
-            if (mapNode.location != MapNode.Location.OUTSIDEGRID) {
+            //17.3.26 we no longer care about if (mapNode.location != MapNode.Location.OUTSIDEGRID) {
                 //TODO wenn gridnode erste node ist
                 /*if (MapDataHelper.isDummyNode(mapNode)) {
                     if (isinside) {
-                        //logger.debug("leaving gridnode at " + i);
+                        //log.debug("leaving gridnode at " + i);
                     } else {
-                        //logger.debug("entering gridnode at " + i);
+                        //log.debug("entering gridnode at " + i);
                     }
 
-                }*/
+                }* /
                 isinside = true;
 
                 CoordinatePair[] pairs = getMultiplePair(i);
@@ -310,10 +312,10 @@ public class WayArea extends AbstractArea {
                     newleftoutline.add(p.getSecond());
                 }
                 position++;
-            } else {
+            /*17.3.26 we no longer care about } else {
                 isinside = false;
                 //positiontoremove.add(i);
-            }
+            }* /
         }
         if (newrightoutline.size() == 0) {
             // way komplett ausserhalb
@@ -327,7 +329,7 @@ public class WayArea extends AbstractArea {
             newrightoutline.add(newleftoutline.get(i));
         }
         newrightoutline.add(newrightoutline.get(0));
-        /*poly.poly gon[0] =*/
+        /*poly.poly gon[0] =* /
         JtsUtil.createPolygon(newrightoutline);
         positionSize = newpositionSize;
         node2position = newnode2position;
@@ -337,7 +339,7 @@ public class WayArea extends AbstractArea {
         //isStandard();
         //TODO was returnen?
         //return new Coordinate[0];
-        return new CutResult(new Polygon[]{JtsUtil.createPolygon(newrightoutline)}, new Coordinate[0]);
+        return new CutResult(new Polygon[]{JtsUtil.createPolygon(newrightoutline)}, new Coordinate[0]);*/
     }
 
     /**
@@ -347,13 +349,13 @@ public class WayArea extends AbstractArea {
     public boolean triangulateAndTexturize(EleConnectorGroupFinder eleConnectorGroupFinder, TerrainMesh tm) {
         if (material == null) {
             //Sonderlocke, texutils brauchen material
-            logger.warn("no material");
+            log.warn("no material");
             return false;
         }
 
         if (empty) {
             //error, because it shouldn't be called at all.
-            logger.error("triangulation skipped for empty polygon. Shouldn't be called at all.");
+            log.error("triangulation skipped for empty polygon. Shouldn't be called at all.");
             return false;
         }
         /*if (getOsmIds().contains(new Long(8033747))) {
@@ -399,14 +401,14 @@ public class WayArea extends AbstractArea {
                 //areaElevation.eleconnectorgroups.add(egr);
                 EleConnectorGroup.elegroups.get(node.getOsmId()).addAll(coors);
             } else {
-                logger.warn("inconsistent coordinate reference for osmid " + node.getOsmId());
+                log.warn("inconsistent coordinate reference for osmid " + node.getOsmId());
             }
 
         }*/
 
         //Durch cut kann ein Teil des Polygons ausserhalb liegen. Darum greift die Plausi nicht.
         /*if (2 * elevations.eleconnectorgroups.size() != poly.poly gon[0].getCoordinates().length - 1) {
-            logger.error("inconsistent way: " + elevations.eleconnectorgroups.size() + " elegroups do not fit way with " + poly.poly gon[0].getCoordinates().length + " coordinates");
+            log.error("inconsistent way: " + elevations.eleconnectorgroups.size() + " elegroups do not fit way with " + poly.poly gon[0].getCoordinates().length + " coordinates");
         }*/
 
         //ob die Logik immer greift? Auch bei inside/outside mix?
@@ -417,7 +419,7 @@ public class WayArea extends AbstractArea {
                 EleConnectorGroup egr = elevations.eleconnectorgroups.get(i);
                 //int[] index = position2pairindex.get(i/*egr*/);
                 Integer position = getPosition(egr.mapNode);
-                if (position != null) {
+                /*19.3.26 TODO if (position != null) {
                     CoordinatePair[] pairs = getMultiplePair(position);
                     if (pairs != null) {
                         for (CoordinatePair pair : pairs) {
@@ -426,7 +428,7 @@ public class WayArea extends AbstractArea {
                             egr.add(new EleCoordinate(pair.getSecond()));
                         }
                     }
-                }
+                }*/
             }
         } else {
             //wurde schon beim register mitgemacht. Nein, das ist wegen evtl. split zu frueh.
@@ -442,7 +444,7 @@ public class WayArea extends AbstractArea {
                 //int[] index = position2pairindex.get(i/*egr*/);
                 Integer position = getPosition(egr.mapNode);
                 if (position != null) {
-                    CoordinatePair[] pairs = getMultiplePair(position);
+                     /*19.3.26 TODO CoordinatePair[] pairs = getMultiplePair(position);
                     if (pairs != null) {
                         for (CoordinatePair pair : pairs) {
                             //Pair<Coordinate, Coordinate> pair = getPair(index[0]);
@@ -451,35 +453,35 @@ public class WayArea extends AbstractArea {
                             registerCoordinateToElegroup(pair.getFirst(), egr, tm);
                             registerCoordinateToElegroup(pair.getSecond(), egr, tm);
                         }
-                    }
+                    }*/
                 }
             }
             //Gegenprobe. left/right lines null sind mögliche Folgefehler.
             // TODO ways die durch Triangulation entstehen sind ein Problem. 9.9.19???
-            if (isPartOfMesh) {
+            /*16.4.26 if (isPartOfMesh) {
                 List<MeshLine> leftlines = getLeftLines(tm), rightlines = getRightLines(tm);
                 if (leftlines != null && rightlines != null) {
                     for (MeshLine l : leftlines) {
                         for (Coordinate c : l.getCoordinates()) {
                             if (EleConnectorGroup.getGroup(c) == null) {
-                                logger.error("way area still has unregistered coordinate " + c + " in line " + l);
+                                log.error("way area still has unregistered coordinate " + c + " in line " + l);
                             }
                         }
                     }
                     for (MeshLine l : rightlines) {
                         for (Coordinate c : l.getCoordinates()) {
                             if (EleConnectorGroup.getGroup(c) == null) {
-                                logger.error("way area still has unregistered coordinate " + c + " in line " + l);
+                                log.error("way area still has unregistered coordinate " + c + " in line " + l);
                             }
                         }
                     }
                 } else {
-                    logger.error("leftlines or rightlines isType null. unhandled bridge?");
+                    log.error("leftlines or rightlines isType null. unhandled bridge?");
                 }
             } else {
                 //koennte eine Bridge sein. Ist zwar nicht im TerrainMesh, braucht aber trotzdem eine Elevation (ähnliches Problem wie Decoration Overlays).
                 //aehnlich machen: hier nichts registrieren und dann alles im calculateElevation.
-            }
+            }*/
         }
     }
 
@@ -490,12 +492,15 @@ public class WayArea extends AbstractArea {
         return null;
     }
 
-
-    private int[] getPairIndex(int logicalindex) {
+    /**
+     * Return the node indexes for a pair index?
+     * 19.3.26 hoepfully no longer needed as pari?
+     */
+    /*19.3.26 private int[] getPairIndex(int logicalindex) {
         int position = 0;
 
         if (logicalindex >= positionSize.size()) {
-            logger.error("invalid logicalindex " + logicalindex);
+            log.error("invalid logicalindex " + logicalindex);
             return null;
         }
         for (int i = 0; i < logicalindex; i++) {
@@ -510,7 +515,7 @@ public class WayArea extends AbstractArea {
                 Util.notyet();
                 return null;
         }
-    }
+    }*/
 
     /**
      * Find first or last logical(!) index of a segment.
@@ -523,7 +528,7 @@ public class WayArea extends AbstractArea {
         //int position = 0;
 
         /*if (logicalindex >= positionSize.size()) {
-            logger.error("invalid logicalindex " + logicalindex);
+            log.error("invalid logicalindex " + logicalindex);
             return null;
         }*/
         if (findStartIndex && segment == 0) {
@@ -550,7 +555,7 @@ public class WayArea extends AbstractArea {
             return positionSize.size() - 1;
         }
 
-        logger.warn("Segment " + segment + " not found");
+        log.warn("Segment " + segment + " not found");
         return -1;
     }
 
@@ -566,13 +571,13 @@ public class WayArea extends AbstractArea {
         TerrainMesh tm = null;
         if (isEmpty(tm)) {
             //TODO sollte uebrhaupt kein Way sein, oder?
-            logger.warn("should not be called on empty ways");
+            log.warn("should not be called on empty ways");
             return null;
         }
         //Coordinate[] coors = poly.poly gon.getCoordinates();
-        int[] ii = getPairIndex(index);
+        int[] ii = new int[]{index};//19.3.26 getPairIndex(index);
         if (ii == null) {
-            logger.error("invalid position " + index + ". length=" + getLength());
+            log.error("invalid position " + index + ". length=" + getLength());
             return null;
         }
         if (ii.length > 1) {
@@ -583,7 +588,7 @@ public class WayArea extends AbstractArea {
             CoordinatePair p = new CoordinatePair(rightline.get(ii[0]), leftline.get(ii[0]));
             return p;
         } catch (ArrayIndexOutOfBoundsException e) {
-            logger.error("invalid index,e");
+            log.error("invalid index,e");
             return null;
         }
     }
@@ -591,9 +596,9 @@ public class WayArea extends AbstractArea {
     /**
      * see below.
      */
-    public CoordinatePair[] getPairsOfSegment(int segment) {
+    public CoordinatePair[] getPairsOfSegment(/*19.3.26 int segment*/) {
         TerrainMesh tm = null;
-        Object[] os = getPairsOfSegment(segment, false, tm);
+        Object[] os = getPairsOfSegment(/*segment,*/ false, tm);
         CoordinatePair[] result = new CoordinatePair[os.length];
         for (int i = 0; i < os.length; i++) {
             result[i] = (CoordinatePair) os[i];
@@ -608,34 +613,34 @@ public class WayArea extends AbstractArea {
      *
      * @return
      */
-    private Object[] getPairsOfSegment(int segment, boolean meshnodes, TerrainMesh tm) {
-        int start = getSegmentIndex(segment, true);
-        int end = getSegmentIndex(segment, false);
+    private Object[] getPairsOfSegment(/*int segment,*/ boolean meshnodes, TerrainMesh tm) {
+        int start = 0;//19.3.26 getSegmentIndex(segment, true);
+        int end = this.rightline.size()-1;//19.3.26 getSegmentIndex(segment, false);
         if (start == -1 || end == -1) {
             //already logged
             return null;
         }
 
         List<CoordinatePair> result = new ArrayList<>();
-        CoordinatePair[] pairs = getMultiplePair(start);
-        if (pairs.length > 1) {
+        CoordinatePair/*[]*/ pairs = getMultiplePair(start);
+        /*if (pairs.length > 1) {
             if (segment == 0) {
                 //Sonderall zwei am Start
                 result.add(pairs[0]);
             }
             result.add(pairs[1]);
-        } else {
-            result.add(pairs[0]);
+        } else*/ {
+            result.add(pairs/*19.3.26 [0]*/);
         }
         for (int i = start + 1; i < end; i++) {
             CoordinatePair pair = getPair(i);
             if (pair == null) {
-                logger.warn("unexpected pair null");
+                log.warn("unexpected pair null");
             }
             result.add(pair);
         }
         pairs = getMultiplePair(end);
-        if (pairs.length > 1) {
+        /*19.3.26 if (pairs.length > 1) {
             if (segment == getSegmentCount() - 1) {
                 //Sonderall zwei am Ende
                 result.add(pairs[0]);
@@ -644,32 +649,38 @@ public class WayArea extends AbstractArea {
                 //23.8.19: 1->0
                 result.add(pairs[0]);
             }
-        } else {
-            result.add(pairs[0]);
+        } else*/ {
+            result.add(pairs/*19.3.26 [0]*/);
         }
 
         return result.toArray(new CoordinatePair[0]);
     }
 
     /**
+     * Return the coordinate pair at logical position, taken from left/right line.
+     * Might return multiple pairs when coordinate pair was duplicated? For mid connector?
+     * Or SIMPLE_INNER_SINGLE_JUNCTION
+     *
      * Geht auch fuer non multiple pairs.
      * 27.3.24 TerrainMesh really needed?
+     * 'first' is from 'rightline', 'second' from 'leftline'
+     * 19.3.26: Array removed because we don't have mid connector any more
      * @param index
      * @return
      */
-    public CoordinatePair[] getMultiplePair(int index) {
+    public CoordinatePair/*[]*/ getMultiplePair(int index) {
         TerrainMesh tm = null;
         //27.3.24 TerrainMesh isn't yet available here! Is it?
 
         if (isEmpty(tm)) {
             //TODO sollte uebrhaupt kein Way sein, oder?
-            logger.warn("should not be called on empty ways");
+            log.warn("should not be called on empty ways");
             return null;
         }
         //Coordinate[] coors = poly.poly gon.getCoordinates();
-        int[] ii = getPairIndex(index);
+        int[] ii = new int[]{index};//19.3.26getPairIndex(index);
         if (ii == null) {
-            logger.error("invalid position " + index + ". length=" + getLength());
+            log.error("invalid position " + index + ". length=" + getLength());
             return null;
         }
 
@@ -679,31 +690,31 @@ public class WayArea extends AbstractArea {
                 //p[i] = new CoordinatePair(coors[ii[i]], coors[coors.length - 2 - ii[i]]);
                 p[i] = new CoordinatePair(rightline.get(ii[i]), leftline.get(ii[i]));
             }
-            return p;
+            return p[0];
         } catch (ArrayIndexOutOfBoundsException e) {
-            logger.error("invalid index,e");
+            log.error("invalid index,e");
             return null;
         }
     }
 
     /**
      * Kann seit SIMPLE_INNER_SINGLE_JUNCTION auch mehrere liefern
-     *
+     * 19.3.26 no longer
      * @return
      */
-    public CoordinatePair[] getStartPair(TerrainMesh tm) {
-        CoordinatePair[] p = getMultiplePair(0);
+    public CoordinatePair/*[]*/ getStartPair(TerrainMesh tm) {
+        CoordinatePair p = getMultiplePair(0);
         return p;
     }
 
     /**
      * Kann seit SIMPLE_INNER_SINGLE_JUNCTION auch mehrere liefern
-     *
+     * 19.3.26 no longer
      * @return
      */
-    public CoordinatePair[] getEndPair() {
+    public CoordinatePair/*[]*/ getEndPair() {
         TerrainMesh tm = null;
-        CoordinatePair[] p = getMultiplePair(getLength() - 1);
+        CoordinatePair p = getMultiplePair(getLength() - 1);
         return p;
     }
 
@@ -753,30 +764,31 @@ public class WayArea extends AbstractArea {
         return rightline.coorlist;
     }
 
-    public void replaceStart(CoordinatePair[] pair) {
+    /*20.3.26 public void replaceStart(CoordinatePair[] pair) {
         replace(0, pair);
     }
 
     public void replaceEnd(CoordinatePair[] pair) {
         replace(getLength() - 1, pair);
-    }
+    }*/
 
     /**
-     * Replace coordinate pair with two other.
+     * Replace coordinate pair with two other. Makes coordinate list longer.
      * Das geht nur, wenn dabei ein gültiger Way Polygon bestehen bleibt.
      * Returns false in the case of failure.
+     * 20.3.26: What is the use case? mid connector? assume use case is gone.
      */
-    public boolean replace(int index, CoordinatePair[] p) {
-        int[] ii = getPairIndex(index);
+    /*20.3.26 public boolean replace(int index, CoordinatePair[] p) {
+        int[] ii = new int[]{index};//19.3.26 getPairIndex(index);
         if (ii == null) {
-            logger.error("invalid position " + index + ". length=" + getLength());
+            log.error("invalid position " + index + ". length=" + getLength());
         }
         if (ii.length > 1) {
             Util.notyet();
         }
         /*if (!poly.replace(ii[0], p[0])) {
             return false;
-        }*/
+        }* /
         CoordinateList tl = leftline.clone();
         CoordinateList tr = rightline.clone();
         tr.set(ii[0], p[0].right());
@@ -784,7 +796,7 @@ public class WayArea extends AbstractArea {
         /*if (!poly.add(ii[0] + 1, p[1])) {
             // replace already succeeded. Hmm?
             return false;
-        }*/
+        }* /
         tr.add(ii[0] + 1, p[1].right());
         tl.add(ii[0] + 1, p[1].left());
 
@@ -798,19 +810,19 @@ public class WayArea extends AbstractArea {
         positionSize.set(index, 2);
         validate();
         return true;
-    }
+    }*/
 
     /**
      * kann multiple replace (wegen closed way).
      * TODO: Was ist denn, wenn an der position multiple sind?
      */
-    public boolean replace(int[] pindex, CoordinatePair p) {
+    public boolean replace(int[] pindex, CoordinatePair p) throws MeshInconsistencyException {
         CoordinateList tl = leftline.clone();
         CoordinateList tr = rightline.clone();
         for (int index : pindex) {
-            int[] ii = getPairIndex(index);
+            int[] ii = new int[]{index};//getPairIndex(index);
             if (ii == null) {
-                logger.error("invalid position " + index + ". length=" + getLength());
+                log.error("invalid position " + index + ". length=" + getLength());
             }
             if (ii.length > 1) {
                 Util.notyet();
@@ -823,7 +835,8 @@ public class WayArea extends AbstractArea {
         }
         Polygon polygon = JtsUtil.createPolygonFromWayOutlines(tr, tl);
         if (polygon == null || !polygon.isValid()) {
-            return false;
+            // 27.2.26 have chance to analyze the invalid polygon
+            throw MeshInconsistencyException.forInvalidPolygon("invalid polygon for way", mapWay.getOsmId(), polygon);
         }
         poly.polygon = polygon;
         rightline = tr;
@@ -832,15 +845,15 @@ public class WayArea extends AbstractArea {
         return true;
     }
 
-    public boolean replaceStart(CoordinatePair pair) {
-        return replace(new int[]{0}, pair);
+    public boolean replaceStart(CoordinatePair newStart) throws MeshInconsistencyException {
+        return replace(new int[]{0}, newStart);
     }
 
-    public boolean replaceEnd(CoordinatePair pair) {
-        return replace(new int[]{getLength() - 1}, pair);
+    public boolean replaceEnd(CoordinatePair newEnd) throws MeshInconsistencyException {
+        return replace(new int[]{getLength() - 1}, newEnd);
     }
 
-    public boolean replaceStartEnd(CoordinatePair pair) {
+    public boolean replaceStartEnd(CoordinatePair pair) throws MeshInconsistencyException {
         return replace(new int[]{0, getLength() - 1}, pair);
     }
 
@@ -868,20 +881,20 @@ public class WayArea extends AbstractArea {
      */
     public CoordinatePair shift(int index, double offset) {
         TerrainMesh tm = null;
-        CoordinatePair[] mp0 = getMultiplePair(index);
-        CoordinatePair[] mp1 = getMultiplePair(index + ((offset < 0) ? -1 : 1));
+        CoordinatePair/*19.3.26 []*/ mp0 = getMultiplePair(index);
+        CoordinatePair/*19.3.26 []*/ mp1 = getMultiplePair(index + ((offset < 0) ? -1 : 1));
         if (mp0 == null || mp1 == null) {
-            logger.error("cannot shift");
+            log.error("cannot shift");
             return null;
         }
         CoordinatePair p0, p1;
         if (offset < 0) {
-            p0 = mp0[0];
-            p1 = mp1[mp1.length - 1];
+            p0 = mp0;//[0];
+            p1 = mp1;//[mp1.length - 1];
             offset = -offset;
         } else {
-            p0 = mp0[mp0.length - 1];
-            p1 = mp1[0];
+            p0 = mp0;//[mp0.length - 1];
+            p1 = mp1;//[0];
         }
         Vector2 direction = JtsUtil.getDirection(p0.getFirst(), p1.getFirst());
         p0.setFirst(JtsUtil.add(p0.getFirst(), direction.multiply(offset)));
@@ -895,21 +908,21 @@ public class WayArea extends AbstractArea {
      * Not self modifying but just returning the values.
      */
     public CoordinatePair reduce(int index, double offset, TerrainMesh tm) {
-        CoordinatePair[] mp0 = getMultiplePair(index);
+        CoordinatePair/*19.3.26 []*/ mp0 = getMultiplePair(index);
         //CoordinatePair[] mp1 = getMultiplePair(index + ((offset < 0) ? -1 : 1));
         if (mp0 == null) {
-            logger.error("cannot reduce");
+            log.error("cannot reduce");
             return null;
         }
-        if (mp0.length != 1 || offset < 0) {
-            logger.error("reduce:not yet");
+        /*19.3.26 if (mp0.length != 1 || offset < 0) {
+            log.error("reduce:not yet");
             return null;
-        }
+        }*/
         CoordinatePair p0, p1;
-        Vector2 from2dir = JtsUtil.getVector2(mp0[0].right(), mp0[0].left());
+        Vector2 from2dir = JtsUtil.getVector2(mp0/*19.3.26 [0]*/.right(), mp0/*19.3.26 [0]*/.left());
         Vector2 dir = from2dir.normalize().multiply(offset);
 
-        p0 = new CoordinatePair(JtsUtil.add(mp0[0].right(), dir), JtsUtil.add(mp0[0].left(), dir.negate()));
+        p0 = new CoordinatePair(JtsUtil.add(mp0/*19.3.26 [0]*/.right(), dir), JtsUtil.add(mp0/*19.3.26 [0]*/.left(), dir.negate()));
 
         return p0;
     }
@@ -933,7 +946,7 @@ public class WayArea extends AbstractArea {
     public Polygon getPolygon(TerrainMesh tm) {
         Polygon polygon = JtsUtil.createPolygonFromWayOutlines(rightline, leftline);
         if (polygon == null || !polygon.isValid()) {
-            logger.error("inconsistemt?");
+            log.error("inconsistemt?");
             return null;
         }
         return polygon;
@@ -964,13 +977,13 @@ public class WayArea extends AbstractArea {
             int h = 9;
         }
         if (rightline.size() != leftline.size()) {
-            logger.error("rightline.size(" + rightline.size() + ") != leftline.size(" + leftline.size() + ")");
+            log.error("rightline.size(" + rightline.size() + ") != leftline.size(" + leftline.size() + ")");
             return false;
         }
         return true;
     }
 
-    public void initLeftRightLines() {
+   /*16.2.26  public void initLeftRightLines() {
         leftlines = new ArrayList<>();
         rightlines = new ArrayList<>();
 
@@ -997,7 +1010,7 @@ public class WayArea extends AbstractArea {
             lines.addAll(l.getLines(tm));
         }
         return lines;
-    }
+    }*/
 
    /* public List<Pair<MeshPoint, MeshPoint>> getLeftlines() {
         return leftlines;
@@ -1007,12 +1020,38 @@ public class WayArea extends AbstractArea {
         return rightlines;
     }*/
 
-    public void addLeftline(MeshLine line) {
+    /*16.2.26 public void addLeftline(MeshLine line) {
         leftlines.add(new MeshLineData(line, this, true));
     }
 
     public void addRightline(MeshLine line) {
         rightlines.add(new MeshLineData(line, this, false));
+    }*/
+
+    /**
+     * Doesn't change the way itself. Returns pair of node moved by offset (positive in end direction, negative in start direction)
+     * 21.2.26: Extracted from SceneryWayObject
+     * @param node
+     * @param v
+     * @return
+     */
+    public CoordinatePair shiftStartOrEnd(MapNode node, double v) {
+        if (isStartNode(node)) {
+            return shiftStart(v);
+        }
+        if (isEndNode(node)) {
+            return shiftEnd(-v);
+        }
+        log.error("neither start nor end node");
+        return null;
+    }
+
+    public boolean isStartNode(MapNode node) {
+        return node == mapWay.getStartNode();
+    }
+
+    public boolean isEndNode(MapNode node) {
+        return node == mapWay.getEndNode();
     }
 
    /* public MeshLine getLeftFrom() {

@@ -1,14 +1,14 @@
 package de.yard.threed.osm2graph.osm;
 
-import org.apache.log4j.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 31.5.18: Die Klasse aus OSM2World soll verwendent werden
  */
 @Deprecated
+@Slf4j
 public final class TargetUtil {
-    static Logger logger = Logger.getLogger(TargetUtil.class);
 
     /*private TargetUtil() {
     }*/
@@ -20,7 +20,7 @@ public final class TargetUtil {
     /*30.5.18 public static <R extends Renderable> void renderWorldObjects(
             final Target<R> target, final /*MapData* /Iterable<MapElement> mapData,
             final boolean renderUnderground) {
-        logger.debug("renderWorldObjects");
+        log.debug("renderWorldObjects");
         for (MapElement mapElement : mapData/*mapData.getMapElements()* /) {
             for (WorldObject r : mapElement.getRepresentations()) {
                 if (renderUnderground || true/*r.getGroundState() != GroundState.BELOW* /) {
@@ -29,7 +29,7 @@ public final class TargetUtil {
                         renderObject(target, r);
                     } catch (Exception e) {
                         //e.printStackTrace();
-                        logger.error(e.getMessage()+". This exception occurred for the following input:"                               + mapElement);
+                        log.error(e.getMessage()+". This exception occurred for the following input:"                               + mapElement);
                     }
 
                 }
@@ -40,7 +40,7 @@ public final class TargetUtil {
   /*  public static <R extends Renderable> void MyrenderWorldObjects(
             final GraphicsTarget target, final RenderData renderdata,
             final boolean renderUnderground, boolean merge) {
-        logger.debug("MyrenderWorldObjects");
+        log.debug("MyrenderWorldObjects");
         /*for (MyWorldObject r : renderdata.apron) {
             renderWO(target, r);
         }

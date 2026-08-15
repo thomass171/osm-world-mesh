@@ -1,7 +1,7 @@
 package de.yard.owm.services;
 
 
-import de.yard.owm.services.util.OsmXmlParser;
+import de.yard.threed.osm2scenery.util.OsmXmlParser;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

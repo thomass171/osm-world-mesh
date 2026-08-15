@@ -11,7 +11,8 @@ import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.Material;
 import de.yard.threed.osm2world.OsmOrigin;
 import de.yard.threed.osm2world.VectorXZ;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.awt.*;
 import java.awt.geom.Area;
@@ -28,11 +29,11 @@ import java.util.List;
  * <p>
  * Created by thomass on 30.01.17.
  */
+@Slf4j
 public class Tile implements TileProjection{
     private BufferedImage img;
     //static final int SIZE = 1024;
     public Dimension size;
-    Logger logger = Logger.getLogger(Tile.class);
     float scale;
     double xoffset, yoffset;
     BufferedImage sampleImage = buildSampleImage();
@@ -75,7 +76,7 @@ public class Tile implements TileProjection{
             yoffset = -zoomfrom.z * scale;
 
         }
-        //logger.debug("xoffset=" + xoffset + ",yoofset=" + yoffset);
+        //log.debug("xoffset=" + xoffset + ",yoofset=" + yoffset);
 
 
         img = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
@@ -119,7 +120,7 @@ public class Tile implements TileProjection{
             yoffset = -zoomfrom.z * scale;
 
         }
-        //logger.debug("xoffset=" + xoffset + ",yoofset=" + yoffset);
+        //log.debug("xoffset=" + xoffset + ",yoofset=" + yoffset);
         img = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         g.setColor(backgroundcolor);
@@ -195,7 +196,7 @@ public class Tile implements TileProjection{
      */
     public PolygonInformation drawGeometry(VertexData vertexData, OsmOrigin polygonOrigin, Color color, Material material) {
         if (vertexData.validate() != null) {
-            logger.error(vertexData.validate());
+            log.error(vertexData.validate());
             return null;
         }
         List<TriangleAWT> plist = toPolygonList(vertexData);
@@ -221,7 +222,7 @@ public class Tile implements TileProjection{
         //List<Polygon> plist = toPolygon(polygon);
         if (polygon.getCoordinates().length < 3) {
             //19.4.19: Sowas gibt es, z.B. Connector
-            //logger.warn("drawGeometry: skipping empty polygon");
+            //log.warn("drawGeometry: skipping empty polygon");
             return null;
         }
         //13.8.18: Mit area sieht man aber bei wireframe keine Holes? Die sind wohl manchmal einfach zu klein.
@@ -423,7 +424,7 @@ public class Tile implements TileProjection{
         // 26.4.19 keine uvs ist zwar ungewoehnlich, gibts aber immer wenn keine Textur vorliegt.
         // Das ist nicht unbedingt ein Fehler.
         if (vertexData.uvs == null) {
-            //logger.error("no uvs in VertexData");
+            //log.error("no uvs in VertexData");
             //return plist;
         }
         List<Vector2> uvs = new ArrayList<Vector2>();
@@ -541,10 +542,10 @@ public class Tile implements TileProjection{
      */
     private void addPoint(Polygon p, VectorXZ v) {
         if (Math.abs(v.getX()) > 512) {
-            //logger.warn("large x:"+v.getX());
+            //log.warn("large x:"+v.getX());
         }
         if (Math.abs(v.getZ()) > 512) {
-            //logger.warn("large z:"+v.getZ());
+            //log.warn("large z:"+v.getZ());
         }
         //int y = (int) Math.round(v.getZ() * scale + yoffset);
         //p.addPoint((int) Math.round(v.getX() * scale + xoffset), getEffectiveY(y));
@@ -647,7 +648,7 @@ public class Tile implements TileProjection{
 
     public VectorXZ getProjectionLocation(Point p) {
         VectorXZ v = pointToVectorXZ(p);
-        //logger.debug("getProjectionLocation for "+p+" found "+v);
+        //log.debug("getProjectionLocation for "+p+" found "+v);
         return v;
     }
 
@@ -672,9 +673,9 @@ public class Tile implements TileProjection{
         try {
             //23.8.18: Das mit der Rendermap ist aber auch so'ne Kruecke
             target.rendermap = results.sceneryresults.sceneryMesh.render(target);
-            logger.debug("rendering completed");
+            log.debug("rendering completed");
         } catch (Exception e) {
-            logger.error("exception during rendering");
+            log.error("exception during rendering");
             e.printStackTrace();
         }
         return target;

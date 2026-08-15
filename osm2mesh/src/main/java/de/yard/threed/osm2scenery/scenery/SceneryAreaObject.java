@@ -9,6 +9,7 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
@@ -20,6 +21,7 @@ import de.yard.threed.osm2world.MapNode;
 import de.yard.threed.osm2world.Material;
 import de.yard.threed.osm2world.SimplePolygonXZ;
 import de.yard.threed.osm2world.VectorXZ;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,7 @@ import java.util.Map;
  * <p>
  * Created on 15.08.18.
  */
+@Slf4j
 public class SceneryAreaObject extends SceneryFlatObject {
     //either isType used!
     MapArea maparea;
@@ -79,7 +82,7 @@ public class SceneryAreaObject extends SceneryFlatObject {
      * flatcomponent existiert wahrscheinlich schon.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
         if (maparea != null) {
             SimplePolygonXZ pXZ = maparea.getOuterPolygon();
 
@@ -113,7 +116,7 @@ public class SceneryAreaObject extends SceneryFlatObject {
 
             if (uncutcoord.length < 4) {
                 // even possible?
-                logger.warn("invalid polygon with uncutcoord.length=" + uncutcoord.length);
+                log.warn("invalid polygon with uncutcoord.length=" + uncutcoord.length);
                 // will fail later with NPE
                 return null;
             }
@@ -133,15 +136,15 @@ public class SceneryAreaObject extends SceneryFlatObject {
                 }
                 if (wasCut) {
                     // das kann ich drehen und wenden wie ich will. Ein Building, ob Overlay oder nicht, kann nicht geteilt werden. Darum erstmal ganz weglassen.
-                    logger.debug("Cut building. Setting area to empty:" + getOsmIdsAsString());
+                    log.debug("Cut building. Setting area to empty:" + getOsmIdsAsString());
                     flatComponent = new AbstractArea[]{AbstractArea.EMPTYAREA};
                 }
             }
             flatComponent[0].parentInfo = this.toString();
 
-            if (isTerrainProvider() && objects != null) {
+            /*19.2.26 we no longer have all objects TODO if (isTerrainProvider() && objects != null) {
                 OverlapResolver.resolveOverlaps(this,objects,maparea.getOsmId(), tm);
-            }
+            }*/
             //6.8.19: Stimmt das wohl so im Context? Ja.
             isClipped = true;
 
@@ -151,6 +154,12 @@ public class SceneryAreaObject extends SceneryFlatObject {
             //23.7.19: Ob das noch das Wahre ist?
         }
         return null;
+    }
+
+    @Override
+    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+
+        return ;
     }
 
 
@@ -218,7 +227,7 @@ public class SceneryAreaObject extends SceneryFlatObject {
                     //es muesste doch egal sein, aus welcher Area die Coordinates genommen werden.
                     areaSeam.shareCandidate = JtsUtil.createLineFromCoordinates(area1.adjacentmapareas.get(area2.maparea));
                     if (areaSeam.shareCandidate == null) {
-                        slogger.warn("shareCandidate==null: Ignoring seam");
+                        log.warn("shareCandidate==null: Ignoring seam");
                         return;
                     }
                     area2.adjacentareas.put(area1, areaSeam);

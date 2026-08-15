@@ -21,7 +21,7 @@ public class EleGroupLayer extends Layer {
     }
 
     public void draw(/*Tile tile*/Graphics2D g, TileProjection tileProjection) {
-        //Viewer2D.logger.debug("drawing elegroups");
+        //log.debug("drawing elegroups");
         for (EleConnectorGroup no : EleConnectorGroup.elegroups.values()) {
             //tile.drawCircle(no.mapNode.getPos(), 15, Color.orange);
             DrawHelper.drawCircle(g,tileProjection.vectorxzToPoint(no.mapNode.getPos()), 15, Color.orange);

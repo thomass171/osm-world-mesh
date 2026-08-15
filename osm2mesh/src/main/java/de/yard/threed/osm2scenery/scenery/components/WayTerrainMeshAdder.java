@@ -1,14 +1,18 @@
 package de.yard.threed.osm2scenery.scenery.components;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.osm.JtsUtil;
+import de.yard.threed.osm2graph.osm.OsmUtil;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +21,8 @@ import java.util.stream.Collectors;
 /**
  * Added for adding a way to the TerrainMesh.
  */
+@Slf4j
 public class WayTerrainMeshAdder implements TerrainMeshAdder {
-    Logger logger = Logger.getLogger(WayTerrainMeshAdder.class);
     SceneryWayObject sceneryWayObject;
 
     /**
@@ -30,12 +34,15 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
         this.sceneryWayObject = sceneryWayObject;
     }
 
-    @Override
-    public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) throws OsmProcessException {
-
-        if (areas[0].isEmpty(tm)) {
+    /**
+     * 26.2.26 Made static for decoupling. tm temporarily still needed.
+     */
+    /*26.2.26 @Override
+    public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {*/
+public static void persistWay(SceneryWayObject sceneryWayObject,TerrainMesh tm) throws MeshInconsistencyException, OsmProcessException {
+        /*16.2.26 TODO NPE if (areas[0].isEmpty(tm)) {
             return;
-        }
+        }*/
 
         if (sceneryWayObject.mapWay.getOsmId() == 23696494 || sceneryWayObject.mapWay.getOsmId() == 363500734 || sceneryWayObject.mapWay.getOsmId() == 7093390) {
             int h = 9;
@@ -49,7 +56,7 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
 
         //wayArea.leftlines = new ArrayList<>();
         //wayArea.rightlines = new ArrayList<>();
-        wayArea.initLeftRightLines();
+        //16.4.26 wayArea.initLeftRightLines();
 
         List<Coordinate> leftline = new ArrayList<>();
         List<Coordinate> rightline = new ArrayList<>();
@@ -58,14 +65,14 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
             //List<SceneryWayConnector> innerConnector=new ArrayList(sceneryWayObject.innerConnector.values());
             for (int segment = 0; segment <= sceneryWayObject.innerConnector.size(); segment++) {
                 //    end = getWayArea().getPosition(innerconnector.node);
-                CoordinatePair[] pairs = wayArea.getPairsOfSegment(segment);
+                CoordinatePair[] pairs = wayArea.getPairsOfSegment(/*19.3.26 segment*/);
                 if (pairs == null) {
-                    logger.error("unexpected");
+                    log.error("unexpected");
                     return;
                 }
                 for (CoordinatePair pair : pairs) {
                     if (pair == null) {
-                        logger.error("unexpected");
+                        log.error("unexpected");
                         return;
                     }
                     leftline.add(pair.left());
@@ -75,7 +82,7 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
                 if (segment < sceneryWayObject.innerConnector.size()) {
                     SceneryWayConnector con = sceneryWayObject.innerConnector.get(segment);
                     if (con.hasMinor()) {
-                        if (con.minorHitsLeft(con.minorway, tm)) {
+                        if (con.minorHitsLeft(con.minorway0/*, tm*/)) {
                             conn = 1;
                         } else {
                             conn = 2;
@@ -83,7 +90,8 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
                     }
                 }
                 if (tm.isPreDbStyle()) {
-                    boolean endOnGrid = conn == 0 && sceneryWayObject.endMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
+                    Util.nomore();
+                    /*26.2.26 boolean endOnGrid = conn == 0 && sceneryWayObject.endMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
 
                     if (conn == 0 || conn == 1) {
                         boolean startOnGrid = wayArea.getLeftLines(tm).size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
@@ -95,16 +103,37 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
                         boolean startOnGrid = wayArea.getRightLines(tm).size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
                         wayArea.addRightline(tm.registerLine(rightline, areas[0], null, startOnGrid, endOnGrid));
                         rightline = new ArrayList<>();
-                    }
+                    }*/
                 } else {
-                    tm.registerWay(sceneryWayObject.osmWay, null, leftline, rightline, null, 2);
+                    //11.2.26 now via service(contained in tm)
+                    tm.registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2);
+
                 }
             }
+        }else{
+            // 18.3.26: Needed now here due to no mid connector? Strange. What are these wayarea segments?
+            CoordinatePair[] pairs = wayArea.getPairsOfSegment(/*19.3.26 0*/);
+            if (pairs == null) {
+                log.error("unexpected");
+                return;
+            }
+            for (CoordinatePair pair : pairs) {
+                if (pair == null) {
+                    log.error("unexpected");
+                    return;
+                }
+                leftline.add(pair.left());
+                rightline.add(pair.right());
+            }
+
+            tm.registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2);
+
         }
 
         // Also consider dead end. Connect left and right lines from above.
         if (tm.isPreDbStyle()) {
-            if (sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.DEADEND) {
+            Util.nomore();
+                    /*26.2.26 if (sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.DEADEND) {
                 CoordinatePair p = wayArea.getStartPair(tm)[0];
                 tm.registerLine(JtsUtil.toList(p.left(), p.right()), areas[0], null, false, false);
                 tm.addKnownTwoEdger(p.left());
@@ -115,12 +144,12 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
                 tm.registerLine(JtsUtil.toList(p.left(), p.right()), null, areas[0], false, false);
                 tm.addKnownTwoEdger(p.left());
                 tm.addKnownTwoEdger(p.right());
-            }
+            }*/
         }
         //  lazy cut isType already registerd in GridBounds, but needs left/right
 
         /*kann man hier nicht pruefen, weil Connector noch fehlen if (!TerrainMesh.getInstance().isValid(true)){
-            logger.error("invalid after adding way");
+            log.error("invalid after adding way");
         }*/
     }
 }

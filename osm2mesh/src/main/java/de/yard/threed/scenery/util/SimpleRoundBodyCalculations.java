@@ -1,22 +1,18 @@
 package de.yard.threed.scenery.util;
 
-import de.yard.threed.core.Degree;
-import de.yard.threed.core.LatLon;
-import de.yard.threed.core.Quaternion;
-import de.yard.threed.core.Vector3;
-import de.yard.threed.traffic.EllipsoidCalculations;
-import de.yard.threed.traffic.geodesy.ElevationProvider;
-import de.yard.threed.traffic.geodesy.GeoCoordinate;
+import de.yard.threed.core.*;
+import de.yard.threed.trafficcore.EllipsoidCalculations;
+import de.yard.threed.trafficcore.ElevationProvider;
 
 /**
  * 21.9.23: What does "Simple" mean? The whole class is a fake.
  */
-public class SimpleRoundBodyCalculations implements EllipsoidCalculations {
+public class SimpleRoundBodyCalculations extends EllipsoidCalculations {
 
-    @Override
+   /* @Override
     public Quaternion buildRotation(GeoCoordinate location, Degree heading, Degree pitch) {
         return null;
-    }
+    }*/
 
     @Override
     public Vector3 getNorthHeadingReference(GeoCoordinate location) {
@@ -29,7 +25,7 @@ public class SimpleRoundBodyCalculations implements EllipsoidCalculations {
     }
 
     @Override
-    public Vector3 toCart(GeoCoordinate geoCoordinate, ElevationProvider elevationprovider) {
+    public Vector3 toCart(GeoCoordinate geoCoordinate, ElevationProvider elevationprovider, GeneralParameterHandler<GeoCoordinate> missingElevationHandler) {
         return null;
     }
 

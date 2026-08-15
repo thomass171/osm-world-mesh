@@ -10,17 +10,17 @@ import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
+@Slf4j
 public class TraditionalMeshLine implements MeshLine {
     private Long id;
 
-    Logger logger = Logger.getLogger(MeshLine.class);
     private Coordinate[] coordinates;
     private MeshNode from, to;
     public boolean isBoundary = false;
@@ -154,7 +154,7 @@ public class TraditionalMeshLine implements MeshLine {
             int h = 9;
         }
         if (left != null) {
-            logger.warn("overriding left?");
+            log.warn("overriding left?");
         }
         left = area;
     }
@@ -165,7 +165,7 @@ public class TraditionalMeshLine implements MeshLine {
             int h = 9;
         }
         if (right != null) {
-            logger.warn("overriding right?");
+            log.warn("overriding right?");
         }
 
         right = area;

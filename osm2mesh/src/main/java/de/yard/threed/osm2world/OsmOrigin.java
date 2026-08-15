@@ -27,7 +27,7 @@ public class OsmOrigin {
     //18.8.18: irgendwie doof hier
     public Polygon polygon;
     public boolean trifailed;
-    MapWay mapway;
+    MapWaySegment2 mapway;
 
     /**
      * for Area
@@ -67,7 +67,7 @@ public class OsmOrigin {
      * @param osmIds
      * @param mapway
      */
-    public OsmOrigin(String creatortag, List<Long> osmIds, MapWay mapway) {
+    public OsmOrigin(String creatortag, List<Long> osmIds, MapWaySegment2 mapway) {
         //24.5.19 gehoert hier nicht hin this.creatortag = creatortag;
         this.segment = null;
         this.outlinePolygonXZ = null;

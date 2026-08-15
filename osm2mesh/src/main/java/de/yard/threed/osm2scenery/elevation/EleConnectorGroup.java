@@ -9,7 +9,7 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.*;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 
 import java.util.*;
@@ -32,8 +32,8 @@ import java.util.*;
  * 26.9.18: Eine EleConnectorGroup gibt es auch ohne Elevation, weil es ja auch connector sind. 12.7.19: Stimmt das wirklich noch?
  * 24.4.19: Erst anlegen, wenn die Polygone fix sind. 12.7.19: NeeNee, passiert vorher.
  */
+@Slf4j
 public class EleConnectorGroup implements Iterable<EleCoordinate> {
-    static Logger logger = Logger.getLogger(EleConnectorGroup.class.getName());
     private static boolean initCompleted = false;
     //3.8.18: Brauchen wir die hier wirklich?
     public Coordinate location = null;
@@ -72,7 +72,7 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
     public EleConnectorGroup(MapNode mapNode) {
         this(mapNode, new ArrayList<EleCoordinate>());
         id = idc++;
-        if (mapNode != null && mapNode.location != null) {
+        /*17.3.26 we no longer care about if (mapNode != null && mapNode.location != null) {
             switch (mapNode.location) {
                 case INSIDEGRID:
                     gridlocation = Location.INSIDEGRID;
@@ -85,11 +85,11 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
                     break;
                 default:
                     //ist location nicht mandatory?
-                    logger.warn("no location in mapnode");
+                    log.warn("no location in mapnode");
             }
         } else {
             int h = 9;
-        }
+        }*/
     }
 
     public EleConnectorGroup(MapNode mapNode, List<EleCoordinate> eleConnectors) {
@@ -178,7 +178,7 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
 
     public void add(EleCoordinate newConnector) {
         if (locked) {
-            logger.error("add:already locked");
+            log.error("add:already locked");
         }
         if (id == 344) {
             int h = 9;
@@ -188,7 +188,7 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
         }
         //14.8.19: Mal auf duplicate pruefen. Das dürfte dann nicht mehr konsistent sein, weils dann mehrere Groups für eine Coordinate gibt.
         if (getGroup(newConnector.coordinate) != null) {
-            logger.warn("duplicate EleCoordinate " + newConnector.coordinate);
+            log.warn("duplicate EleCoordinate " + newConnector.coordinate);
             SceneryContext.getInstance().warnings.add("duplicate");
         }
         eleConnectors.add(newConnector);
@@ -197,7 +197,7 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
 
     public void addAll(Iterable<EleCoordinate> newConnectors) {
         if (locked) {
-            logger.error("addAll:already locked");
+            log.error("addAll:already locked");
         }
         if (id == 344) {
             int h = 9;
@@ -236,7 +236,7 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
             int h = 9;
         }
         if (this.gridlocation != null) {
-            logger.warn("overriding fixed location?");
+            log.warn("overriding fixed location?");
         }
         this.gridlocation = location;
     }
@@ -244,7 +244,7 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
     public void fixElevation(Double elevation) {
         if (gridlocation == null) {
             //might happen for bridge gap
-            logger.warn("unknown grid location of ele group. possible bridge base? mapNode=" + mapNode);
+            log.warn("unknown grid location of ele group. possible bridge base? mapNode=" + mapNode);
             SceneryContext.getInstance().warnings.add("unknown grid location of ele group");
         }
         if (mapNode != null && mapNode.getOsmId() == 256588788) {
@@ -254,9 +254,9 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
             int h = 9;
         }
         if (isFixed()) {
-            logger.warn("overriding fixed elevation?");
+            log.warn("overriding fixed elevation?");
             if (elevation.floatValue() != this.elevation.floatValue()) {
-                logger.error("severe?");
+                log.error("severe?");
             }
         }
         this.elevation = elevation;
@@ -418,7 +418,7 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
             // Es kann wohl zumindest beim BG roundings problem geben
             if (!isPossibleUnknownVertex && !possibleroundingproblem) {
                 if (!silently) {
-                    logger.warn("no ele group found (" + label + ") for coordinate " + coor + ",possibleroundingproblem=" + possibleroundingproblem + ",containskey=" + containskey + ",meshLine=" + meshLine);
+                    log.warn("no ele group found (" + label + ") for coordinate " + coor + ",possibleroundingproblem=" + possibleroundingproblem + ",containskey=" + containskey + ",meshLine=" + meshLine);
 
                     SceneryContext.getInstance().warnings.add("no eleconnector found for coordinate " + coor + ",possibleroundingproblem=" + possibleroundingproblem);
                     SceneryContext.getInstance().unknowncoordinates.add(coor);
@@ -460,7 +460,7 @@ public class EleConnectorGroup implements Iterable<EleCoordinate> {
     public static Collection<EleConnectorGroup> getAllGroupsDistinct() {
         List<EleConnectorGroup> l = new ArrayList(new HashSet(cmap.values()));
         for (EleConnectorGroup g : l) {
-            //logger.debug("group:"+g.mapNode);
+            //log.debug("group:"+g.mapNode);
         }
         return l;
     }

@@ -19,7 +19,7 @@ import java.util.List;
 public class CoordinateList {
     public List<Coordinate> coorlist;
 
-    CoordinateList(Coordinate[] coors) {
+    public CoordinateList(Coordinate[] coors) {
         coorlist = new ArrayList(Arrays.asList(coors));
     }
 

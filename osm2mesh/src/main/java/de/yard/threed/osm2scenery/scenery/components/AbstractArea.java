@@ -15,16 +15,15 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.elevation.ElevationCalculator;
 import de.yard.threed.osm2scenery.polygon20.MeshArea;
-import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonOld;
 import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.RenderedArea;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
 import de.yard.threed.osm2world.Material;
 import de.yard.threed.osm2world.OsmOrigin;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -49,12 +48,12 @@ import org.apache.log4j.Logger;
  *
  * 2.5.24: Should be, contain or extend MeshArea??(a wrapper?). Component looks quite good
  */
+@Slf4j
 public abstract class AbstractArea {
     public static final AbstractArea EMPTYAREA = AbstractArea.createEmpty();
     //Werte wie 0.1 führen zu sichtbaren Lücken.
     public static double OVERLAYOFFSET = 0.01;
 
-    protected Logger logger = Logger.getLogger(AbstractArea.class);
 
     //Polygon statt Geometry wegen möglicher Holes. Holes lassen sich nie vermeiden, die können immer beim union entstehen.
     public SmartPolygon poly;
@@ -69,7 +68,7 @@ public abstract class AbstractArea {
     // optional parent for analysis
     public String parentInfo;
     //flag, ob area im mesh registriert ist. Dann läßt sich dort auch der Polygon dazu holen.
-    public boolean isPartOfMesh = false;
+    //16.4.26 public boolean isPartOfMesh = false;
     //Flag, ob wirklich ein Cut gemacht wurde.
     public boolean wasCut;
 
@@ -146,15 +145,15 @@ public abstract class AbstractArea {
         if (empty) {
             return true;
         }
-        if (isPartOfMesh) {
+        /*16.4.26 if (isPartOfMesh) {
             // who needs this? Almost every top level method/test. The reason is unclear. Appears weird.
             //Util.nomore();
             if (tm == null) {
-                logger.warn("27.3.24: Not using TerrainMesh");
+                log.warn("27.3.24: Not using TerrainMesh");
             } else {
                 return getMeshPolygon(tm) == null;
             }
-        }
+        }*/
         if (poly == null) {
             return true;
         }
@@ -183,7 +182,7 @@ public abstract class AbstractArea {
                 //ob embedded oder als Overlay. Die Decoartion hat keine eigene EleGroup (und damit keine registrierten Coordinates) und muss die Group/elevation des Parent verwenden.
                 if (vertexData == null || vertexData.vertices == null) {
                     //19.7.19: Betrachte ich nicht mehr als warning?
-                    logger.warn("area has no vertex data. Skipping elevation");
+                    log.warn("area has no vertex data. Skipping elevation");
                 } else {
                     for (Coordinate vertex:vertexData.vertices){
                         //TODO mitteln/average oder irgendwas??
@@ -196,7 +195,7 @@ public abstract class AbstractArea {
                     //dann doch hier passieren. Laut debug ist z schon gesetzt TODO pruefen
                     if (vertexData == null || vertexData.vertices == null) {
                         //19.7.19: Betrachte ich nicht mehr als warning?
-                        logger.warn("area has no vertex data. Skipping elevation");
+                        log.warn("area has no vertex data. Skipping elevation");
                     } else {
                         ElevationCalculator.calculateElevationsForVertexCoordinates(vertexData.vertices, "" + parent + "" + name + ",material=" + ((material == null) ? "" : material.getName()), tm);
                     }
@@ -222,7 +221,7 @@ public abstract class AbstractArea {
         if (!isEmpty(tm)) {
             Polygon p = getPolygon(tm);
             if (p == null) {
-                logger.error("np polygon");
+                log.error("np polygon");
                 return ro;
             }
             RenderedArea r = sceneryRenderer.drawArea(creatortag, material, p, vertexData, osmOrigin, eleConnectorGroups);
@@ -252,11 +251,11 @@ public abstract class AbstractArea {
         Polygon p1 = this.poly.polygon;
 
         if (!p1.isValid() || !p2.isValid()) {
-            logger.error("overlap check with invalid polygon");
+            log.error("overlap check with invalid polygon");
         } else {
             Boolean overlaps = JtsUtil.overlaps(p1, p2);
             if (overlaps == null) {
-                logger.error("overlaps undecided");
+                log.error("overlaps undecided");
                 //Naja false? true?
                 return true;
             }
@@ -282,11 +281,11 @@ public abstract class AbstractArea {
         }
         Polygon p1 = this.poly.polygon;
         if (!p1.isValid() || !polygon.isValid()) {
-            logger.error("overlap check with invalid polygon");
+            log.error("overlap check with invalid polygon");
         } else {
             Boolean overlaps = JtsUtil.overlaps(p1, polygon);
             if (overlaps == null) {
-                logger.error("overlaps undecided");
+                log.error("overlaps undecided");
             }
             if (overlaps) {
                 return true;
@@ -334,7 +333,7 @@ public abstract class AbstractArea {
             return normal;
         }
 
-        logger.error("no normal found. Returning nonsense default");
+        log.error("no normal found. Returning nonsense default");
         return new Vector2(1, 0).normalize();
     }
 
@@ -352,7 +351,7 @@ public abstract class AbstractArea {
      *
      * @return
      */
-    final public MeshPolygon getMeshPolygon(TerrainMesh tm) {
+    final public MeshPolygonOld getMeshPolygon(TerrainMesh tm) {
         try {
             return null;//2.5.24tm.getPolygon(this);
         } catch (/*MeshInconsistency*/Exception e) {

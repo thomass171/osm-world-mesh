@@ -5,6 +5,7 @@ import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.DecoratorComponent;
 import de.yard.threed.osm2scenery.scenery.components.RoadDecorator;
@@ -45,11 +46,17 @@ public class SceneryDecoration extends SceneryFlatObject {
      *
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
 
 
         flatComponent[0].poly = new SmartPolygon((Polygon) decoratorComponent.getDecoration().getGeometry(), new PolygonMetadata(this));
         return null;
+    }
+
+    @Override
+    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+
+        return ;
     }
 
 
@@ -58,9 +65,9 @@ public class SceneryDecoration extends SceneryFlatObject {
 
     }
 
-    @Override
+    /*16.4.26 @Override
     public boolean isPartOfMesh(TerrainMesh tm) {
         //TODO irgendwie erkennen
         return false;
-    }
+    }*/
 }

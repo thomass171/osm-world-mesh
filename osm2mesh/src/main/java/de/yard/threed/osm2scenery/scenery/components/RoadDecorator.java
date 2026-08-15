@@ -7,6 +7,7 @@ import de.yard.threed.core.Vector2;
 import de.yard.threed.core.geometry.Shape;
 import de.yard.threed.engine.ShapeFactory;
 import de.yard.threed.osm2graph.osm.OsmUtil;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.util.DecorationFactory;
 import de.yard.threed.osm2world.Material;
@@ -30,7 +31,12 @@ public class RoadDecorator implements DecoratorComponent {
 //erstmal was zu breit
         double width=0.6;
 
-        AbstractArea area = WayArea.buildOutlinePolygonFromCenterLine(outline, null,  width, null, Materials.ROAD_MARKING);
+        AbstractArea area = null;
+        try {
+            area = WayArea.buildOutlinePolygonFromCenterLine(outline, null,  width, null, Materials.ROAD_MARKING,null/*TODO*/);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         return area;
     }
 
@@ -44,7 +50,12 @@ public class RoadDecorator implements DecoratorComponent {
 //erstmal was zu breit
         double width=0.6;
 
-        AbstractArea area = WayArea.buildOutlinePolygonFromCenterLine(line, null,  width, null, Materials.ROAD_MARKING);
+        AbstractArea area = null;
+        try {
+            area = WayArea.buildOutlinePolygonFromCenterLine(line, null,  width, null, Materials.ROAD_MARKING,null/*TODO*/);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         return area;
     }
 
@@ -56,7 +67,12 @@ public class RoadDecorator implements DecoratorComponent {
         centerline = centerline.rotate(rotation.toRad());
         centerline = centerline.translate(centerpoint);
         List<Vector2> line = Util.<Vector2>buildList(centerline.getPoints().get(0), centerline.getPoints().get(1));
-        AbstractArea area = WayArea.buildOutlinePolygonFromCenterLine(line, null,  height, null, material);
+        AbstractArea area = null;
+        try {
+            area = WayArea.buildOutlinePolygonFromCenterLine(line, null,  height, null, material,null/*TODO*/);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
         return area;
     }
 
@@ -67,7 +83,7 @@ public class RoadDecorator implements DecoratorComponent {
         // end node isType parking position
         String parkposname = StringUtils.defaultString(parkingtaxiway.mapWay.getTags().getValue("ref"), "");
         Vector2 centerpoint = parkingtaxiway.getCenterLine().get(parkingtaxiway.getCenterLine().size()-1);
-        Degree heading = OsmUtil.getHeadingAtEnd(parkingtaxiway.mapWay);
+        Degree heading = OsmUtil.getHeadingAtEnd(parkingtaxiway.mapWay.mapWay);
         // MathUtil2.getDegreeFromHeading() not appropriate due to texture Atlas layout
         AbstractArea marking = createRectangle(centerpoint, 8, 8,new Degree(-heading.getDegree()), material);
         marking.setName(parkposname);

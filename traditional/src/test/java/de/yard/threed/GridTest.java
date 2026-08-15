@@ -8,6 +8,7 @@ import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.VectorXZ;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,7 +36,7 @@ public class GridTest {
     }
 
     //11.4.19 witzlos, weil lineare Projection witzlos @Test
-    public void testLoadDesdorfGrid() throws IOException {
+    public void testLoadDesdorfGrid() throws IOException, MeshInconsistencyException {
 
         GridCellBounds gridCellBounds = GridCellBounds.buildGrid("Desdorf", null);
         assertEquals(6.5874427, gridCellBounds.getLeft(), "left.lon");
@@ -63,7 +64,7 @@ public class GridTest {
 
         gridCellBounds.init(gridCellBounds.getProjection());
 
-        assertEquals(3, gridCellBounds.getPolygon().getCoordinates().length - 1, "desdorfgrid.nodes");
+        assertEquals(3, gridCellBounds.getProjectedBoundaryPolygon().getCoordinates().length - 1, "desdorfgrid.nodes");
 
 
     }

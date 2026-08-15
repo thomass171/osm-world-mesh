@@ -33,7 +33,7 @@ public class DrawHelper {
         //List<Polygon> plist = toPolygon(polygon);
        /* if (polygon.getCoordinates().length < 3) {
             //19.4.19: Sowas gibt es, z.B. Connector
-            //logger.warn("drawGeometry: skipping empty polygon");
+            //log.warn("drawGeometry: skipping empty polygon");
             return null;
         }*/
         //13.8.18: Mit area sieht man aber bei wireframe keine Holes? Die sind wohl manchmal einfach zu klein.

@@ -21,7 +21,7 @@ import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.ROAD;
  * Soll nur Datencontainer sein, ohne Logik(?).
  * Manches koennte auch in Config (wie GridCell). Hier ist aber auch ganz sinnig.
  * Die Klasse könnte auch SceneryData heissen. Aber wie grenzt sich das zu SceneryMesh ab?
- *
+ * <p>
  * 12.7.19: Dies hier ist Singleton und static overall available, z.B. der WarningCounter
  * 1.5.24: By 2024 design SceneryContext is still used as a container for high level terrainmesh wrapper. These
  * are retrieved from TerrainMesh. "warnings","unknowncoordinates","overlapping*" however are deprecated(?)
@@ -38,7 +38,7 @@ public class SceneryContext {
     public int overlappingTerrainWithSupplements = 0;
     //das ist aber nur der Zaehler fuer versuchte und gescheiterte!
     public int unresolvedoverlaps = 0;
-    public int errorCounter=0;
+    public int errorCounter = 0;
 
     /**
      * 3.4.24 Non singleton constructor.
@@ -53,7 +53,7 @@ public class SceneryContext {
 
     public static void init(MapData mapdata) {
         instance = new SceneryContext();
-        instance.mapdata=mapdata;
+        instance.mapdata = mapdata;
         //21.7.18: Graph ist von vornherein in z0
         instance.roadgraph = new Graph(GraphOrientation.buildForZ0());
         instance.taxiwaygraph = new Graph(GraphOrientation.buildForZ0());
@@ -63,17 +63,20 @@ public class SceneryContext {
 
     /**
      * For now read it from osm ways in DB
+     * 19.2.26: What is the state here. At least MapData is really needed.
      */
-    public static SceneryContext buildFromDatabase(List<OsmWay> osmWays) {
+    public static SceneryContext buildFromDatabase(List<OsmWay> osmWays, MapData mapData) {
         SceneryContext sceneryContext = new SceneryContext();
         //21.7.18: Graph in z0
         sceneryContext.roadgraph = new Graph(GraphOrientation.buildForZ0());
         sceneryContext.taxiwaygraph = new Graph(GraphOrientation.buildForZ0());
         sceneryContext.railwaygraph = new Graph(GraphOrientation.buildForZ0());
         sceneryContext.rivergraph = new Graph(GraphOrientation.buildForZ0());
-        for (OsmWay osmWay:osmWays){
-           sceneryContext.highways.put(osmWay.getOsmId(), new SceneryWayObject(osmWay));
+        for (OsmWay osmWay : osmWays) {
+            sceneryContext.highways.put(osmWay.getOsmId(), new SceneryWayObject(osmWay));
         }
+        sceneryContext.mapdata = mapData;
+        SceneryContext.instance = sceneryContext;
         return sceneryContext;
     }
 
@@ -99,7 +102,7 @@ public class SceneryContext {
     }
 
     public static void clear() {
-        instance=null;
+        instance = null;
     }
 
     public Graph getGraph(SceneryObject.Category category) {
@@ -116,7 +119,7 @@ public class SceneryContext {
 
     }
 
-    public MapData getMapdata(){
+    public MapData getMapdata() {
         return mapdata;
     }
 }

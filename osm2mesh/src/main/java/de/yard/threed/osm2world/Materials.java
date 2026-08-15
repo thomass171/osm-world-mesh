@@ -1,7 +1,8 @@
 package de.yard.threed.osm2world;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
+
 
 import java.awt.*;
 import java.lang.reflect.Field;
@@ -19,8 +20,8 @@ import java.util.regex.Pattern;
 /**
  * this class defines materials that can be used by all { WorldModule}s
  */
+@Slf4j
 public final class Materials {
-    static Logger logger = Logger.getLogger(Materials.class);
 
     /**
      * prevents instantiation
@@ -488,7 +489,7 @@ public final class Materials {
                 } else {
                     //18.7.19: Don't consider this to be an error. There might be config files with material definitions for materials, that are not known here, eg.
                     //'unknown material: RUNWAY. Used in key material_RUNWAY_texture0_file'
-                    //logger.error("unknown material: " + materialName + ". Used in key " + key);
+                    //log.error("unknown material: " + materialName + ". Used in key " + key);
                 }
 
             }
@@ -508,7 +509,7 @@ public final class Materials {
             if (color != null) {
                 material.setColor(color);
             } else {
-                logger.error("incorrect color value: " + config.getString(key));
+                log.error("incorrect color value: " + config.getString(key));
             }
         } else if ("specular".equals(attribute)) {
             float specular = config.getFloat(key);
@@ -596,7 +597,7 @@ public final class Materials {
             }
             material.setTextureDataList(textureDataList);
         } else {
-            logger.error("unknown material attribute: " + attribute);
+            log.error("unknown material attribute: " + attribute);
         }
     }
 

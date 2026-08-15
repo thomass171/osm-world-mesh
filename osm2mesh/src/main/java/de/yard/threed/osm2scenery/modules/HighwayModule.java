@@ -6,49 +6,16 @@ import de.yard.threed.core.Vector2;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
-import de.yard.threed.osm2scenery.scenery.FixedWidthProvider;
-import de.yard.threed.osm2scenery.scenery.SceneryNodeObject;
-import de.yard.threed.osm2scenery.scenery.SceneryObject;
-import de.yard.threed.osm2scenery.scenery.SceneryObjectFactory;
-import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
-import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
-import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
-import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.RoadDecorator;
 import de.yard.threed.osm2scenery.util.TagFilter;
 import de.yard.threed.osm2scenery.util.TagMap;
-import de.yard.threed.osm2world.ConfMaterial;
-import de.yard.threed.osm2world.GroundState;
-import de.yard.threed.osm2world.MapArea;
-import de.yard.threed.osm2world.MapBasedTagGroup;
-import de.yard.threed.osm2world.MapData;
-import de.yard.threed.osm2world.MapNode;
-import de.yard.threed.osm2world.MapWay;
-import de.yard.threed.osm2world.MapWaySegment;
-import de.yard.threed.osm2world.Material;
-import de.yard.threed.osm2world.Materials;
-import de.yard.threed.osm2world.NetworkAreaWorldObject;
-import de.yard.threed.osm2world.OsmOrigin;
-import de.yard.threed.osm2world.PolygonXYZ;
-import de.yard.threed.osm2world.PolylineXZ;
-import de.yard.threed.osm2world.RenderableToAllTargets;
-import de.yard.threed.osm2world.ShapeXZ;
-import de.yard.threed.osm2world.Tag;
-import de.yard.threed.osm2world.TagGroup;
-import de.yard.threed.osm2world.Target;
-import de.yard.threed.osm2world.TerrainBoundaryWorldObject;
-import de.yard.threed.osm2world.TexCoordFunction;
-import de.yard.threed.osm2world.TexCoordUtil;
-import de.yard.threed.osm2world.TextureData;
-import de.yard.threed.osm2world.TriangleXYZ;
-import de.yard.threed.osm2world.TunnelModule;
-import de.yard.threed.osm2world.VectorXYZ;
-import de.yard.threed.osm2world.VectorXYZList;
-import de.yard.threed.osm2world.VectorXZ;
-import de.yard.threed.osm2world.VisibleConnectorNodeWorldObject;
-import org.apache.log4j.Logger;
+import de.yard.threed.osm2world.*;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,8 +51,8 @@ import static java.util.Arrays.asList;
  * <p>
  * 20.4.19: Auch für z.B. Parkplätze, halt alles, was zum Kontext Strassen(verkehr) gehört.
  */
+@Slf4j
 public class HighwayModule extends SceneryModule {
-    static Logger logger = Logger.getLogger(HighwayModule.class);
 
     /**
      * determines whether right-hand or left-hand traffic isType the default
@@ -128,7 +95,7 @@ public class HighwayModule extends SceneryModule {
                     if (BridgeModule.isBridge(mapway.getTags())) {
                         //return GroundState.ABOVE;
                         //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
-                        BridgeModule.Bridge bridge/*Highway roadoverbridge*/ = new BridgeModule.Bridge /*Highway*/(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
+                        BridgeModule.Bridge bridge/*Highway roadoverbridge*/ = new BridgeModule.Bridge /*Highway*/(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
                         //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
                         SceneryContext.getInstance().highways.put(osmid, bridge/*roadoverbridge*/);
                         //roadsAndBridges.add(bridge.roadoverbridge);
@@ -136,7 +103,7 @@ public class HighwayModule extends SceneryModule {
                         //BridgeModule.Bridge bridge = new BridgeModule.Bridge(roadoverbridge/*mapway/*, mapway.getTags(), mapway.getOsmId()*/);
                     /*Polygon p = bridge.getPolygon().polygon;
                     if (p == null) {
-                        logger.warn("no/broken polygon for osm way " + mapway.getOsmId());
+                        log.warn("no/broken polygon for osm way " + mapway.getOsmId());
                     }*/
                         roadsAndBridges.add(bridge);
                         SceneryContext.getInstance().bridges.put(osmid, bridge);
@@ -153,13 +120,13 @@ public class HighwayModule extends SceneryModule {
 
                     } else if (TunnelModule.isTunnel(mapway.getTags())) {
                         //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
-                        Highway road = new Highway(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
+                        Highway road = new Highway(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
                         SceneryContext.getInstance().highways.put(osmid, road);
                         roadsAndBridges.add(road);
                         road.addToWayMap(ROAD, SceneryContext.getInstance());
                     } else {
                         // normaler Highway
-                        Highway road = new Highway(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
+                        Highway road = new Highway(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
                         SceneryContext.getInstance().highways.put(osmid, road);
 
                         //SceneryArea area = new SceneryArea("Road", p, ASPHALT, mapway.getOsmId());
@@ -167,7 +134,7 @@ public class HighwayModule extends SceneryModule {
                         road.addToWayMap(ROAD, SceneryContext.getInstance());
                     }
                 } else {
-                    logger.warn("Ignoring mapyway " + mapway.getOsmId() + " with only " + mapway.getMapWaySegments().size() + " segments");
+                    log.warn("Ignoring mapyway " + mapway.getOsmId() + " with only " + mapway.getMapWaySegments().size() + " segments");
                 }
             }
         }
@@ -189,16 +156,16 @@ public class HighwayModule extends SceneryModule {
                 if (road.getOsmIdsAsString().contains("23696494")) {
                     int h = 9;
                 }
-                SceneryWayConnector connector = processConnectionCandidate(road.mapWay.getStartNode(), roadsAndBridges, SceneryContext.getInstance());
+              /*9.3.26  SceneryWayConnector connector = processConnectionCandidate(road.mapWay.getStartNode(), roadsAndBridges, SceneryContext.getInstance());
                 if (connector != null) {
-                    connector.add(road);
+                    connector.add(road.mapWay);
                     road.setStartConnector(connector);
                 }
                 connector = processConnectionCandidate(road.mapWay.getEndNode(), roadsAndBridges, SceneryContext.getInstance());
                 if (connector != null) {
-                    connector.add(road);
+                    connector.add(road.mapWay);
                     road.setEndConnector(connector);
-                }
+                }*/
             }
         }
 
@@ -209,11 +176,12 @@ public class HighwayModule extends SceneryModule {
     }
 
     /**
+     * DB mesh approach
      * Cloned from above applyTo().
      * The returned list only contains real roads, but no connector. connector are attached to the return road
      */
     @Override
-    public SceneryObjectList applyTo(MapWay mapway, TerrainMesh terrainMeshNotNeeded, SceneryContext sceneryContext) {
+    public SceneryObjectList applyTo(MapWaySegment2 mapway, TerrainMesh terrainMeshNotNeeded, SceneryContext sceneryContext) {
         // Also contains Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
 
@@ -227,7 +195,7 @@ public class HighwayModule extends SceneryModule {
             long osmid = mapway.getOsmId();
 
             //Ein Way ohne Segmente? Das ist doch bestimmt was inkonsistentes.
-            if (mapway.getMapWaySegments().size() > 0) {
+            if (mapway.getMapNodes().size() > 0) {
                 if (BridgeModule.isBridge(mapway.getTags())) {
                     //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
                     BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, sceneryContext);
@@ -250,7 +218,7 @@ public class HighwayModule extends SceneryModule {
                     road.addToWayMap(ROAD, sceneryContext);
                 }
             } else {
-                logger.warn("Ignoring mapyway " + mapway.getOsmId() + " with only " + mapway.getMapWaySegments().size() + " segments");
+                log.warn("Ignoring mapyway " + mapway.getOsmId() + " with only " + mapway.getMapNodes().size() + " nodes");
             }
         }
 
@@ -263,16 +231,16 @@ public class HighwayModule extends SceneryModule {
                 if (road.getOsmIdsAsString().contains("23696494")) {
                     int h = 9;
                 }
-                SceneryWayConnector connector = processConnectionCandidate(road.mapWay.getStartNode(), roadsAndBridges, sceneryContext);
+                /*SceneryWayConnector connector = processConnectionCandidate(road.mapWay.getStartNode(), roadsAndBridges, sceneryContext);
                 if (connector != null) {
-                    connector.add(road);
+                    connector.add(road.mapWay);
                     road.setStartConnector(connector);
                 }
                 connector = processConnectionCandidate(road.mapWay.getEndNode(), roadsAndBridges, sceneryContext);
                 if (connector != null) {
-                    connector.add(road);
+                    connector.add(road.mapWay);
                     road.setEndConnector(connector);
-                }
+                }*/
             }
         }
         //Elevation and BridgeApproaches comes later
@@ -280,7 +248,7 @@ public class HighwayModule extends SceneryModule {
     }
 
     @Override
-    public void classify(MapData mapData) {
+    public void classify(MapData mapData) throws MeshInconsistencyException {
         List<SceneryWayConnector> connectors = SceneryContext.getInstance().wayMap.getConnectors(ROAD);
         for (SceneryWayConnector connector : connectors) {
             connector.classify();
@@ -317,9 +285,9 @@ public class HighwayModule extends SceneryModule {
         TagGroup tags = node.getOsmNode().tags;
 
         //10.7.19: Don't create connector for outside node
-        if (node.location == MapNode.Location.OUTSIDEGRID) {
+        /*17.3.26 we no longer care about if (node.location == MapNode.Location.OUTSIDEGRID) {
             return null;
-        }
+        }*/
         SceneryWayConnector connector = sceneryContext.wayMap.getConnector(ROAD, node.getOsmId());
         if (connector != null) {
             return connector;
@@ -355,7 +323,11 @@ public class HighwayModule extends SceneryModule {
         for (SceneryWayObject way : connectedRoads) {
             //   connector.add(road1);
             // connector.add(road2);
-            connector.add(way);
+            try {
+                connector.add(way.mapWay);
+            } catch (MeshInconsistencyException e) {
+                throw new RuntimeException(e);
+            }
         }
         sceneryContext.wayMap.addConnector(ROAD, node, connector);
         roadsAndBridges.add(connector);
@@ -415,7 +387,7 @@ public class HighwayModule extends SceneryModule {
             //return roadsAtStart.get(0);
         }
         if (roadsAtStart.size() == 0) {
-            logger.warn("No bridge connector found. Brigde will be corrupted");
+            log.warn("No bridge connector found. Brigde will be corrupted");
             return true;
         }
         return false;
@@ -432,7 +404,7 @@ public class HighwayModule extends SceneryModule {
      * @param tags
      * @return
      */
-    private static boolean isHighway(TagGroup tags) {
+    public static boolean isHighway(TagGroup tags) {
         if (tags.containsKey("highway")
                 && !tags.contains("highway", "construction")
                 && !tags.contains("highway", "proposed")) {
@@ -448,7 +420,7 @@ public class HighwayModule extends SceneryModule {
         return tags.contains(new Tag("highway", "steps"));
     }
 
-    private static boolean isPath(TagGroup tags) {
+    public static boolean isPath(TagGroup tags) {
         String highwayValue = tags.getValue("highway");
         return "path".equals(highwayValue)
                 || "footway".equals(highwayValue)
@@ -509,7 +481,29 @@ public class HighwayModule extends SceneryModule {
         if (tags.contains("highway", "primary_link")) {
             return true;
         }
+        // 2.5.26 secondary_link added
+        if (tags.contains("highway", "secondary_link")) {
+            return true;
+        }
         if (tags.contains("highway", "motorway_link")) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isAtLeastTertiary(TagGroup tags) {
+        if (tags.contains("highway", "tertiary")) {
+            return true;
+        }
+        if (tags.contains("highway", "secondary")) {
+            return true;
+        }
+        //TODO ore types
+        return false;
+    }
+
+    public static boolean isTrack(TagGroup tags) {
+        if (tags.contains("highway", "track")) {
             return true;
         }
         return false;
@@ -921,6 +915,12 @@ public class HighwayModule extends SceneryModule {
             }
         }
 
+        @Override
+        public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+
+            return ;
+        }
+
 
         /*@Override
         public GroundState getGroundState() {
@@ -1066,11 +1066,10 @@ public class HighwayModule extends SceneryModule {
         final private boolean steps;
         private AbstractArea marking;
 
-        public Highway(MapWay/*Segment*/ line/*, TagGroup tags/*, long osmid*/, TagMap materialmap, SceneryContext sceneryContext) {
+        public Highway(MapWaySegment2/*Segment*/ line/*, TagGroup tags/*, long osmid*/, TagMap materialmap, SceneryContext sceneryContext) {
 
             //super(line);
             super("Road", line, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, null, sceneryContext);//mapWay = line;
-            logger = Logger.getLogger(Highway.class.getName());
 
 
             this.tags = line.getTags();//tags;
@@ -1116,7 +1115,7 @@ public class HighwayModule extends SceneryModule {
                 value = value.toLowerCase();
                 Material material = Materials.getSurfaceMaterial(value);
                 if (material == null) {
-                    slogger.error("Material not found by name:" + value);
+                    log.error("Material not found by name:" + value);
                 } else {
                     return material;
                 }

@@ -9,7 +9,10 @@ import java.util.List;
 
 /**
  * line between two nodes in the map data
+ * 18.3.26: Deprecated because the use case is unclear and we now have MapWaySegment2
+ *
  */
+@Deprecated
 public class MapWaySegment extends MapSegment implements MapElement {
 
 	private final OSMWay osmWay;

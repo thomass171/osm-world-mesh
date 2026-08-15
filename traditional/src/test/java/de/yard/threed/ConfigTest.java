@@ -10,7 +10,7 @@ import de.yard.threed.osm2scenery.util.TagHelper;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.TagGroup;
-import org.apache.log4j.Logger;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 public class ConfigTest {
     //EngineHelper platform = PlatformHomeBrew.init(new HashMap<String, String>());
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
-    Logger logger = Logger.getLogger(ConfigTest.class);
 
     @BeforeAll
     public static void setup(){

@@ -1,6 +1,8 @@
 package de.yard.threed.osm2graph.osm;
 
 
+import com.vividsolutions.jts.geom.Coordinate;
+import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2world.MetricMapProjection;
 import de.yard.threed.osm2world.VectorXZ;
@@ -19,4 +21,10 @@ public interface SceneryProjection {
     LatLon unproject(VectorXZ v);
 
     MetricMapProjection getBaseProjection();
+
+    /**
+     * 7.3.26
+     */
+    Coordinate project(GeoCoordinate geoCoordinate);
+
 }

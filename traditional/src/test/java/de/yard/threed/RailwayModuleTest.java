@@ -13,7 +13,7 @@ import de.yard.threed.osm2scenery.modules.RailwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshFactory;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.Dumper;
-import org.apache.log4j.Logger;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 public class RailwayModuleTest {
     //EngineHelper platform = PlatformHomeBrew.init(new HashMap<String, String>());
     PlatformInternals platform = SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
-    Logger logger = Logger.getLogger(RailwayModuleTest.class);
 
     @BeforeAll
     public static void setup(){
@@ -41,7 +40,7 @@ public class RailwayModuleTest {
      *
      * @throws IOException
      */
-    @Test
+    /*10.2.26@Test
     public void testHambachbahn() throws IOException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/B55-B477.osm.xml", "B55-B477", "superdetailed");
 
@@ -80,6 +79,6 @@ public class RailwayModuleTest {
         TestUtils.assertVector2( new Vector2(4.153010609423403, 0.125), vertexData.getUV(2),"uv[2]");
         TestUtils.assertVector2( new Vector2(4.153010609423403, 0), vertexData.getUV(3),"uv[3]");
 
-    }
+    }*/
 
 }

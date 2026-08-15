@@ -3,7 +3,7 @@ package de.yard.threed.osm2scenery;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
+
 import de.yard.threed.osm2world.*;
 
 
@@ -17,7 +17,6 @@ import java.util.List;
  */
 @Deprecated
 public class SceneryCreator {
-    Logger logger = Logger.getLogger(SceneryMesh.class);
     private Collection<SceneryModule> modules;
     //public SceneryMesh sceneryMesh = new SceneryMesh();
 
@@ -55,7 +54,7 @@ public class SceneryCreator {
                         if (so instanceof SceneryWayObject) {
                            sceneryMesh.sceneryWayObjects.add((SceneryWayObject) so);
                         } else {
-                            logger.error("unexpected SceneryObject");
+                            log.error("unexpected SceneryObject");
                         }
                     }
                 }*/

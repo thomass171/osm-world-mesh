@@ -1,39 +1,25 @@
 package de.yard.owm.services.osm;
 
 import com.vividsolutions.jts.triangulate.ConstraintEnforcementException;
-import de.yard.owm.services.persistence.OsmWayRepository;
+import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.persistence.TerrainMeshManager;
-import de.yard.threed.core.Util;
-import de.yard.threed.osm2graph.SceneryBuilder;
-import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
-import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
 import de.yard.threed.osm2scenery.Phase;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryConversionFacade;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
+import de.yard.threed.osm2scenery.modules.SurfaceAreaModule;
+import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
-import de.yard.threed.osm2scenery.scenery.OsmProcessException;
-import de.yard.threed.osm2scenery.scenery.SceneryObject;
-import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
-import de.yard.threed.osm2world.InvalidGeometryException;
-import de.yard.threed.osm2world.MapData;
-import de.yard.threed.osm2world.MapWay;
-import de.yard.threed.osm2world.O2WEleConnector;
-import de.yard.threed.osm2world.OSMData;
-import de.yard.threed.osm2world.Renderable;
-import de.yard.threed.osm2world.TerrainElevationData;
-import de.yard.threed.osm2world.TerrainInterpolator;
-import de.yard.threed.osm2world.VectorXYZ;
-import de.yard.threed.osm2world.WorldObject;
-import de.yard.threed.osm2world.ZeroInterpolator;
-import de.yard.threed.traffic.geodesy.ElevationProvider;
+import de.yard.threed.osm2world.*;
+import de.yard.threed.trafficcore.ElevationProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang.time.StopWatch;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -42,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 
@@ -61,28 +48,34 @@ public class OsmService {
     @Autowired
     TerrainMeshManager terrainMeshManager;
 
+    @Autowired
+    MeshService meshService;
+
+    LoggerFactory f;
+
     /**
-     * Use this when all data isType already
-     * in memory, for example with editor applications.
-     * To obtain the data, you can use an { OSMDataReader}.
-     * Can be run multiple times with different configurations. modulelist isType derived from configuration.
-     * Rendering to targets extracted.
-     * <p>
-     * targetBounds kann auch null sein.
+     * Add 'mapData' to an existing mesh. Done by applying modules
+     * in logical order (decreasing relevance for relevation
+     * - river/lakes (water in general)
+     * - railways
+     * - roads (highways down to path)
+     * What happens if an element already exists?
+     * 13.2.26 We separate the mesh building part and the visual representation (model, image, aso).
+     * Renamed from createRepresentations() to populateMesh()
      *
      * @throws SceneryConversionFacade.BoundingBoxSizeException for oversized bounding boxes
      */
-    public OsmService.Results createRepresentations(GridCellBounds targetBounds, SceneryProjection mapProjection, OSMData osmData)
-            throws IOException, SceneryConversionFacade.BoundingBoxSizeException {
+    public OsmService.Results populateMesh(String meshName, MapData mapData, /*GridCellBounds targetBounds, SceneryProjection mapProjection, OSMData osmData*/Long osmwayid)
+            throws IOException, SceneryConversionFacade.BoundingBoxSizeException, MeshInconsistencyException {
 
 
         /* create map data from OSM data */
         Phase.updatePhase(Phase.MAP_DATA);
 
-        OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(mapProjection, targetBounds);
-        MapData mapData = converter.createMapData(osmData);
+       /* 16.2.26OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(mapProjection, targetBounds);
+        MapData mapData = converter.createMapData(osmData);*/
 
-        SceneryContext sceneryContext = SceneryContext.buildFromDatabase(terrainMeshManager.findOsmWays());
+        SceneryContext sceneryContext = SceneryContext.buildFromDatabase(terrainMeshManager.findOsmWays(), mapData);
 
         Phase.updatePhase(Phase.OBJECTS);
 
@@ -95,7 +88,7 @@ public class OsmService {
                 Class clazz = Class.forName(classname);
                 SceneryModule instance = (SceneryModule) clazz.newInstance();
                 worldModules.add(instance);
-            } catch (Exception e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 log.error("Failure loading module " + modulename);
                 e.printStackTrace();
             }
@@ -106,31 +99,36 @@ public class OsmService {
         //at the same time, because global variables are being modified
 
         SceneryMesh sceneryMesh = new SceneryMesh();
-        if (targetBounds != null) {
+         /* 16.2.26if (targetBounds != null) {
             sceneryMesh.setBackgroundMesh(targetBounds);
-        }
+        }*/
 
-        TerrainMesh terrainMesh = terrainMeshManager.loadTerrainMesh(targetBounds);
+        // TerrainMesh is still needed temporarily for having Gridcellbounds, projection and meshservicefacade
+        //TerrainMesh terrainMesh = terrainMeshManager.loadTerrainMesh(targetBounds);
+        TerrainMesh terrainMesh = meshService.loadMesh(meshName);
 
         //handle posible old instances.
 
         // Das braucht schon eine besondere Reihenfolge:
         //Evtl. MapData ergänzen
-        for (SceneryModule module : worldModules) {
+         /* 16.2.26 what is this? for (SceneryModule module : worldModules) {
             module.extendMapData(osmData.source, mapData, converter);
-        }
+        }*/
+
         // step by step approach istead of previous "all-in-one".
-        for (MapWay mapWay : mapData.getMapWays()) {
-            // 1 Scenery Objekte erstellen. WayConnector werden hier auch schon erstellt.
-            try {
-                sceneryMesh.sceneryObjects.objects.addAll(osmElementService.process(mapWay,
-                        SceneryModule.getRelevant(worldModules, mapWay), terrainMesh, sceneryContext));
-            } catch (OsmProcessException | MeshInconsistencyException e) {
-                log.error("Adding way failed",e);
-            }
+        //  for (MapWay mapWay : mapData.getMapWays()) {
+        // 1 Scenery Objekte erstellen. WayConnector werden hier auch schon erstellt.
+        //     if (mapWay.getOsmId() == osmwayid) {
+        //try {
+        /*sceneryMesh.sceneryObjects.objects.addAll*/
+        //20.3.26 osmElementService.process(mapWay,                           SceneryModule.getRelevant(worldModules, mapWay), terrainMesh, sceneryContext, OsmClassifier.LOD_BASIC);
+        processMapData(mapData, meshName, osmwayid);
+               /*} catch (OsmProcessException | MeshInconsistencyException e) {
+                   log.error("Adding way failed", e);
+               }*/
+        // }
 
-
-        }
+        //}
 
         /* 26.3.24 no longer here
         //4.8.18 mal vor der Elevation, weil scheinbar bei der Trianglation die z-Coordinaten durcheinander kommen können. Schon skuril!
@@ -157,7 +155,7 @@ public class OsmService {
         ElevationMap.drop();
         ElevationProvider elevationProvider = null;
 
-        if (elevationProvidername != null && targetBounds != null) {
+         /* 16.2.26 not sure when it should be done if (elevationProvidername != null && targetBounds != null) {
             log.info("Elevation Provider isType " + elevationProvidername);
             String classname = elevationProvidername;// + ".class";
             try {
@@ -165,14 +163,14 @@ public class OsmService {
                 elevationProvider = (ElevationProvider) clazz.newInstance();
 
                 ElevationMap.init(elevationProvider, (GridCellBounds) targetBounds, mapProjection);
-                //fixElevationGroups(mapData, /*eleData*/elevationProvider, compositeConfiguration);
+                //fixElevationGroups(mapData, /*eleData* /elevationProvider, compositeConfiguration);
                 //later sceneryMesh.fixElevationGroups(elevationProvider);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
             log.info("No Elevation provider or nor grid. Elevation not calculated");
-        }
+        }*/
 
 
         if (ElevationMap.hasInstance()) {
@@ -191,8 +189,39 @@ public class OsmService {
         //updatePhase(Phase.FINISHED);
 
 
-        return new OsmService.Results(mapProjection, mapData, null/*eleData*/, sceneryMesh);
+        return new OsmService.Results(null/*mapProjection*/, mapData, null/*eleData*/, sceneryMesh);
 
+    }
+
+    public OsmService.Results populateMesh(String meshName, MapData mapData) throws IOException, SceneryConversionFacade.BoundingBoxSizeException, MeshInconsistencyException {
+        return populateMesh(meshName, mapData, null);
+    }
+
+    private void processMapData(MapData mapData, String meshName, Long osmwayid) throws MeshInconsistencyException {
+        WayModule riverModule = new WayModule();
+        SurfaceAreaModule lakeModule = new SurfaceAreaModule();
+        WayModule highwayModule = new WayModule();
+
+        List<MapWay> effectiveWays = mapData.getMapWays();
+        if (osmwayid != null) {
+            effectiveWays = effectiveWays.stream().filter(w -> w.getOsmId() == osmwayid).collect(Collectors.toUnmodifiableList());
+        }
+        applyWayModule(meshName, effectiveWays, riverModule);
+    }
+
+
+    /**
+     * 20.3.26:  For now we create terrainmesh every time, even it is a waste of resources.
+     *
+     * @param mapWays
+     * @param wayModule
+     */
+    private void applyWayModule(String meshName, List<MapWay> mapWays, WayModule wayModule) throws MeshInconsistencyException {
+        for (MapWay mapWay : mapWays) {
+            for (MapWaySegment2 segment : mapWay.segment2s) {
+                wayModule.applyTo(segment, meshService.loadMesh(meshName), SceneryContext.getInstance());
+            }
+        }
     }
 
     /**

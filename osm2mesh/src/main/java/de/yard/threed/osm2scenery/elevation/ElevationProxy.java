@@ -1,8 +1,9 @@
 package de.yard.threed.osm2scenery.elevation;
 
 import com.google.gson.Gson;
-import de.yard.threed.traffic.geodesy.ElevationProvider;
-import org.apache.log4j.Logger;
+import de.yard.threed.trafficcore.ElevationProvider;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -16,8 +17,8 @@ import java.util.ArrayList;
  * <p>
  * Created on 26.07.18.
  */
+@Slf4j
 public class ElevationProxy implements ElevationProvider {
-    Logger logger = Logger.getLogger(ElevationProxy.class);
 
     @Override
     public Double getElevation(double latitudedeg, double longitudedeg) {
@@ -30,7 +31,7 @@ public class ElevationProxy implements ElevationProvider {
 
             int responseCode = con.getResponseCode();
             if (responseCode != 200){
-                logger.error("response code isType "+responseCode+". Returning 0");
+                log.error("response code isType "+responseCode+". Returning 0");
                 return 0.0;
             }
             
@@ -47,11 +48,11 @@ public class ElevationProxy implements ElevationProvider {
 
             JsonResults result = new Gson().fromJson(response.toString(), JsonResults.class);
             double elevation = result.results.get(0).elevation;
-            logger.debug("Found elevation "+elevation+" for "+latitudedeg+","+longitudedeg+". Took "+(System.currentTimeMillis()-starttime)+" ms.");
+            log.debug("Found elevation "+elevation+" for "+latitudedeg+","+longitudedeg+". Took "+(System.currentTimeMillis()-starttime)+" ms.");
             return elevation;
 
         } catch (Exception e) {
-            logger.error("getElevation failed.", e);
+            log.error("getElevation failed.", e);
         }
         return 0.0;
     }

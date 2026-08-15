@@ -6,8 +6,8 @@ import de.yard.threed.osm2scenery.modules.BuildingModule;
 import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.BuildingComponent;
+import lombok.extern.slf4j.Slf4j;
 
-import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +21,9 @@ import java.util.stream.Collectors;
  * <p>
  * Created on 11.07.18.
  */
+@Slf4j
 public class SceneryObjectList {
     public List<SceneryObject> objects = new ArrayList<>();
-    static Logger logger = Logger.getLogger(SceneryObjectList.class);
 
     /**
      * wenn die neue Area sich mit einer bestehenden schneidet, die beiden vereinen. Sonst nicht, das gibt fiese Verbindungen weil es dann trotzdem ein
@@ -162,7 +162,7 @@ public class SceneryObjectList {
         //23.7.19 Phase.OVERLAPS.assertCurrent();
         List<SceneryFlatObject> overlaps = new ArrayList<>();
         if (fo == null) {
-            logger.error("way isType null");
+            log.error("way isType null");
             return overlaps;
         }
 

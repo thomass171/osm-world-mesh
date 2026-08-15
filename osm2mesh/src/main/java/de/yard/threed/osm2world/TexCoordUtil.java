@@ -1,6 +1,8 @@
 package de.yard.threed.osm2world;
 
-import org.apache.log4j.Logger;
+
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,8 +14,8 @@ import static java.util.Collections.singletonList;
 /**
  * utility class for texture coordinate calculation
  */
+@Slf4j
 public final class TexCoordUtil {
-    static Logger logger = Logger.getLogger(TexCoordUtil.class.getName());
 
     /** prevents instantiation */
 	private TexCoordUtil() {}
@@ -27,7 +29,7 @@ public final class TexCoordUtil {
 			TexCoordFunction defaultCoordFunction) {
 		
 		List<TextureData> textureDataList = material.getTextureDataList();
-		//logger.debug("texCoordLists: material="+material.name+", textureDataList.size="+textureDataList.size());
+		//log.debug("texCoordLists: material="+material.name+", textureDataList.size="+textureDataList.size());
 		
 		if (textureDataList.size() == 0) {
 			
@@ -38,7 +40,7 @@ public final class TexCoordUtil {
 			TextureData textureData = textureDataList.get(0);
 			TexCoordFunction coordFunction = textureData.coordFunction;
 			if (coordFunction == null) { coordFunction = defaultCoordFunction; }
-			//logger.debug("texCoordLists: material="+material.name+", coordFunction="+coordFunction);
+			//log.debug("texCoordLists: material="+material.name+", coordFunction="+coordFunction);
 			return singletonList(coordFunction.apply(vs, textureData));
 			
 		} else {

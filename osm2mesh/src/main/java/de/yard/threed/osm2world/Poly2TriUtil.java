@@ -1,6 +1,6 @@
 package de.yard.threed.osm2world;
 
-import org.poly2tri.Poly2Tri;
+/*9.2.26import org.poly2tri.Poly2Tri;
 import org.poly2tri.triangulation.Triangulatable;
 import org.poly2tri.triangulation.TriangulationAlgorithm;
 import org.poly2tri.triangulation.TriangulationContext;
@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * @author Hannes Janetzek
- * */
+ * * /
 
 public class Poly2TriUtil {
 	static class CDTSet implements Triangulatable {
@@ -219,4 +219,4 @@ public class Poly2TriUtil {
 		return triangles;
 
 	}
-}
+}*/

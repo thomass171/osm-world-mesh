@@ -10,7 +10,7 @@ import de.yard.threed.core.Vector3;
 import de.yard.threed.core.geometry.SimpleGeometry;
 import de.yard.threed.core.loader.PortableMaterial;
 import de.yard.threed.core.loader.PortableModelDefinition;
-import de.yard.threed.core.loader.PortableModelList;
+import de.yard.threed.core.loader.PortableModel;
 import de.yard.threed.osm2scenery.SceneryRenderer;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.scenery.WorldElement;
@@ -18,8 +18,9 @@ import de.yard.threed.osm2scenery.util.RenderedArea;
 import de.yard.threed.core.Color;
 
 import de.yard.threed.osm2world.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.log4j.Logger;
+
 
 
 import java.util.ArrayList;
@@ -34,10 +35,9 @@ import java.util.Set;
  * <p>
  * Created by thomass on 07.06.18.
  */
-
+@Slf4j
 public class PortableModelTarget extends AbstractTarget implements SceneryRenderer {
-    Logger logger = Logger.getLogger(PortableModelTarget.class);
-    public PortableModelList pml;
+    public PortableModel pml;
     //2.4.19: Die Normale (0, 1, 0) ist doch fuer z0 nicht richtig. z als Normale nehmen.
     //2.5.19 doch fragwürdig private Vector3 defaultnormal = new Vector3(0, 0, 1);
     //private HashMap<PortableMaterial,String> mat2matname = new HashMap<>();
@@ -54,7 +54,8 @@ public class PortableModelTarget extends AbstractTarget implements SceneryRender
     boolean mergeobjects = true;
 
     public PortableModelTarget() {
-        pml = new PortableModelList(null);
+        Util.notyet();
+        //pml = new PortableModel(null);
     }
 
     public PortableModelTarget(int outputmode) {
@@ -85,11 +86,11 @@ public class PortableModelTarget extends AbstractTarget implements SceneryRender
     }
 
     public void drawExtrudedShape(Material material, ShapeXZ shape, List<VectorXYZ> path, List<VectorXYZ> upVectors, List<Double> scaleFactors, List<List<VectorXZ>> texCoordLists, EnumSet<ExtrudeOption> options) {
-        logger.warn("drawExtrudedShape:not yet");
+        log.warn("drawExtrudedShape:not yet");
     }
 
     public void drawBox(Material material, VectorXYZ bottomCenter, VectorXZ faceDirection, double height, double width, double depth) {
-        logger.warn("drawBox:not yet");
+        log.warn("drawBox:not yet");
     }
 
     public void drawColumn(Material material, Integer corners, VectorXYZ base, double height, double radiusBottom, double radiusTop, boolean drawBottom, boolean drawTop) {
@@ -102,11 +103,11 @@ public class PortableModelTarget extends AbstractTarget implements SceneryRender
     }
 
     public void drawConvexPolygon(Material material, List vs, List texCoordLists) {
-        logger.warn("drawConvexPolygon:not yet");
+        log.warn("drawConvexPolygon:not yet");
     }
 
     public void drawTriangleFan(Material material, List vs, List texCoordLists) {
-        logger.warn("drawTriangleFan:not yet");
+        log.warn("drawTriangleFan:not yet");
     }
 
     /**
@@ -135,29 +136,33 @@ public class PortableModelTarget extends AbstractTarget implements SceneryRender
      */
     private void buildObject(String name, SimpleGeometry geo, Material material) {
         PortableModelDefinition pmd = new PortableModelDefinition();
-        pmd.addGeoMat(geo, getMaterial(material));
+        Util.notyet();
+        /*pmd.addGeoMat(geo, getMaterial(material));
         pmd.name = name;
         //6.2.23 pml.objects.add(pmd);
-        pml.addModel(pmd);
+        pml.addModel(pmd);*/
     }
 
     private void buildObject(String name, SimpleGeometry geo, String material) {
         PortableModelDefinition pmd = new PortableModelDefinition();
-        pmd.addGeoMat(geo, material);
+        Util.notyet();
+        /*pmd.addGeoMat(geo, material);
         pmd.name = name;
         //6.2.23 pml.objects.add(pmd);
-        pml.addModel(pmd);
+        pml.addModel(pmd);*/
     }
 
     public void draw(AbstractAreaWorldObject awo) {
-        logger.debug("draw awo " + awo.toString());
+        log.debug("draw awo " + awo.toString());
         //29.5.18 tile.drawText(120, 30, "hallo");
         SimplePolygonXZ poly = awo.getOutlinePolygonXZ();
         //29.5.18tile.drawPolygon(poly.getVertices(),Color.orange);
     }
 
     private String getMaterial(Material material) {
-        PortableMaterial mat = matname2mat.get(material.getName());
+        Util.notyet();
+        return null;
+        /*PortableMaterial mat = matname2mat.get(material.getName());
         if (mat == null) {
             PortableMaterial m = new PortableMaterial();
             m.name = material.getName();
@@ -166,7 +171,7 @@ public class PortableModelTarget extends AbstractTarget implements SceneryRender
             if (material.getTextureDataList().size() > 0) {
                 //erstmal nur die erste
                 TextureData texturedata = material.getTextureDataList().get(0);
-                String filename = texturedata.file/*.getName()*/;
+                String filename = texturedata.file/*.getName()* /;
                 String path = material.getBasePath();
                 if (path == null) {
                     // Pfad ist bezogen auf das Layout in osmscenery
@@ -183,7 +188,7 @@ public class PortableModelTarget extends AbstractTarget implements SceneryRender
             matname2mat.put(material.getName(), m);
             pml.materials.add(m);
         }
-        return material.getName();
+        return material.getName();*/
     }
 
     private Color buildColor(java.awt.Color c) {
@@ -238,21 +243,21 @@ public class PortableModelTarget extends AbstractTarget implements SceneryRender
     @Override
     public RenderedArea drawArea(String name, Material material, Polygon sceneryAreaNotUsedHere, VertexData vertexData, OsmOrigin osmOriginNotUsedHere, EleConnectorGroupSet elevationsNotUsedHere) {
         if (vertexData == null) {
-            logger.warn("No vertex data. Skipping area. Should not be called if empty");
+            log.warn("No vertex data. Skipping area. Should not be called if empty");
             return null;
         }
         String msg;
         if ((msg = vertexData.validate()) != null) {
-            logger.warn(msg + ". Skipping area " + name);
+            log.warn(msg + ". Skipping area " + name);
             return null;
         }
         SimpleGeometry geo = buildGeometry(vertexData.vertices, vertexData.indices, vertexData.uvs, vertexData.normals);
         if (geo == null) {
-            logger.warn("No geometry. Skipping area");
+            log.warn("No geometry. Skipping area");
             return null;
         }
         /*if (material != GRASS){
-            logger.warn("debug skip");
+            log.warn("debug skip");
             return null;
         }*/
 
@@ -301,13 +306,13 @@ public class PortableModelTarget extends AbstractTarget implements SceneryRender
                 SimpleGeometry geo = matname2geo.get(matname);
                 String s;
                 if ((s = geo.validate()) != null) {
-                    logger.error("invalid geometry: " + s);
+                    log.error("invalid geometry: " + s);
                 }
                 buildObject(matname, geo, matname);
                 int cnt = matnameCounter.get(matname);
                 String details = "" + geo.getVertices().size() + " vertices," + (geo.getIndices().length / 3) + " triangles";
                 //debug->info. Ist immer interessant
-                logger.info("" + cnt + " scenery objects (" + details + ") created into one mesh for material " + matname);
+                log.info("" + cnt + " scenery objects (" + details + ") created into one mesh for material " + matname);
             }
         }
     }

@@ -1,7 +1,8 @@
 package de.yard.threed.osm2scenery.elevation;
 
-import de.yard.threed.traffic.geodesy.ElevationProvider;
-import org.apache.log4j.Logger;
+import de.yard.threed.trafficcore.ElevationProvider;
+import lombok.extern.slf4j.Slf4j;
+
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,8 +15,8 @@ import java.util.Map;
 /**
  * Created on 26.07.18.
  */
+@Slf4j
 public class ElevationCache implements ElevationProvider {
-    Logger logger = Logger.getLogger(ElevationCache.class);
 
     private static ElevationCache instance = null;
     private ElevationProvider baseelevationProvider;
@@ -71,7 +72,7 @@ public class ElevationCache implements ElevationProvider {
             cache.put(parts[0], Double.parseDouble(parts[1]));
         }
         b.close();
-        logger.debug(""+cache.size()+" cache entries loaded.");
+        log.debug(""+cache.size()+" cache entries loaded.");
     }
 
     private void saveCache() {
@@ -82,7 +83,7 @@ public class ElevationCache implements ElevationProvider {
             }
             writer.close();
         }catch (IOException e){
-            logger.error("saving cache failed:"+e);
+            log.error("saving cache failed:"+e);
         }
     }
 }

@@ -3,15 +3,13 @@ package de.yard.threed.scenery.util;
 import de.yard.threed.core.Degree;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.core.Pair;
-import de.yard.threed.javacommon.ConfigurationByEnv;
-import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2scenery.util.TagHelper;
 import de.yard.threed.osm2world.MapBasedTagGroup;
 import de.yard.threed.osm2world.OSMData;
 import de.yard.threed.osm2world.OSMNode;
 import de.yard.threed.osm2world.OSMWay;
-import de.yard.threed.traffic.EllipsoidCalculations;
+import de.yard.threed.trafficcore.EllipsoidCalculations;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -37,7 +35,7 @@ public class OsmTestDataBuilder {
 
     public static void main(String[] arg) {
         //PlatformHomeBrew.init(new HashMap<String, String>());
-        SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
+        // 24.3.26 we no longer have runtime dependency to module-java-common SimpleHeadlessPlatform.init(ConfigurationByEnv.buildDefaultConfigurationWithEnv(new HashMap<String, String>()));
         new OsmTestDataBuilder();
     }
 

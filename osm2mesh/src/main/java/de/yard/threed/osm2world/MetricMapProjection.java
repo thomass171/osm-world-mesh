@@ -4,7 +4,7 @@ package de.yard.threed.osm2world;
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.traffic.geodesy.GeoCoordinate;
+import de.yard.threed.core.GeoCoordinate;
 
 import static de.yard.threed.osm2world.MercatorProjection.*;
 

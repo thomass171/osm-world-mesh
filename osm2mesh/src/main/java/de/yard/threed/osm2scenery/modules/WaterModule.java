@@ -119,7 +119,7 @@ public class WaterModule extends SceneryModule {
     public static class Waterway extends SceneryWayObject {
 
         public Waterway(MapWay/*Segment*/ line, SceneryContext sceneryContext) {
-            super("River", line, WATER, RIVER, new FixedWidthProvider(getWidth(line.getTags())), sceneryContext);
+            super("River", line.segment2s.get(0), WATER, RIVER, new FixedWidthProvider(getWidth(line.getTags())), sceneryContext);
             //16.8.18 super.createPolygon(getWidth());
         }
 		

@@ -11,8 +11,11 @@ import com.vividsolutions.jts.triangulate.ConformingDelaunayTriangulationBuilder
 import com.vividsolutions.jts.triangulate.ConstraintEnforcementException;
 import de.yard.threed.core.*;
 import de.yard.threed.core.geometry.Shape;
+import de.yard.threed.osm2scenery.polygon20.GeoPolygon;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2world.*;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 
 import java.util.ArrayList;
@@ -21,14 +24,18 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static de.yard.threed.osm2graph.osm.OsmUtil.toVector2;
+import static java.lang.Double.NaN;
 
 /**
  * Created on 12.07.18.
+ * 12.7.26: All public methods should catch JTS runtime exceptions and convert to MeshInconsistencyException.
+ * So this class could be renamed to JtsFacade.
  */
+@Slf4j
 public class JtsUtil {
-    static Logger logger = Logger.getLogger(JtsUtil.class.getName());
     public static GeometryFactory GF = new GeometryFactory();
 
     /**
@@ -183,7 +190,7 @@ public class JtsUtil {
                             if (!lc[linepos].equals2D(coors[k])) {
                                 //sollte vielleicht doch gueltig sein? Naja?? nicht mehr loggen, weil
                                 //die Ausgabe bei Reverse irritiert.Andererseits its das unexpected.
-                                logger.warn("findCommon: partcandidate" + partcandidate + " not completely on line " + line);
+                                log.warn("findCommon: partcandidate" + partcandidate + " not completely on line " + line);
                                 return null;
                             }
                         }
@@ -206,7 +213,7 @@ public class JtsUtil {
                                 linepos = lc.length + linepos;
                             }
                             if (!lc[linepos].equals2D(coors[coors.length - 1 - k])) {
-                                logger.error("findCommon no idea:line=" + line + ",partcandidate" + partcandidate);
+                                log.error("findCommon no idea:line=" + line + ",partcandidate" + partcandidate);
                                 //Util.notyet();
                                 return null;
                             }
@@ -250,7 +257,7 @@ public class JtsUtil {
         try {
             Geometry geom = reader.read(wktString);
             if (!geom.isValid()) {
-                logger.error("invalid WKT Geometry");
+                log.error("invalid WKT Geometry");
             }
             return geom;
         } catch (ParseException e) {
@@ -359,8 +366,8 @@ public class JtsUtil {
             int holecnt = polygon.getNumInteriorRing();
             if (!silently) {
                 String details = "" + holecnt + " holes," + polygon.getExteriorRing().getCoordinates().length + " points";
-                logger.error("getTriangles() failed(" + details + "):" + e);
-                logger.error("Polygon: " + toWKT(polygon));
+                log.error("getTriangles() failed(" + details + "):" + e);
+                log.error("Polygon: " + toWKT(polygon));
             }
             return null;
         }
@@ -418,11 +425,11 @@ public class JtsUtil {
         if (getSectorSize(first, second) > 179) {
             // no problem, might just happen. But this will be no usabel triangle?
             // Might not lead to a triangle or be one the 'wrong' side.
-            //logger.warn("angle not consistent");
+            //log.warn("angle not consistent");
             //return Collections.EMPTY_LIST;
             if (360 - (first.getDegree() - second.getDegree()) > 179) {
                 // Might not lead to a triangle or be one the 'wrong' side.
-                logger.warn("sector to wide");
+                log.warn("sector to wide");
                 return null;
             }
         }
@@ -432,7 +439,7 @@ public class JtsUtil {
                 JtsUtil.add(origin, new Vector2(1, 0).rotate(s).normalize().multiply(len)));
 
         if (!sectorTriangle.isValid()) {
-            logger.warn("sectorTriangle not valid");
+            log.warn("sectorTriangle not valid");
             return null;
         }
         return sectorTriangle;
@@ -468,7 +475,7 @@ public class JtsUtil {
         try {
             return GF.createLineString(c);
         } catch (Exception e) {
-            logger.error("createLine failed:" + e.getMessage());
+            log.error("createLine failed:" + e.getMessage());
         }
         return null;
     }
@@ -500,7 +507,7 @@ public class JtsUtil {
         try {
             return GF.createLineString(c);
         } catch (Exception e) {
-            logger.error("createLineFromCoordinates failed:" + e.getMessage());
+            log.error("createLineFromCoordinates failed:" + e.getMessage());
         }
         return null;
     }
@@ -587,8 +594,8 @@ public class JtsUtil {
                 triangles.add(JTSConversionUtil.polygonXZToJTSPolygon(new SimplePolygonXZ(tri.getVertexList())));
             }
         } catch (Exception e) {
-            logger.error("triangluation failed: " + e.getMessage());
-            logger.error("Polygon: " + toWKT(polygon));
+            log.error("triangluation failed: " + e.getMessage());
+            log.error("Polygon: " + toWKT(polygon));
             return null;
         }
 
@@ -643,8 +650,8 @@ public class JtsUtil {
 
             // check if intersect is only touch at end point. Unclear what a good tolerance is
             double tolerance = 0.1;
-            if (!((intersection.equals2D(line.p0,tolerance) || intersection.equals2D(line.p1,tolerance)) &&
-                    (intersection.equals2D(line1.p0,tolerance) || intersection.equals2D(line1.p1,tolerance))))
+            if (!((intersection.equals2D(line.p0, tolerance) || intersection.equals2D(line.p1, tolerance)) &&
+                    (intersection.equals2D(line1.p0, tolerance) || intersection.equals2D(line1.p1, tolerance))))
                 return true;
         }
 
@@ -723,7 +730,7 @@ public class JtsUtil {
      * @param polygon
      * @return
      */
-    public static Polygon[] removeHoleFromPolygonBySplitting(Polygon polygon) {
+    public static Polygon[] removeHoleFromPolygonBySplitting(Polygon polygon) throws MeshInconsistencyException {
         /*keine Ahnung wofuer das war Coordinate[] coor = polygon.getCoordinates();
         Coordinate p0 = coor[0];
 
@@ -773,7 +780,7 @@ public class JtsUtil {
             }
         }
         if (!foundpair) {
-            logger.warn("no pair found");
+            log.warn("no pair found");
             return null;
         }
         //pouter.removeLast();
@@ -785,7 +792,7 @@ public class JtsUtil {
         Polygon p0 = createPolygonFromCoordinateLists(outerparts[0], innerparts[0]);
         Polygon p1 = createPolygonFromCoordinateLists(outerparts[1], innerparts[1]);
         if (p0 == null || p1 == null) {
-            logger.warn("Couldn't split polygon:" + toWKT(polygon));
+            log.warn("Couldn't split polygon:" + toWKT(polygon));
             return null;
         }
         if (p0.crosses(p1)) {
@@ -820,7 +827,7 @@ public class JtsUtil {
      * @return
      */
     @Deprecated
-    public static Polygon[] splitPolygon(Polygon polygon) {
+    public static Polygon[] splitPolygon(Polygon polygon) throws MeshInconsistencyException {
         List<LineSegment> conns = getPossibleSplitConnections(polygon);
         sortByLength(conns);
         de.yard.threed.osm2graph.osm.CoordinateList pouter = new de.yard.threed.osm2graph.osm.CoordinateList(polygon.getExteriorRing().getCoordinates());
@@ -835,14 +842,14 @@ public class JtsUtil {
         Polygon p0 = createPolygonFromCoordinateList(outerparts[0], true);
         Polygon p1 = createPolygonFromCoordinateList(outerparts[1], true);
         if (p0 == null || p1 == null) {
-            logger.warn("Couldn't split polygon:" + toWKT(polygon));
+            log.warn("Couldn't split polygon:" + toWKT(polygon));
             return null;
         }
         if (p0.crosses(p1)) {
-            logger.warn("crossing?");
+            log.warn("crossing?");
         }
         for (int i = 0; i < polygon.getNumInteriorRing(); i++) {
-            //logger.error("difference for holes not working");
+            //log.error("difference for holes not working");
             //if (true) return null;
             LineString hole = polygon.getInteriorRingN(i);
             if (p0.contains(hole)) {
@@ -851,7 +858,7 @@ public class JtsUtil {
             } else if (p1.contains(hole)) {
                 p1 = (Polygon) p1.difference(GF.createPolygon(hole.getCoordinates()));
             } else {
-                logger.warn("hole neither in p0 nor p1");
+                log.warn("hole neither in p0 nor p1");
             }
         }
 
@@ -860,7 +867,7 @@ public class JtsUtil {
 
     public static Polygon createPolygon(Shape shape) {
         if (!shape.isClosed()) {
-            logger.warn("shape not closed. Ignoring.");
+            log.warn("shape not closed. Ignoring.");
             return null;
         }
         Coordinate[] c = new Coordinate[shape.getPoints().size() + 1];
@@ -880,7 +887,7 @@ public class JtsUtil {
      * @param part1
      * @return
      */
-    public static Polygon createPolygonFromCoordinateLists(de.yard.threed.osm2graph.osm.CoordinateList part0, de.yard.threed.osm2graph.osm.CoordinateList part1) {
+    public static Polygon createPolygonFromCoordinateLists(de.yard.threed.osm2graph.osm.CoordinateList part0, de.yard.threed.osm2graph.osm.CoordinateList part1) throws MeshInconsistencyException {
         de.yard.threed.osm2graph.osm.CoordinateList l;
         Polygon p;
 
@@ -898,7 +905,7 @@ public class JtsUtil {
         if (p != null && p.isValid()) {
             return p;
         }
-        logger.warn("cannot build valid polygon");
+        log.warn("cannot build valid polygon");
         return null;
     }
 
@@ -907,32 +914,40 @@ public class JtsUtil {
      * Bei zweien einfach die beiden Kombinationen probieren, einen gültigen Polygon zu bekommen.
      */
     public static Polygon createPolygonFromLines(LineSegment s0, LineSegment s1) {
-        return createPolygonFromCoordinateLists(new de.yard.threed.osm2graph.osm.CoordinateList(s0), new de.yard.threed.osm2graph.osm.CoordinateList(s1));
+        try {
+            return createPolygonFromCoordinateLists(new CoordinateList(s0), new CoordinateList(s1));
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * Used for probing also, so option silently
-     *
+     * 11.7.26: Comply to new design and throw MeshInconsistencyException(see header) if not silently
      * @param l
      * @param silently
      * @return
      */
-    public static Polygon createPolygonFromCoordinateList(de.yard.threed.osm2graph.osm.CoordinateList l, boolean silently) {
+    public static Polygon createPolygonFromCoordinateList(de.yard.threed.osm2graph.osm.CoordinateList l, boolean silently) throws MeshInconsistencyException {
+        return GF.createPolygon(createLinearRingFromCoordinateList(l,silently));
+    }
+
+    public static LinearRing createLinearRingFromCoordinateList(de.yard.threed.osm2graph.osm.CoordinateList l, boolean silently) throws MeshInconsistencyException {
         //29.7.19: Das ist doch Driss und kaschiert Probleme l.ensureClosed();
         try {
             LinearRing linearRing = GF.createLinearRing(l.toArray());
-            Polygon p = GF.createPolygon(linearRing);
-            if (!p.isValid()) {
+            if (!linearRing.isValid()) {
                 // such a polygon isType useless
                 if (!silently) {
-                    logger.warn("created polygon isType not valid. Discarding: LinearRing=" + linearRing);
+                    log.warn("created linearRing isType not valid. Discarding: LinearRing=" + linearRing);
+                    throw new MeshInconsistencyException("created linearRing isType not valid. Discarding: LinearRing=" + linearRing);
                 }
                 return null;
             }
-            return p;
+            return linearRing;
         } catch (IllegalArgumentException e) {
-            logger.debug("createPolygonFromCoordinateList failed: " + e.getMessage());
-            return null;
+            log.debug("createPolygonFromCoordinateList failed: " + e.getMessage());
+            throw new MeshInconsistencyException("createPolygonFromCoordinateList failed: " + e.getMessage());
         }
     }
 
@@ -954,7 +969,7 @@ public class JtsUtil {
 
         } catch (Exception e) {
             //Das wird schon gelegentlich passieren, z.B. beim Anlegen der inner connector
-            logger.debug("createPolygonFromCoordinateList failed: " + e.getMessage());
+            log.debug("createPolygonFromCoordinateList failed: " + e.getMessage());
             return null;
         }
     }
@@ -1052,7 +1067,7 @@ public class JtsUtil {
         try {
             return GF.createPolygon(clist.toArray(new Coordinate[0]));
         } catch (IllegalArgumentException e) {
-            logger.error("createPolygon failed" + e.getMessage());
+            log.error("createPolygon failed" + e.getMessage());
         }
         return null;
     }
@@ -1162,7 +1177,7 @@ public class JtsUtil {
 
     public static LineSegment[] toLineSegments(Coordinate[] coors) {
         if (coors.length < 2) {
-            logger.warn("inconsistent polygon with " + coors.length + " coordinates?");
+            log.warn("inconsistent polygon with " + coors.length + " coordinates?");
             return null;
         }
         LineSegment[] segs = new LineSegment[coors.length - 1];
@@ -1245,11 +1260,11 @@ public class JtsUtil {
                     if (sg instanceof Polygon) {
                         result.add(new PolygonSubtractResult((Polygon) sg));
                     } else {
-                        logger.warn("Ignoring difference polygon " + sg);
+                        log.warn("Ignoring difference polygon " + sg);
                     }
                 }
             } else {
-                logger.error("unknown background difference type. skipped.: " + diff.getClass().getName());
+                log.error("unknown background difference type. skipped.: " + diff.getClass().getName());
             }
         }
         return result;
@@ -1306,7 +1321,7 @@ public class JtsUtil {
             }
             return result;
         }
-        logger.error("unknown geometry");
+        log.error("unknown geometry");
         return null;
     }
 
@@ -1324,7 +1339,7 @@ public class JtsUtil {
         try {
             return p0.difference(p1);
         } catch (TopologyException e) {
-            logger.error("TopologyException in difference: p0=" + p0 + ", p1=" + p1);
+            log.error("TopologyException in difference: p0=" + p0 + ", p1=" + p1);
             return null;
         }
     }
@@ -1346,7 +1361,7 @@ public class JtsUtil {
         int trianglecnt;
         if (coord != null) {
             if (coord.length < 4 || coord.length % 2 == 0) {
-                logger.error("not a triangle strip. length=" + coord.length);
+                log.error("not a triangle strip. length=" + coord.length);
                 return null;
             }
             int len = coord.length / 2;
@@ -1362,7 +1377,7 @@ public class JtsUtil {
             }
         } else {
             if (leftline.size() != rightline.size() || rightline.size() < 2) {
-                logger.error("not a triangle strip. length=");
+                log.error("not a triangle strip. length=");
                 return null;
             }
             trianglecnt = (leftline.size() - 1) * 2;
@@ -1393,7 +1408,7 @@ public class JtsUtil {
             offset += 2;
         }
         if (vertices.size() % 2 == 1) {
-            logger.error("not a triangle strip ");
+            log.error("not a triangle strip ");
             return null;
         }
         return new VertexData(vertices, indices, null);
@@ -1458,7 +1473,7 @@ public class JtsUtil {
             //exceptions just might happen
             return p0.intersection(p1);
         } catch (TopologyException e) {
-            logger.error("TopologyException in difference: p0=" + p0 + ", p1=" + p1);
+            log.error("TopologyException in difference: p0=" + p0 + ", p1=" + p1);
             return null;
         }
 
@@ -1548,7 +1563,7 @@ public class JtsUtil {
                 Vector2 normal = JtsUtil.getNormalAtCoordinate(p, coordinate, dir);
                 return normal;
             } else {
-                logger.error("not exactly two lines");
+                log.error("not exactly two lines");
             }
         } else {
             // coordinate on boundary?
@@ -1582,7 +1597,7 @@ public class JtsUtil {
         if (!isPartOfPolygon(probe, p)) {
             return normal;
         }
-        logger.warn("No normal pointing outside found");
+        log.warn("No normal pointing outside found");
         return new Vector2(1, 0);
     }
 
@@ -1634,7 +1649,7 @@ public class JtsUtil {
                     l.add(l.get(0));
                     Polygon newpoly = createPolygon(l);
                     if (!newpoly.isValid()) {
-                        logger.error("invalid polygon created:" + newpoly);
+                        log.error("invalid polygon created:" + newpoly);
                         return null;
                     }
                     //TODO check for multiple solutions?
@@ -1656,11 +1671,11 @@ public class JtsUtil {
         List<Coordinate> l = new ArrayList();
 
         if (start < 0 || end < 0) {
-            logger.error("start or end < 0");
+            log.error("start or end < 0");
             return l;
         }
         if (start > coors.length - 1 || end > coors.length - 1) {
-            logger.error("start or end > coors.length-1");
+            log.error("start or end > coors.length-1");
             return l;
         }
         if (start < end) {
@@ -1684,9 +1699,9 @@ public class JtsUtil {
      * @param c1
      * @return
      */
-    public static Polygon replace(Polygon polygon, Coordinate coordinate, Coordinate c0, Coordinate c1) {
+    public static Polygon replace(Polygon polygon, Coordinate coordinate, Coordinate c0, Coordinate c1) throws MeshInconsistencyException {
         if (!polygon.isValid()) {
-            logger.error("invalid");
+            log.error("invalid");
             return null;
         }
         Coordinate[] coors = polygon.getCoordinates();
@@ -1711,7 +1726,7 @@ public class JtsUtil {
         if (newpoly != null && newpoly.isValid()) {
             return newpoly;
         }
-        logger.error("replace: resulting polygon invalid:" + newpoly);
+        log.error("replace: resulting polygon invalid:" + newpoly);
         return null;
     }
 
@@ -1720,9 +1735,9 @@ public class JtsUtil {
      *
      * @return
      */
-    public static Polygon insert(Polygon polygon, Coordinate beforevertex, Coordinate c0, Coordinate c1) {
+    public static Polygon insert(Polygon polygon, Coordinate beforevertex, Coordinate c0, Coordinate c1) throws MeshInconsistencyException {
         if (!polygon.isValid()) {
-            logger.error("invalid");
+            log.error("invalid");
             return null;
         }
         Coordinate[] coors = polygon.getCoordinates();
@@ -1743,7 +1758,8 @@ public class JtsUtil {
         if (newpoly != null && newpoly.isValid()) {
             return newpoly;
         }
-        logger.error("insert: resulting polygon invalid:" + newpoly);
+        // 13.7.26 TODO throw
+        log.error("insert: resulting polygon invalid:" + newpoly);
         return null;
     }
 
@@ -1855,7 +1871,119 @@ public class JtsUtil {
         if (isPartOfPolygon(probe, polygon)) {
             return false;
         }
-        logger.error("isPolygonLeft undecided");
+        log.error("isPolygonLeft undecided");
         return null;
     }
-}
+
+    public static Polygon createPolygon(List<Pair<GeoCoordinate, Long>> polygonLine, SceneryProjection projection) {
+        List<Coordinate> coors = new ArrayList<>();
+        for (Pair<GeoCoordinate, Long> p : polygonLine) {
+            coors.add((projection.project(p.getFirst())));
+        }
+        return createPolygon(coors);
+    }
+
+    public static Pair<GeoCoordinate, GeoCoordinate> unproject(Pair<Coordinate, Coordinate> p, SceneryProjection projection) {
+        if (p == null) {
+            return null;
+        }
+        return new Pair(unproject(p.getFirst(), projection), unproject(p.getSecond(), projection));
+    }
+
+    public static final GeoCoordinate unproject(Coordinate coordinate, SceneryProjection projection) {
+        LatLon latLon = projection.unproject(JtsUtil.fromCoordinate(coordinate));
+        if (coordinate.z == NaN) {
+            return GeoCoordinate.fromLatLon(latLon);
+        }
+        return GeoCoordinate.fromLatLon(latLon, coordinate.z);
+    }
+
+    public static List<GeoCoordinate> unproject(List<Coordinate> coordinates, SceneryProjection projection) {
+        List<GeoCoordinate> geoCoordinates = new ArrayList<>();
+        coordinates.forEach(c -> geoCoordinates.add(unproject(c, projection)));
+        return geoCoordinates;
+    }
+
+    public static GeoPolygon unproject(Polygon polygon, SceneryProjection projection) throws MeshInconsistencyException {
+        List<GeoCoordinate> geoCoordinates = new ArrayList<>();
+
+        // skip closing point? what about closing? Yes, needs to be closed
+        for (Coordinate c : polygon.getCoordinates()) {
+            geoCoordinates.add(unproject(c, projection));
+        }
+
+        return new GeoPolygon(geoCoordinates);
+    }
+
+    /**
+     * OneToOne model conversion, no projection!
+     * 4.4.26 Elevation will be z like JTS does
+     */
+    public static final Coordinate geoCoordinateToJTSCoordinate(GeoCoordinate geoCoordinate) {
+        if (geoCoordinate.getElevationM() != null) {
+            return new Coordinate(geoCoordinate.getLonDeg().getDegree(), geoCoordinate.getLatDeg().getDegree(), geoCoordinate.getElevationM());
+        }
+        // z will be NaN
+        return new Coordinate(geoCoordinate.getLonDeg().getDegree(), geoCoordinate.getLatDeg().getDegree());
+    }
+
+    /**
+     * OneToOne model conversion, no projection!
+     */
+    public static List<Coordinate> geoCoordinatesToCoordinates(List<GeoCoordinate> geoCoordinates) {
+        List<Coordinate> coordinates = new ArrayList<>();
+        geoCoordinates.forEach(g -> coordinates.add(geoCoordinateToJTSCoordinate(g)));
+        return coordinates;
+    }
+
+    /**
+     * OneToOne model conversion, no projection!
+     */
+    public static GeoCoordinate coordinateToGeoCoordinate(Coordinate coordinate) {
+        LatLon latLon = LatLon.fromDegrees(coordinate.y, coordinate.x);
+        if (coordinate.z == NaN) {
+            return GeoCoordinate.fromLatLon(latLon);
+        }
+        return GeoCoordinate.fromLatLon(latLon, coordinate.z);
+    }
+
+    /**
+     * OneToOne model conversion, no projection!
+     */
+    public static List<GeoCoordinate> coordinatesToGeoCoordinates(List<Coordinate> coordinates) {
+        List<GeoCoordinate> geoCoordinates = new ArrayList<>();
+        coordinates.forEach(c -> geoCoordinates.add(coordinateToGeoCoordinate(c)));
+        return geoCoordinates;
+    }
+
+    /*11.7.26 we have getGeoPolygon now public static GeoPolygon buildGeoPolygon(MeshPolygon meshPolygon) {
+        List<GeoCoordinate> geoCoordinates = new ArrayList<>();
+
+        // skip closing point? what about closing? Yes, needs to be closed
+        for (int i = 0; i < meshPolygon.getNodes().size(); i++) {
+            geoCoordinates.add(meshPolygon.getNodes().get(i).getGeoCoordinate());
+        }
+
+        return new GeoPolygon(geoCoordinates);
+    }*/
+
+    public static List<GeoPolygon> buildGeoPolygonList(List<MeshPolygon> meshPolygons) {
+        List<GeoPolygon> result = new ArrayList<>();
+
+        // skip closing point? what about closing?
+        for (MeshPolygon meshPolygon : meshPolygons) {
+            result.add(meshPolygon.getGeoPolygon()/*buildGeoPolygon(meshPolygon)*/);
+        }
+
+        return result;
+    }
+
+    public static <T> void processWayOutlines(List<T> leftLine , List<T> rightLine, Consumer<T> c) {
+        for (int i = 0; i < leftLine.size(); i++) {
+            c.accept(leftLine.get(i));
+        }
+        for (int i = rightLine.size() - 1; i >= 0; i--) {
+            c.accept(rightLine.get(i));
+        }
+    }
+    }
