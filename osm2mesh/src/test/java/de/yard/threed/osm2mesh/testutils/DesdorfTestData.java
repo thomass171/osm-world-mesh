@@ -27,7 +27,6 @@ public class DesdorfTestData {
     public MapData fullMapData;
     public GridCellBounds gridCellBounds;
     public ExpectedMeshPolygon expectedBoundary;
-    public ExpectedMeshPolygon[] expectedK43;
 
     public DesdorfTestData(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
         osmData = TestUtil.loadOsmDataFromXmlClasspath("Desdorf.osm.xml");
@@ -53,12 +52,6 @@ public class DesdorfTestData {
         terrainMesh.meshService = meshService;
 
 
-        expectedK43 = new ExpectedMeshPolygon[]{
-                expectedWay(107468171L, 0, 10),
-                expectedWay(107468171L, 1, 10/*??6*/),
-                expectedWay(107468171L, 2, 10/*??4*/),
-                expectedWay(107468171L, 3, 4),
-                expectedWay(107468171L, 4, 4)
-        };
+
     }
 }

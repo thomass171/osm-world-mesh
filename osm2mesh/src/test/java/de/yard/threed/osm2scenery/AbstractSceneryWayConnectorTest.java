@@ -4,10 +4,9 @@ import de.yard.threed.MeshServiceFactory;
 import de.yard.threed.TestUtil;
 import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.core.Degree;
-import de.yard.threed.osm2mesh.Expectations;
+import de.yard.threed.osm2mesh.DesdorfExpectations;
 import de.yard.threed.osm2mesh.testutils.DefaultMockingSceneryTest;
 import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
-import de.yard.threed.osm2mesh.testutils.MeshServiceMock;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
 import de.yard.threed.osm2scenery.util.SvgWriter;
@@ -16,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import static de.yard.threed.TestUtil.validateConnector;
 import static de.yard.threed.TestUtil.validateMeshPolygon;
-import static de.yard.threed.osm2mesh.Expectations.*;
+import static de.yard.threed.osm2mesh.DesdorfExpectations.*;
 import static de.yard.threed.osm2scenery.SceneryWayConnectorTest.validateAttachPoint;
 import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.ROAD;
 import static de.yard.threed.osm2world.Materials.ASPHALT;
@@ -95,7 +94,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         wayConnector.cca(desdorfTestData.terrainMesh, SceneryContext.getInstance());
         MeshServiceFacade meshService = desdorfTestData.terrainMesh.meshService;
         MeshPolygon/*MeshWayConnector*/ meshWayConnector = meshService.getConnector(387409895);
-        TestUtil.validateMeshPolygon(Expectations.expectedConnector387409895, meshWayConnector);
+        TestUtil.validateMeshPolygon(DesdorfExpectations.expectedConnector387409895, meshWayConnector);
 
         SvgWriter.build()
                 .addPolygon(wayConnector.getPolygon(desdorfTestData.gridCellBounds.getProjection()), SvgWriter.LabelMode.NODEBYINDEX)
@@ -135,7 +134,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
 
         MeshServiceFacade meshService = desdorfTestData.terrainMesh.meshService;
         MeshPolygon meshWayConnector = meshService.getConnector(445410497);
-        TestUtil.validateMeshPolygon(Expectations.expectedConnector445410497, meshWayConnector);
+        TestUtil.validateMeshPolygon(DesdorfExpectations.expectedConnector445410497, meshWayConnector);
     }
 
     @Test
@@ -167,6 +166,38 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MeshServiceFacade meshService = desdorfTestData.terrainMesh.meshService;
         MeshPolygon meshWayConnector = meshService.getConnector(251517906);
         validateMeshPolygon(expectedConnector251517906, meshWayConnector);
+
+    }
+
+    @Test
+    public void testConnector255563537() throws Exception {
+
+        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MapWay way225794271 = desdorfTestData.fullMapData.findMapWay(225794271);
+        MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
+
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(255563537), ASPHALT, ROAD);
+        wayConnector.add(way225794271.getLastSegment());
+        wayConnector.add(way107468171.segment2s.get(3));
+        wayConnector.add(way107468171.segment2s.get(4));
+        assertEquals(255563537, wayConnector.getOsmIds().get(0));
+
+        wayConnector.classify();
+        assertEquals(SceneryWayConnector.WayConnectorType.SIMPLE_JUNCTION, wayConnector.getType());
+        assertEquals(1, wayConnector.majorway0);
+        assertEquals(2, wayConnector.majorway1);
+        assertEquals(-1, wayConnector.minorway0);
+        assertEquals(0, wayConnector.minorway1);
+
+        wayConnector.cca(desdorfTestData.terrainMesh, SceneryContext.getInstance());
+        assertEquals(4 + 1, wayConnector.getPolygonLine().size());
+        SvgWriter.build()
+                .addPolygon(wayConnector.getPolygon(desdorfTestData.gridCellBounds.getProjection()), SvgWriter.LabelMode.NODEBYINDEX)
+                .writeTmpFile();
+
+        MeshServiceFacade meshService = desdorfTestData.terrainMesh.meshService;
+        MeshPolygon meshWayConnector = meshService.getConnector(255563537);
+        validateMeshPolygon(expectedConnector255563537, meshWayConnector);
 
     }
 
@@ -228,6 +259,70 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MeshServiceFacade meshService = desdorfTestData.terrainMesh.meshService;
         MeshPolygon meshWayConnector = meshService.getConnector(270353278);
         validateMeshPolygon(expectedConnector270353278, meshWayConnector);
+
+        SvgWriter.build()
+                .addPolygon(wayConnector.getPolygon(desdorfTestData.gridCellBounds.getProjection()), SvgWriter.LabelMode.NODEBYINDEX)
+                .writeTmpFile();
+    }
+
+    /**
+     * Not sure why this is generic. Probably it shouldn't be.
+     */
+    @Test
+    public void testConnector445409643() throws Exception {
+
+        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MapWay way37935545 = desdorfTestData.fullMapData.findMapWay(37935545);
+        MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
+
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(445409643), ASPHALT, ROAD);
+        wayConnector.add(way37935545.getFirstSegment());
+        wayConnector.add(way107468171.segment2s.get(1));
+        wayConnector.add(way107468171.segment2s.get(2));
+
+        wayConnector.classify();
+        assertEquals(SceneryWayConnector.WayConnectorType.GENERIC, wayConnector.getType());
+        assertEquals(-1, wayConnector.majorway0);
+        assertEquals(-1, wayConnector.majorway1);
+        assertEquals(-1, wayConnector.minorway0);
+        assertEquals(-1, wayConnector.minorway1);
+
+        wayConnector.cca(desdorfTestData.terrainMesh, SceneryContext.getInstance());
+        MeshServiceFacade meshService = desdorfTestData.terrainMesh.meshService;
+        MeshPolygon meshWayConnector = meshService.getConnector(445409643);
+        validateMeshPolygon(expectedConnector445409643, meshWayConnector);
+
+        SvgWriter.build()
+                .addPolygon(wayConnector.getPolygon(desdorfTestData.gridCellBounds.getProjection()), SvgWriter.LabelMode.NODEBYINDEX)
+                .writeTmpFile();
+    }
+
+    /**
+     * Not sure why this is generic. Probably it shouldn't be.
+     */
+    @Test
+    public void testConnector387409890() throws Exception {
+
+        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MapWay way33817499 = desdorfTestData.fullMapData.findMapWay(33817499);
+        MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
+
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(387409890), ASPHALT, ROAD);
+        wayConnector.add(way33817499.getFirstSegment());
+        wayConnector.add(way107468171.segment2s.get(2));
+        wayConnector.add(way107468171.segment2s.get(3));
+
+        wayConnector.classify();
+        assertEquals(SceneryWayConnector.WayConnectorType.GENERIC, wayConnector.getType());
+        assertEquals(-1, wayConnector.majorway0);
+        assertEquals(-1, wayConnector.majorway1);
+        assertEquals(-1, wayConnector.minorway0);
+        assertEquals(-1, wayConnector.minorway1);
+
+        wayConnector.cca(desdorfTestData.terrainMesh, SceneryContext.getInstance());
+        MeshServiceFacade meshService = desdorfTestData.terrainMesh.meshService;
+        MeshPolygon meshWayConnector = meshService.getConnector(387409890);
+        validateMeshPolygon(expectedConnector387409890, meshWayConnector);
 
         SvgWriter.build()
                 .addPolygon(wayConnector.getPolygon(desdorfTestData.gridCellBounds.getProjection()), SvgWriter.LabelMode.NODEBYINDEX)

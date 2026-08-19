@@ -123,6 +123,7 @@ public class WayModule extends SceneryModule {
 
             // 14.2.26: Main change. No longer collect elements but persist way to DB.
             // 18.3.26: The simple incoming way might have been split into segments, so iteration is needed
+            // 19.8.26: Input meanwhile is a segment.
             for (SceneryObject sceneryObject : roadsAndBridges.objects) {
                 SceneryWayObject sfo = (SceneryWayObject) sceneryObject;
                 // Find/Create Junctions/RoadConnector to existing highways.

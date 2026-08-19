@@ -186,4 +186,8 @@ public class MapWay /*extends MapSegment*/ implements MapElement {
     public MapWaySegment2 getLastSegment() {
         return segment2s.get(segment2s.size() - 1);
     }
+
+    public MapWaySegment2 getSegment(int index) {
+        return segment2s.get(index);
+    }
 }
