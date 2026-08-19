@@ -108,7 +108,7 @@ public class WayModule extends SceneryModule {
                     SceneryWayObject way = new SceneryWayObject("Road", mapwaySegment,
                             null,
                             //Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/,
-                            ROAD, new FixedWidthProvider(5.0), sceneryContext);//mapWay = line;
+                            ROAD, new FixedWidthProvider(5.0), sceneryContext, terrainMeshNotNeededOnceButNowNeeded.getGridCellBounds().getProjection());//mapWay = line;
                     //sceneryContext.highways.put(osmid, road);
                     roadsAndBridges.add(way);
 
@@ -294,7 +294,7 @@ public class WayModule extends SceneryModule {
             }*/
 
         //if (road1.isOuterNode(node) && road2.isOuterNode(node)) {
-        SceneryWayConnector connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD);
+        SceneryWayConnector connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD, tm.getGridCellBounds().getProjection());
         //10.9.19: Besser alle Ways an den Connector haengen stat nur zwei, sonst geht mir nachher evtl. eine inner connector way durch. (z.B. 1379039502)
         for (MapWaySegment2 way : connectedRoads) {
             //   connector.add(road1);
@@ -878,7 +878,7 @@ public class WayModule extends SceneryModule {
 
 
         public RoadJunction(MapNode node) {
-            super("RoadJunction", node, ASPHALT, ROAD);
+            super("RoadJunction", node, ASPHALT, ROAD,null);
             if (node.getOsmId() == 54286220 /*&& false*/) {
                 //nur mal so ne Test Decoration.23.5.19  Wird eh nicht mehr gerendered, weil Juniton keine area hat.
                 //marking = new SceneryDecoration("Marking", GRASS);
@@ -1041,7 +1041,7 @@ public class WayModule extends SceneryModule {
         public Highway(MapWaySegment2/*Segment*/ line/*, TagGroup tags/*, long osmid*/, TagMap materialmap, SceneryContext sceneryContext) {
 
             //super(line);
-            super("Road", null/*18.3.26 segment now line*/, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, null, sceneryContext);//mapWay = line;
+            super("Road", null/*18.3.26 segment now line*/, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, null, sceneryContext, null);//mapWay = line;
 
 
             this.tags = line.getTags();//tags;

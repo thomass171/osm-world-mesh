@@ -141,7 +141,7 @@ public abstract class AbstractArea {
      * 27.3.24: No longer use TerrainMesh?. This is a hell of dependencies. And why?
      * @return
      */
-    public boolean isEmpty(TerrainMesh tm) {
+    public boolean isEmpty(/*TerrainMesh tm*/) {
         if (empty) {
             return true;
         }
@@ -177,7 +177,7 @@ public abstract class AbstractArea {
     }
 
     final public void calculateElevations(SceneryFlatObject parent, boolean isDeco, TerrainMesh tm) {
-        if (!isEmpty(tm)) {
+        if (!isEmpty()) {
             if (isDeco){
                 //ob embedded oder als Overlay. Die Decoartion hat keine eigene EleGroup (und damit keine registrierten Coordinates) und muss die Group/elevation des Parent verwenden.
                 if (vertexData == null || vertexData.vertices == null) {
@@ -218,7 +218,7 @@ public abstract class AbstractArea {
     public RenderedArea render(SceneryRenderer sceneryRenderer, String creatortag, OsmOrigin osmOrigin, EleConnectorGroupSet eleConnectorGroups, TerrainMesh tm) {
         RenderedArea ro = new RenderedArea();
 
-        if (!isEmpty(tm)) {
+        if (!isEmpty()) {
             Polygon p = getPolygon(tm);
             if (p == null) {
                 log.error("np polygon");

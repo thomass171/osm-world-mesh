@@ -318,7 +318,7 @@ public class HighwayModule extends SceneryModule {
             }*/
 
         //if (road1.isOuterNode(node) && road2.isOuterNode(node)) {
-        connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD);
+        connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD,null);
         //10.9.19: Besser alle Ways an den Connector haengen stat nur zwei, sonst geht mir nachher evtl. eine inner connector way durch. (z.B. 1379039502)
         for (SceneryWayObject way : connectedRoads) {
             //   connector.add(road1);
@@ -906,7 +906,7 @@ public class HighwayModule extends SceneryModule {
 
 
         public RoadJunction(MapNode node) {
-            super("RoadJunction", node, ASPHALT, ROAD);
+            super("RoadJunction", node, ASPHALT, ROAD, null);
             if (node.getOsmId() == 54286220 /*&& false*/) {
                 //nur mal so ne Test Decoration.23.5.19  Wird eh nicht mehr gerendered, weil Juniton keine area hat.
                 //marking = new SceneryDecoration("Marking", GRASS);
@@ -1069,7 +1069,7 @@ public class HighwayModule extends SceneryModule {
         public Highway(MapWaySegment2/*Segment*/ line/*, TagGroup tags/*, long osmid*/, TagMap materialmap, SceneryContext sceneryContext) {
 
             //super(line);
-            super("Road", line, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, null, sceneryContext);//mapWay = line;
+            super("Road", line, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, null, sceneryContext, null);//mapWay = line;
 
 
             this.tags = line.getTags();//tags;

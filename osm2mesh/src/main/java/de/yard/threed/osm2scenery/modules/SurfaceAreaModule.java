@@ -87,7 +87,7 @@ public class SurfaceAreaModule extends SceneryModule {
         private Collection<TriangleXZ> triangulationXZ;
 
         public SurfaceArea(MapArea area, String surface) {
-            super(area,"Area-"+surface, Materials.getSurfaceMaterial(surface),GENERICAREA);
+            super(area,"Area-"+surface, Materials.getSurfaceMaterial(surface),GENERICAREA,null);
             this.surface = surface;
             cycle = Cycle.GENERICAREA;
         }

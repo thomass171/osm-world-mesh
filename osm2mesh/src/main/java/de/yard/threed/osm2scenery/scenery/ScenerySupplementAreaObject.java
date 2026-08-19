@@ -1,6 +1,7 @@
 package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.Polygon;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.polygon20.*;
@@ -39,8 +40,8 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
      * 9.8.18: Aber nur als TerrainMesh Teil. Darum doch deprecated.
      */
     @Deprecated
-    public ScenerySupplementAreaObject(String creatortag, Polygon polygon, Material material) {
-        super(creatortag, material, null, new Area(polygon, material));
+    public ScenerySupplementAreaObject(String creatortag, Polygon polygon, Material material, SceneryProjection projection) {
+        super(creatortag, material, null, new Area(polygon, material), projection);
         // den Cycle  lege ich jetzt einfach mal so fest
         cycle = Cycle.SUPPLEMENT;
         basepolygon = polygon;
@@ -62,9 +63,9 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
      * TODO:kein MeshPolygon??
      */
     @Deprecated
-    public ScenerySupplementAreaObject(String creatortag, MeshPolygonOld meshPolygonOld, Material material, TerrainMesh tm) {
+    public ScenerySupplementAreaObject(String creatortag, MeshPolygonOld meshPolygonOld, Material material, TerrainMesh tm, SceneryProjection projection) {
         //this(creatortag, (Polygon) null, material);
-        super(creatortag, material, null, new Area(meshPolygonOld, material, true));
+        super(creatortag, material, null, new Area(meshPolygonOld, material, true), projection);
         // den Cycle  lege ich jetzt einfach mal so fest
         cycle = Cycle.SUPPLEMENT;
         //in area this.meshPolygon = meshPolygon;
@@ -85,9 +86,9 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
      * Ein Supplement daraus zu machen passt eigentlich nicht in die Verarbeitung. Aber nur so koennen left/right im Mesh gesetzt
      * werden.
      */
-    public ScenerySupplementAreaObject(String creatortag, MeshFillCandidate candidate, Material material) {
+    public ScenerySupplementAreaObject(String creatortag, MeshFillCandidate candidate, Material material, SceneryProjection projection) {
         //this(creatortag, (Polygon) null, material);
-        super(creatortag, material, null, null);
+        super(creatortag, material, null, null, projection);
 
         // den Cycle  lege ich jetzt einfach mal so fest
         cycle = Cycle.SUPPLEMENT;
@@ -115,8 +116,8 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
         terrainMeshAdder=null;
     }
 
-    public ScenerySupplementAreaObject(String creatortag, Material material, Category category) {
-        super(creatortag, material, category, new Area(null, material));
+    public ScenerySupplementAreaObject(String creatortag, Material material, Category category, SceneryProjection projection) {
+        super(creatortag, material, category, new Area(null, material), projection);
         // den Cycle  lege ich jetzt einfach mal so fest
         cycle = Cycle.SUPPLEMENT;
 

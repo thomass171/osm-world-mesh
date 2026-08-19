@@ -1,6 +1,7 @@
 package de.yard.threed.osm2scenery.scenery;
 
 import de.yard.threed.osm2graph.osm.GridCellBounds;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -29,8 +30,8 @@ public abstract class SceneryNodeObject extends SceneryFlatObject /*implements N
 
     //11.11.21??private EleConnectorGroup connectors = null;
 
-    public SceneryNodeObject(String creatortag, MapNode node, Material material, Category category) {
-        super(creatortag, material, category, new Area(null,material));
+    public SceneryNodeObject(String creatortag, MapNode node, Material material, Category category, SceneryProjection projection) {
+        super(creatortag, material, category, new Area(null,material), projection);
         this.node = node;
         if (node!=null) {
             // eg. when loaded from DB

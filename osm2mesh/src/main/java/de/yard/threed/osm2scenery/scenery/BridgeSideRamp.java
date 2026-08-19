@@ -32,7 +32,7 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
      * BridgeSideRamp
      */
     public BridgeSideRamp(String creatortag, BridgeModule.BridgeHead bridgeHead, Material material, MapNode rampNode, boolean onLeft) {
-        super(creatortag, material, null);
+        super(creatortag, material, null, null);
         this.bridgeHead = bridgeHead;
         this.rampNode = rampNode;
         this.onLeft = onLeft;

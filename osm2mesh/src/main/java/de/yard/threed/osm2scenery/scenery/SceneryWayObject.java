@@ -68,8 +68,8 @@ public class SceneryWayObject extends SceneryFlatObject {
     // 7.5.24: The persisted OSM way
     public long osmWayId;
 
-    public SceneryWayObject(String creatortag, MapWaySegment2 mapWay, Material material, Category category, WidthProvider widthProvider, SceneryContext sceneryContext) {
-        super(creatortag, material, category, null/*new WayArea(material)*/);
+    public SceneryWayObject(String creatortag, MapWaySegment2 mapWay, Material material, Category category, WidthProvider widthProvider, SceneryContext sceneryContext, SceneryProjection projection) {
+        super(creatortag, material, category, null/*new WayArea(material)*/,projection);
         this.mapWay = mapWay;
         this.widthProvider = widthProvider;
         this.cycle = Cycle.WAY;
@@ -133,8 +133,8 @@ public class SceneryWayObject extends SceneryFlatObject {
      * 7.5.24: Additional constructor for building from persistence/DB.
      * Its not yet clear what is needed here.
      */
-    public SceneryWayObject(OsmWay osmWay) {
-        super(""/*creatortag*/, null/*material*/, null/*category*/, null/*new WayArea(material)*/);
+    public SceneryWayObject(OsmWay osmWay, SceneryProjection projection) {
+        super(""/*creatortag*/, null/*material*/, null/*category*/, null/*new WayArea(material)*/, projection);
 
     }
 
@@ -269,19 +269,19 @@ public class SceneryWayObject extends SceneryFlatObject {
      * 10.7.19: Nee, umgekehrt.
      */
     @Override
-    public void clip(/*10.7.19 boolean atstart, double len*/TerrainMesh tm) throws MeshInconsistencyException {
+    public void clip(/*10.7.19 boolean atstart, double len*//*19.8.26 TerrainMesh tm*/) throws MeshInconsistencyException {
 
         if (isClipped) {
             return;
         }
-        super.clip(tm);
+        super.clip();
         if (mapWay.getOsmId() == 33817500 || mapWay.getOsmId() == 173190487) {
             int h = 9;
         }
         if (mapWay.getOsmId() == 33817499 || mapWay.getOsmId() == 189650380) {
             int h = 9;
         }
-        if (flatComponent != null && flatComponent[0].isEmpty(tm)) {
+        if (flatComponent != null && flatComponent[0].isEmpty()) {
             return;
         }
 
@@ -299,7 +299,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         }
         // log.debug("clip of way");
 
-        SceneryProjection projection = tm.getGridCellBounds().getProjection();
+        //now field in super class SceneryProjection projection = tm.getGridCellBounds().getProjection();
 
         WayArea wayArea = (WayArea) flatComponent[0];
         //Der Connector gibt die Coordinates vor. Er hat beim createPolygon schon den clip vorbereitet.
@@ -455,7 +455,7 @@ public class SceneryWayObject extends SceneryFlatObject {
             int h = 9;
         }
 
-        if (flatComponent != null && !flatComponent[0].isEmpty(tm)) {
+        if (flatComponent != null && !flatComponent[0].isEmpty()) {
             if (isCut) {
                 //Util.notyet();
                 //13.8.19: wofuer ist das?? log.warn("Ignoring cut area for elevation");

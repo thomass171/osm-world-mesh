@@ -167,7 +167,7 @@ public class SceneryMesh {
                 }
             }
             for (Area be : background.getBgfiller()) {
-                if (be.isEmpty(terrainMesh)) {
+                if (be.isEmpty()) {
                     log.warn("empty BG filler?");
                 } else {
                     be.triangulateAndTexturize(new SimpleEleConnectorGroupFinder(gridbounds.elegroups), terrainMesh);
@@ -358,7 +358,7 @@ public class SceneryMesh {
         for (SceneryObject obj : sceneryObjects.objects) {
             if (obj.cycle == cycle/*obj instanceof SceneryWayObject*/) {
                 /* ((SceneryWayObject) obj)*/
-                obj.clip(terrainMesh);
+                obj.clip();
             }
         }
         /*for (SceneryObject obj : sceneryObjects.objects) {
@@ -815,7 +815,7 @@ public class SceneryMesh {
         SceneryAreaObject possibletarget = null;
         CoordinatePair pair0;
 
-        if (wayArea == null || wayArea.isEmpty(terrainMesh)) {
+        if (wayArea == null || wayArea.isEmpty()) {
             return null;
         }
         List<MeshLine> leftlines = null;//16.4.26 wayArea.getLeftLines(terrainMesh);

@@ -66,8 +66,8 @@ public class SceneryWayConnector extends SceneryNodeObject {
     private List<Pair<GeoCoordinate, Long>> polygonLine = null;
     public MeshPolygon meshWayConnector = null;
 
-    public SceneryWayConnector(String creatortag, MapNode node, ConfMaterial material, Category category) {
-        super(creatortag, node, material, category);
+    public SceneryWayConnector(String creatortag, MapNode node, ConfMaterial material, Category category, SceneryProjection projection) {
+        super(creatortag, node, material, category, projection);
         this.cycle = Cycle.WAY;
         if (node.getOsmId() == 295055704 || node.getOsmId() == 1379039502) {
             int h = 9;
@@ -1004,8 +1004,8 @@ public class SceneryWayConnector extends SceneryNodeObject {
     }
 
     @Override
-    public void clip(TerrainMesh tm) throws MeshInconsistencyException {
-        super.clip(tm);
+    public void clip() throws MeshInconsistencyException {
+        super.clip();
     }
 
     /**

@@ -4,10 +4,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
-import de.yard.threed.osm2graph.osm.GridCellBounds;
-import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2graph.osm.PolygonSubtractResult;
-import de.yard.threed.osm2graph.osm.VertexData;
+import de.yard.threed.osm2graph.osm.*;
 import de.yard.threed.osm2scenery.RenderedObject;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryRenderer;
@@ -76,8 +73,8 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
     /**
      * 9.8.19: Hier eine Area reinstecken widerspricht doch dem MeshPolygon Gedanken? Aber Buildings als Overlay?
      */
-    public SceneryFlatObject(String creatortag, Material material, Category category, AbstractArea flatComponent) {
-        super(creatortag, category);
+    public SceneryFlatObject(String creatortag, Material material, Category category, AbstractArea flatComponent, SceneryProjection projection) {
+        super(creatortag, category, projection);
         if (flatComponent != null) {
             //12.8.19:Zumindest null mal ignorieren
             this.flatComponent = new AbstractArea[]{flatComponent};//new AbstractArea(material);
@@ -221,7 +218,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
         }
         if (flatComponent != null) {
             for (AbstractArea abstractArea : flatComponent) {
-                if (!abstractArea.isEmpty(tm)) {
+                if (!abstractArea.isEmpty()) {
                     SimpleEleConnectorGroupFinder simpleEleConnectorGroupFinder = null;
                     if (getEleConnectorGroups() != null && getEleConnectorGroups().size() > 0) {
 
@@ -293,7 +290,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
             return true;
         }
         for (AbstractArea p : flatComponent) {
-            if (!p.isEmpty(tm)) {
+            if (!p.isEmpty()) {
                 return false;
             }
         }
@@ -554,7 +551,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
             return false;
         }
         for (AbstractArea abstractArea : flatComponent) {
-            if (!abstractArea.isEmpty(tm) && JtsUtil.isPartOfPolygon(coordinate, abstractArea.poly.polygon)) {
+            if (!abstractArea.isEmpty() && JtsUtil.isPartOfPolygon(coordinate, abstractArea.poly.polygon)) {
                 return true;
             }
         }
@@ -612,7 +609,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      */
     public void cca(TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException, OsmProcessException {
         createPolygon(/*new ArrayList<>(),*/ tm.getGridCellBounds(), tm, sceneryContext);
-        clip(tm);
+        clip();
         // DB persist
         addToTerrainMesh(tm);
     }

@@ -3,6 +3,7 @@ package de.yard.threed.osm2scenery;
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.graph.Graph;
 import de.yard.threed.graph.GraphOrientation;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.modules.BridgeModule;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.OsmWay;
@@ -65,7 +66,7 @@ public class SceneryContext {
      * For now read it from osm ways in DB
      * 19.2.26: What is the state here. At least MapData is really needed.
      */
-    public static SceneryContext buildFromDatabase(List<OsmWay> osmWays, MapData mapData) {
+    public static SceneryContext buildFromDatabase(List<OsmWay> osmWays, MapData mapData, SceneryProjection projection) {
         SceneryContext sceneryContext = new SceneryContext();
         //21.7.18: Graph in z0
         sceneryContext.roadgraph = new Graph(GraphOrientation.buildForZ0());
@@ -73,7 +74,7 @@ public class SceneryContext {
         sceneryContext.railwaygraph = new Graph(GraphOrientation.buildForZ0());
         sceneryContext.rivergraph = new Graph(GraphOrientation.buildForZ0());
         for (OsmWay osmWay : osmWays) {
-            sceneryContext.highways.put(osmWay.getOsmId(), new SceneryWayObject(osmWay));
+            sceneryContext.highways.put(osmWay.getOsmId(), new SceneryWayObject(osmWay, projection));
         }
         sceneryContext.mapdata = mapData;
         SceneryContext.instance = sceneryContext;

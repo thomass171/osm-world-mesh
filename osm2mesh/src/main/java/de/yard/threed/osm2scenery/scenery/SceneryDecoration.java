@@ -2,6 +2,7 @@ package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
@@ -27,8 +28,8 @@ public class SceneryDecoration extends SceneryFlatObject {
     /**
      *
      */
-    private SceneryDecoration(String creatortag, Material material) {
-        super(creatortag, material, null, new Area(null, null));
+    private SceneryDecoration(String creatortag, Material material, SceneryProjection projection) {
+        super(creatortag, material, null, new Area(null, null), projection);
         //Q&D Versuch
         decoratorComponent = new RoadDecorator();
     }

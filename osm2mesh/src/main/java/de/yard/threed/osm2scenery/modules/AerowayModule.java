@@ -126,7 +126,7 @@ public class AerowayModule extends SceneryModule {
                 log.debug("found runway ");
                 foundrunway = true;
 
-                Runway runway = new Runway(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/);
+                Runway runway = new Runway(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, null);
                 //SceneryContext.getInstance().highways.put(osmid, road);
                 //Polygone werden gleich schon berbaucht zum Ausscvhneiden. 21.5.19:Gibt es jetzt erstmal nicht.
                 //mal weglassen runway.createPolygon();
@@ -260,11 +260,11 @@ public class AerowayModule extends SceneryModule {
             TerrainMesh tm = null;
             log.warn("no TerrainMesh");
             if (taxiwayarea == null) {
-                if (!ta.isEmpty(tm)) {
+                if (!ta.isEmpty()) {
                     taxiwayarea = ta.poly.uncutPolygon;
                 }
             } else {
-                if (!ta.isEmpty(tm)) {
+                if (!ta.isEmpty()) {
                     taxiwayarea = taxiwayarea.union(ta.poly.uncutPolygon);
                 }
             }
@@ -332,10 +332,10 @@ public class AerowayModule extends SceneryModule {
         //fatal zu verwahren wegen cut public AbstractArea[] segments;
         VectorXZ startCoord, endCoord;
 
-        public Runway(MapWay mapWay, TagMap materialmap) {
+        public Runway(MapWay mapWay, TagMap materialmap, SceneryProjection projection) {
 
             //super(line);
-            super("Runway", null, Category.RUNWAY, null);
+            super("Runway", null, Category.RUNWAY, null, projection);
             osmIds.add(mapWay.getOsmId());
 
             this.tags = mapWay.getTags();//tags;
@@ -529,7 +529,7 @@ public class AerowayModule extends SceneryModule {
          * @param aerowayobjects
          */
         public Apron(MapArea area, SceneryObjectList aerowayobjects) {
-            super(area, "Apron", Materials.ASPHALT, Category.APRON);
+            super(area, "Apron", Materials.ASPHALT, Category.APRON, null);
             this.aerowayobjects = aerowayobjects;
         }
 
@@ -557,11 +557,11 @@ public class AerowayModule extends SceneryModule {
 
     public static class TaxiwayArea extends ScenerySupplementAreaObject {
         TaxiwayArea() {
-            super("TaxiwayArea", Materials.ASPHALT, null);
+            super("TaxiwayArea", Materials.ASPHALT,null,null);
         }
 
         TaxiwayArea(Polygon taxiwayarea) {
-            super("TaxiwayArea", taxiwayarea, Materials.ASPHALT);
+            super("TaxiwayArea", taxiwayarea, Materials.ASPHALT, null);
         }
 
         @Override

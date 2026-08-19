@@ -75,7 +75,7 @@ public class AerowayModuleTest {
         //Skizze 67: Segmente 4 und 5 schneiden Grid.
         for (int i = 0; i < 4; i++) {
             segment = runway.getArea()[0];
-            assertTrue(segment.isEmpty(null), "apron.decorations.minimum 20");
+            assertTrue(segment.isEmpty(), "apron.decorations.minimum 20");
         }
         segment = runway.getArea()[6];
         VertexData vd = segment.getVertexData();

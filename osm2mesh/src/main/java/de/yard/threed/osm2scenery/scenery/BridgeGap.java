@@ -40,7 +40,7 @@ public class BridgeGap extends ScenerySupplementAreaObject {
      * NeeNeeNee, den Spuk lass ich mal.
      */
     public BridgeGap(String creatortag, BridgeModule.Bridge bridge, Material material/*,SceneryWayObject roadorrailway*/) {
-        super(creatortag, material, null);
+        super(creatortag, material, null,null);
         this.bridge = bridge;
         //basepolygon=polygon;
         //this.roadorrailway = roadorrailway;

@@ -3,6 +3,7 @@ package de.yard.threed.osm2scenery.scenery;
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.OsmUtil;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.RenderedObject;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryRenderer;
@@ -56,18 +57,22 @@ public abstract class SceneryObject {
     public boolean isCut = false;
     boolean isClipped = false;
     public int failureCounter=0;
+    // The current projection used for building this object. Is needed for connecting to existing mesh nodes.
+    protected SceneryProjection projection;
 
-    public SceneryObject(String creatortag, Category category) {
+    public SceneryObject(String creatortag, Category category, SceneryProjection projection) {
         this.creatortag = creatortag;
         this.category = category;
         this.id = idvalue++;
+        this.projection = projection;
     }
 
-    public SceneryObject(String creatortag, Category category, long osmid) {
+    public SceneryObject(String creatortag, Category category, long osmid, SceneryProjection projection) {
         this.creatortag = creatortag;
         this.category = category;
         this.id = idvalue++;
         osmIds.add(osmid);
+        this.projection = projection;
     }
 
     /**
@@ -185,7 +190,7 @@ public abstract class SceneryObject {
      */
     public abstract List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException;
 
-    public void clip(TerrainMesh tm) throws MeshInconsistencyException{
+    public void clip() throws MeshInconsistencyException{
         if (isClipped) {
             // 10.3.26: Avoid multiple
             throw new MeshInconsistencyException("multiple clip");

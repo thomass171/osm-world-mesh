@@ -26,7 +26,7 @@ public class DefaultTerrainMeshAdder implements TerrainMeshAdder {
         for (AbstractArea abstractArea : areas) {
             //keine leeren und nicht doppelt. Die Doppelgefahr besteht z.B. bei Supplements, die direkt aus dem Mesh erstellt wurden. Wird aber gelogged, weil
             //es nicht ganz koscher ist, hier hin zu kommen.
-            if (!abstractArea.isEmpty(tm)) {
+            if (!abstractArea.isEmpty()) {
                 /*16.4.26 if (abstractArea.isPartOfMesh) {
                     log.warn("area already part of mesh");
                 } else*/ {

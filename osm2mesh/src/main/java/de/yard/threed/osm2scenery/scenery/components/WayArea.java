@@ -569,7 +569,7 @@ public class WayArea extends AbstractArea {
      */
     public CoordinatePair getPair(int index) {
         TerrainMesh tm = null;
-        if (isEmpty(tm)) {
+        if (isEmpty()) {
             //TODO sollte uebrhaupt kein Way sein, oder?
             log.warn("should not be called on empty ways");
             return null;
@@ -672,7 +672,7 @@ public class WayArea extends AbstractArea {
         TerrainMesh tm = null;
         //27.3.24 TerrainMesh isn't yet available here! Is it?
 
-        if (isEmpty(tm)) {
+        if (isEmpty()) {
             //TODO sollte uebrhaupt kein Way sein, oder?
             log.warn("should not be called on empty ways");
             return null;

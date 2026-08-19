@@ -75,7 +75,7 @@ public class OsmService {
        /* 16.2.26OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(mapProjection, targetBounds);
         MapData mapData = converter.createMapData(osmData);*/
 
-        SceneryContext sceneryContext = SceneryContext.buildFromDatabase(terrainMeshManager.findOsmWays(), mapData);
+        SceneryContext sceneryContext = SceneryContext.buildFromDatabase(terrainMeshManager.findOsmWays(), mapData, null);
 
         Phase.updatePhase(Phase.OBJECTS);
 

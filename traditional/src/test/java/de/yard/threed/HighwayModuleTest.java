@@ -183,10 +183,10 @@ public class HighwayModuleTest {
         }
 
 
-        k41vonunten.clip(tm);
-        k41upper.clip(tm);
-        k43.clip(tm);
-        k41k43connector.clip(tm);
+        k41vonunten.clip();
+        k41upper.clip();
+        k43.clip();
+        k41k43connector.clip();
 
         //Coordinate "2" pruefen, auch nach einem cut
         Pair<Coordinate, Coordinate> pair0 = ((WayArea) k41vonunten.getArea()[0]).getEndPair();
@@ -196,8 +196,8 @@ public class HighwayModuleTest {
         assertEquals(4, k43innerconnector.size(), "k43.innerConnector.size");
 
         connectorK43GutDesdorf.createPolygon( null, tm, SceneryContext.getInstance());
-        connectorK43GutDesdorf.clip(tm);
-        gutdesdorf.clip(tm);
+        connectorK43GutDesdorf.clip();
+        gutdesdorf.clip();
 
         pair0 = gutdesdorf.getWayArea().getStartPair(tm);
         pair1 = connectorK43GutDesdorf.getAttachCoordinates(gutdesdorf.mapWay.mapWay);
@@ -216,13 +216,13 @@ public class HighwayModuleTest {
         //16.3.26 w33817501.getStartConnector().createPolygon( null, tm, SceneryContext.getInstance());
         gutdesdorfnorth.innerConnector.get(0).createPolygon( null, tm, SceneryContext.getInstance());
         //16.3.26gutdesdorfnorth.getStartConnector().createPolygon( null, tm, SceneryContext.getInstance());
-        gutdesdorfnorth.clip(tm);
-        w33817500.clip(tm);
-        w33817501.clip(tm);
+        gutdesdorfnorth.clip();
+        w33817500.clip();
+        w33817501.clip();
         pair0 = w33817500.getWayArea().getEndPair();
         pair1 = w33817501.getWayArea().getStartPair(tm);
         TestUtil.assertCoordinate("33817500/33817501 connectorattach", pair0.getFirst(), pair1.getFirst());
-        gutdesdorfnorth.innerConnector.get(0).clip(tm);
+        gutdesdorfnorth.innerConnector.get(0).clip();
         //16.3.26gutdesdorfnorth.getStartConnector().clip(tm);
 
         assertEquals(5, k43.getWayArea().getSegmentCount(), "k43.segments");
@@ -251,7 +251,7 @@ public class HighwayModuleTest {
         //erst die noch fehlenden Connector, dann die Ways
         for (long osmid : new long[]{251517906, 255563537, 270353278,/*EOC*/225794271, 24879711}) {
             SceneryFlatObject swo = (SceneryFlatObject) roads.findObjectByOsmId(osmid);
-            swo.clip(tm);
+            swo.clip();
             swo.cut(SceneryTestUtil.gridCellBounds);
         }
 

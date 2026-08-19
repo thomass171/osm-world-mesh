@@ -106,7 +106,7 @@ public class RailwayModule extends SceneryModule {
 		
 		public Rail(MapWay/*Segment*/ segment, SceneryContext sceneryContext) {
 			
-			super("Railway",segment.segment2s.get(0), RAIL,RAILWAY,new FixedWidthProvider(5/*groundwidht*/), sceneryContext);
+			super("Railway",segment.segment2s.get(0), RAIL,RAILWAY,new FixedWidthProvider(5/*groundwidht*/), sceneryContext, null);
 			
 			gaugeMeters = parseInt(segment.getTags(), DEFAULT_GAUGE_MM, "gauge") / 1000.0f;
 			railDist = gaugeMeters + 2 * (0.5f * RAIL_HEAD_WIDTH);

@@ -37,7 +37,7 @@ public class SceneryObjectFactory {
      */
     public static SceneryWayObject createTaxiway(MapWay line, TagMap materialmap, AerowayModule.TaxiWayCustomData taxiWayCustomData, SceneryContext sceneryContext) {
 
-        SceneryWayObject taxiway = new SceneryWayObject("Taxiway", line.segment2s.get(0), Materials.TAXIWAY_YELLOW, SceneryObject.Category.TAXIWAY, new FixedWidthProvider(AerowayModule.GROUNDNETMARKERWIDTH), sceneryContext);
+        SceneryWayObject taxiway = new SceneryWayObject("Taxiway", line.segment2s.get(0), Materials.TAXIWAY_YELLOW, SceneryObject.Category.TAXIWAY, new FixedWidthProvider(AerowayModule.GROUNDNETMARKERWIDTH), sceneryContext, null);
         return taxiway;
     }
 
@@ -47,14 +47,14 @@ public class SceneryObjectFactory {
      */
     public static SceneryAreaObject createBuilding(MapArea mapArea, TagMap materialmap, BuildingComponent buildingComponent) {
 
-        SceneryAreaObject building = new SceneryAreaObject(mapArea, "Building", Materials.WALL_DEFAULT, SceneryObject.Category.BUILDING);
+        SceneryAreaObject building = new SceneryAreaObject(mapArea, "Building", Materials.WALL_DEFAULT, SceneryObject.Category.BUILDING, null);
         building.volumeProvider = buildingComponent;
         building.cycle = SceneryObject.Cycle.BUILDING;
         return building;
     }
 
     public static ScenerySupplementAreaObject createWayToAreaFiller(SceneryWayObject way, MeshFillCandidate candidate) {
-        ScenerySupplementAreaObject supplement = new ScenerySupplementAreaObject("WayToAreaFiller", candidate, Materials.TERRAIN_DEFAULT);
+        ScenerySupplementAreaObject supplement = new ScenerySupplementAreaObject("WayToAreaFiller", candidate, Materials.TERRAIN_DEFAULT,null);
         supplement.flatComponent[0].parentInfo = "WayToAreaFiller";
         return supplement;
     }

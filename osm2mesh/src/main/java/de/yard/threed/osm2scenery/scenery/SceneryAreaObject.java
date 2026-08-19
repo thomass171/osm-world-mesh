@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
@@ -43,15 +44,15 @@ public class SceneryAreaObject extends SceneryFlatObject {
     @Deprecated
     MapNode mapNode;
 
-    public SceneryAreaObject(MapArea maparea, String creatortag, Material material, Category category) {
-        super(creatortag, material, category, new Area((Polygon) null, material));
+    public SceneryAreaObject(MapArea maparea, String creatortag, Material material, Category category, SceneryProjection projection) {
+        super(creatortag, material, category, new Area((Polygon) null, material), projection);
         this.maparea = maparea;
         osmIds.add(maparea.getOsmId());
         terrainMeshAdder=new DefaultTerrainMeshAdder(this);
     }
 
-    public SceneryAreaObject(MapNode mapNode, String creatortag, Material material, Category category, AbstractArea area) {
-        super(creatortag, material, category, area);
+    public SceneryAreaObject(MapNode mapNode, String creatortag, Material material, Category category, AbstractArea area, SceneryProjection projection) {
+        super(creatortag, material, category, area, projection);
         this.mapNode = mapNode;
         terrainMeshAdder=new DefaultTerrainMeshAdder(this);
     }
