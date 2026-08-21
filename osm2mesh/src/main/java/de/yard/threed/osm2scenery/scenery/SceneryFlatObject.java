@@ -63,7 +63,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
     public List<Coordinate> newcoordinates;
     //just for analysis and testing. Eigentlich nur fuer "Area"
     public List<PolygonSubtractResult> polydiffs = new ArrayList<>();
-    protected TerrainMeshAdder terrainMeshAdder=null;
+   //20.8.26  protected TerrainMeshAdder terrainMeshAdder=null;
     //enthaelt die gemeinsamen Coordinates mit anderen Areas. Das ist aber nur noch optional, evtl. deprecated
     //zugunsten der adHoc Ermittlung.
     Map<MapArea, List<Coordinate>> adjacentmapareas = new HashMap();
@@ -607,11 +607,11 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * For a more consistent program flow
      * 10.3.26
      */
-    public void cca(TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException, OsmProcessException {
+    public void cca(TerrainMesh tm, SceneryContext sceneryContext, TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException, OsmProcessException {
         createPolygon(/*new ArrayList<>(),*/ tm.getGridCellBounds(), tm, sceneryContext);
         clip();
         // DB persist
-        addToTerrainMesh(tm);
+        addToTerrainMesh(terrainMeshAdder);
     }
     /**
      * resolve overlaps

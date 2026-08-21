@@ -4,6 +4,8 @@ import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.OsmUtil;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
@@ -22,16 +24,17 @@ import java.util.stream.Collectors;
  * Added for adding a way to the TerrainMesh.
  */
 @Slf4j
-public class WayTerrainMeshAdder implements TerrainMeshAdder {
-    SceneryWayObject sceneryWayObject;
+public class WayTerrainMeshAdder extends TerrainMeshAdder {
+   //20.8.26  SceneryWayObject sceneryWayObject;
 
     /**
      * TODO das ist doch eine zu grosse Dependency, oder?
      *
      * @param sceneryWayObject
      */
-    public WayTerrainMeshAdder(SceneryWayObject sceneryWayObject) {
-        this.sceneryWayObject = sceneryWayObject;
+    public WayTerrainMeshAdder(String meshName, MeshServiceFacade meshService, SceneryProjection projection/*, SceneryWayObject sceneryWayObject*/) {
+        super(meshName,meshService,projection);
+        //20.8.26  this.sceneryWayObject = sceneryWayObject;
     }
 
     /**
@@ -39,7 +42,7 @@ public class WayTerrainMeshAdder implements TerrainMeshAdder {
      */
     /*26.2.26 @Override
     public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {*/
-public static void persistWay(SceneryWayObject sceneryWayObject,TerrainMesh tm) throws MeshInconsistencyException, OsmProcessException {
+public /*static*/ void persistWay(SceneryWayObject sceneryWayObject) throws MeshInconsistencyException, OsmProcessException {
         /*16.2.26 TODO NPE if (areas[0].isEmpty(tm)) {
             return;
         }*/
@@ -89,7 +92,7 @@ public static void persistWay(SceneryWayObject sceneryWayObject,TerrainMesh tm) 
                         }
                     }
                 }
-                if (tm.isPreDbStyle()) {
+                /*20.8.26 if (tm.isPreDbStyle()) {
                     Util.nomore();
                     /*26.2.26 boolean endOnGrid = conn == 0 && sceneryWayObject.endMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
 
@@ -103,10 +106,10 @@ public static void persistWay(SceneryWayObject sceneryWayObject,TerrainMesh tm) 
                         boolean startOnGrid = wayArea.getRightLines(tm).size() == 0 && sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.GRIDBOUNDARY;
                         wayArea.addRightline(tm.registerLine(rightline, areas[0], null, startOnGrid, endOnGrid));
                         rightline = new ArrayList<>();
-                    }*/
-                } else {
+                    }* /
+                } else*/ {
                     //11.2.26 now via service(contained in tm)
-                    tm.registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2);
+                   /* tm.*/registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2);
 
                 }
             }
@@ -126,12 +129,12 @@ public static void persistWay(SceneryWayObject sceneryWayObject,TerrainMesh tm) 
                 rightline.add(pair.right());
             }
 
-            tm.registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2);
+            /*tm.*/registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2);
 
         }
 
         // Also consider dead end. Connect left and right lines from above.
-        if (tm.isPreDbStyle()) {
+        /*19.8.26 if (tm.isPreDbStyle()) {
             Util.nomore();
                     /*26.2.26 if (sceneryWayObject.startMode == SceneryWayObject.WayOuterMode.DEADEND) {
                 CoordinatePair p = wayArea.getStartPair(tm)[0];
@@ -144,8 +147,8 @@ public static void persistWay(SceneryWayObject sceneryWayObject,TerrainMesh tm) 
                 tm.registerLine(JtsUtil.toList(p.left(), p.right()), null, areas[0], false, false);
                 tm.addKnownTwoEdger(p.left());
                 tm.addKnownTwoEdger(p.right());
-            }*/
-        }
+            }* /
+        }*/
         //  lazy cut isType already registerd in GridBounds, but needs left/right
 
         /*kann man hier nicht pruefen, weil Connector noch fehlen if (!TerrainMesh.getInstance().isValid(true)){

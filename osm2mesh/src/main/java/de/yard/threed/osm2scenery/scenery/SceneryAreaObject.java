@@ -14,6 +14,7 @@ import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
 import de.yard.threed.osm2scenery.util.PolygonMetadata;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
 import de.yard.threed.osm2world.JTSConversionUtil;
@@ -48,13 +49,13 @@ public class SceneryAreaObject extends SceneryFlatObject {
         super(creatortag, material, category, new Area((Polygon) null, material), projection);
         this.maparea = maparea;
         osmIds.add(maparea.getOsmId());
-        terrainMeshAdder=new DefaultTerrainMeshAdder(this);
+        //20.8.26terrainMeshAdder=new DefaultTerrainMeshAdder(this);
     }
 
     public SceneryAreaObject(MapNode mapNode, String creatortag, Material material, Category category, AbstractArea area, SceneryProjection projection) {
         super(creatortag, material, category, area, projection);
         this.mapNode = mapNode;
-        terrainMeshAdder=new DefaultTerrainMeshAdder(this);
+        //20.8.26terrainMeshAdder=new DefaultTerrainMeshAdder(this);
     }
 
 
@@ -158,7 +159,7 @@ public class SceneryAreaObject extends SceneryFlatObject {
     }
 
     @Override
-    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
 
         return ;
     }

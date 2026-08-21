@@ -3,6 +3,8 @@ package de.yard.threed.osm2scenery.scenery.components;
 import com.vividsolutions.jts.geom.LineString;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.JtsUtil;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.BridgeModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -19,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 @Slf4j
-public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
+public class BridgeTerrainMeshAdder extends TerrainMeshAdder {
     BridgeGap bridgeGap;
 
     /**
@@ -28,7 +30,8 @@ public class BridgeTerrainMeshAdder implements TerrainMeshAdder {
      *
      * @param bridgeGap
      */
-    public BridgeTerrainMeshAdder(BridgeGap bridgeGap) {
+    public BridgeTerrainMeshAdder(String meshName, MeshServiceFacade meshService, SceneryProjection projection,BridgeGap bridgeGap) {
+        super(meshName,meshService,projection);
         this.bridgeGap = bridgeGap;
     }
 

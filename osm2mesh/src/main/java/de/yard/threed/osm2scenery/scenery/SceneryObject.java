@@ -11,6 +11,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
+import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
 import de.yard.threed.osm2scenery.scenery.components.VolumeProvider;
 import de.yard.threed.osm2world.MapNode;
 import de.yard.threed.osm2world.TagGroup;
@@ -269,7 +270,7 @@ public abstract class SceneryObject {
     // Now for 2026 DB persist. Should replace TerrainMeshAdder?
     // Temporarily we need TerrainMesh as parameter for meshservice and the mesh name
     // 10.3.26: Should have createpolygon() before.
-    public abstract void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException;
+    public abstract void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException;
 
     //22.8.18: Ist Category ein Ersatz fuer creatoretag? Erstmal nicht. Es kann immer nur eine Category pro Object geben, oder?
     //auf jeden Fall darf sie null sein.

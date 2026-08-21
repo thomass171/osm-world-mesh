@@ -45,7 +45,7 @@ public class BridgeGap extends ScenerySupplementAreaObject {
         //basepolygon=polygon;
         //this.roadorrailway = roadorrailway;
         //bridgegap macht terrain mesh für alle Teile
-        terrainMeshAdder = new BridgeTerrainMeshAdder(this);
+        //20.8.26 terrainMeshAdder = new BridgeTerrainMeshAdder(this);
     }
 
     @Override

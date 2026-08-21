@@ -125,7 +125,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         GridCellBounds gridCellBounds = new GridCellBounds(boundary);
 
         TerrainMesh terrainMesh = TerrainMesh.init(gridCellBounds, points, polygons);
-        terrainMesh.meshService = buildMeshServiceFacade();
+        //terrainMesh.meshService = buildMeshServiceFacade();
         terrainMesh.meshName = meshName;
         // TODO make sure to have full outline in mesh(??)
         terrainMesh.points.forEach(p -> {

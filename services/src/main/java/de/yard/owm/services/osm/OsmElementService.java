@@ -68,7 +68,7 @@ public class OsmElementService {
             return 1;
         }
         //  for (SceneryModule module : modules) {
-        SceneryModule module = classifier.getModule();//new WayModule();
+        SceneryModule module = classifier.getModule().buildModule(null);//new WayModule();
             /*Not possible here because it might be an area SceneryWayConnector fromConnector;
             if ((fromConnector = tm.getFromConnector()) == null) {
                 fromConnector = wayModule.createConnector();

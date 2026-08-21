@@ -13,6 +13,7 @@ import de.yard.threed.osm2graph.osm.MapDataHelper;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2graph.osm.TextureUtil;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
@@ -21,11 +22,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroupFinder;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.*;
-import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import de.yard.threed.osm2scenery.scenery.components.Area;
-import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
-import de.yard.threed.osm2scenery.scenery.components.RoadDecorator;
-import de.yard.threed.osm2scenery.scenery.components.WayArea;
+import de.yard.threed.osm2scenery.scenery.components.*;
 import de.yard.threed.osm2scenery.util.TagFilter;
 import de.yard.threed.osm2scenery.util.TagHelper;
 import de.yard.threed.osm2scenery.util.TagMap;
@@ -84,6 +81,10 @@ public class AerowayModule extends SceneryModule {
     //Die gemergte Flaeche aller Taxiways.
     Geometry taxiwayarea = null;
     SceneryObjectList aerowayobjects = new SceneryObjectList();
+
+    public AerowayModule(MeshServiceFacade meshServiceFacade) {
+        super(meshServiceFacade);
+    }
 
     @Override
     public void extendMapData(String osmDatasetName, MapData mapData, OSMToSceneryDataConverter converter) {
@@ -347,7 +348,7 @@ public class AerowayModule extends SceneryModule {
             startCoord = mapWay.getStartNode().getPos();
             endCoord = mapWay.getEndNode().getPos();
             this.mapWay = mapWay;
-            terrainMeshAdder=new DefaultTerrainMeshAdder(this);
+           //20.8.26 terrainMeshAdder=new DefaultTerrainMeshAdder(this);
         }
 
         private void adjustMaterialForSegment(ConfMaterial material, int i) {
@@ -465,7 +466,7 @@ public class AerowayModule extends SceneryModule {
         }
 
         @Override
-        public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
 
             return ;
         }

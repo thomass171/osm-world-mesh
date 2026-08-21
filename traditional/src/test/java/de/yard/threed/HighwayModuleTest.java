@@ -67,7 +67,7 @@ public class HighwayModuleTest {
     public void testDesdorf() throws IOException, OsmProcessException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Desdorf.osm.xml", "Desdorf", "superdetailed");
 
-        HighwayModule roadModule = new HighwayModule();
+        HighwayModule roadModule = new HighwayModule(null);
         SceneryObjectList roads = roadModule.applyTo(SceneryTestUtil.mapData);
         roadModule.classify(SceneryTestUtil.mapData);
 
@@ -271,7 +271,7 @@ public class HighwayModuleTest {
 
 
         for (SceneryObject ob : knownobjects) {
-            ((SceneryFlatObject) ob).addToTerrainMesh(tm);
+            ((SceneryFlatObject) ob).addToTerrainMesh(null);
         }
         /*14.8.26 List<MeshLine> leftlines = k43.getWayArea().getLeftLines(tm);
         List<MeshLine> rightlines = k43.getWayArea().getRightLines(tm);
@@ -378,7 +378,7 @@ public class HighwayModuleTest {
     public void testB55B477() throws IOException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/B55-B477.osm.xml", "B55-B477", "superdetailed");
 
-        HighwayModule roadModule = new HighwayModule();
+        HighwayModule roadModule = new HighwayModule(null);
         SceneryObjectList roads = roadModule.applyTo(SceneryTestUtil.mapData);
 
         //der Kreisverkehr. Der Split ist ganz am Ende
@@ -397,7 +397,7 @@ public class HighwayModuleTest {
     public void testZieverichSued() throws IOException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Zieverich/Zieverich-Sued.osm.xml", "Zieverich/Zieverich-Sued", "superdetailed");
 
-        HighwayModule roadModule = new HighwayModule();
+        HighwayModule roadModule = new HighwayModule(null);
         SceneryObjectList roads = roadModule.applyTo(SceneryTestUtil.mapData);
 
         //P-Shaped way 38809414 wurde an 275038674 (index 4 des 38809414) gesplittet.

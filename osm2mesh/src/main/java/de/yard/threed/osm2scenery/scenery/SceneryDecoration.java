@@ -10,6 +10,7 @@ import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.DecoratorComponent;
 import de.yard.threed.osm2scenery.scenery.components.RoadDecorator;
+import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
 import de.yard.threed.osm2scenery.util.PolygonMetadata;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
 import de.yard.threed.osm2world.Material;
@@ -55,7 +56,7 @@ public class SceneryDecoration extends SceneryFlatObject {
     }
 
     @Override
-    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
 
         return ;
     }

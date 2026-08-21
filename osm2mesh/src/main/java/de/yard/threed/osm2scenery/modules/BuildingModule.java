@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.OsmUtil;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
@@ -44,6 +45,10 @@ public class BuildingModule extends SceneryModule {
     Map<MapArea, Building> area2building = new HashMap<>();
     Map<MapArea, BuildingCluster> area2cluster = new HashMap<>();
     private SceneryObjectList buildingobjects;
+
+    public BuildingModule(MeshServiceFacade meshServiceFacade) {
+        super(meshServiceFacade);
+    }
 
     @Override
     public SceneryObjectList applyTo(MapData mapData) {

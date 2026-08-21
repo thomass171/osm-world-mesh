@@ -65,8 +65,6 @@ public class TerrainMesh {
     private boolean hasDuplicates = false;
     public List<String> warnings = new ArrayList<>();
     public String meshName;
-    // 14.2.26 only temporary!
-    public MeshServiceFacade meshService;
 
 
     /**
@@ -368,6 +366,7 @@ public class TerrainMesh {
     /**
      * Ways and WayConnector.
      * 5.8.19: Not for areas.
+     * 20.8.26: Deprecated ot still in use?
      */
     public void addWays(List<SceneryObject> sceneryObjects) throws OsmProcessException, MeshInconsistencyException {
         if (isPreDbStyle()) {
@@ -392,12 +391,12 @@ public class TerrainMesh {
             if (obj.isTerrainProvider) {
                 if (obj instanceof SceneryWayObject) {
                     SceneryWayObject way = (SceneryWayObject) obj;
-                    way.addToTerrainMesh(this);
+                    way.addToTerrainMesh(null);
 
                 }
                 if (obj instanceof SceneryWayConnector) {
                     SceneryWayConnector way = (SceneryWayConnector) obj;
-                    way.addToTerrainMesh(this);
+                    way.addToTerrainMesh(null);
 
                 }
             }
@@ -412,6 +411,7 @@ public class TerrainMesh {
         }
     }
 
+    // 20.8.26: Deprecated ot still in use?
     public void addAreas(List<SceneryObject> sceneryObjects) throws OsmProcessException, MeshInconsistencyException {
         if (step != 2) {
             throw new RuntimeException("invalid step");
@@ -424,12 +424,12 @@ public class TerrainMesh {
 
                 if (obj instanceof SceneryAreaObject) {
                     SceneryAreaObject way = (SceneryAreaObject) obj;
-                    way.addToTerrainMesh(this);
+                    way.addToTerrainMesh(null);
 
                 }
                 if (obj instanceof AerowayModule.Runway) {
                     //der instanceof Runway ist ja nun auch wieder doof
-                    ((AerowayModule.Runway) obj).addToTerrainMesh(this);
+                    ((AerowayModule.Runway) obj).addToTerrainMesh(null);
 
                 }
             }
@@ -447,6 +447,7 @@ public class TerrainMesh {
     /**
      * GapFiller sind hier noch nicht dabei. Die registrieren sich spaeter selber.
      * Die Liste enthält nur Supplements.
+     * // 20.8.26: Deprecated ot still in use?
      */
     public void addSupplements(List<SceneryObject> supplements) throws OsmProcessException, MeshInconsistencyException {
         if (step != 3) {
@@ -457,7 +458,7 @@ public class TerrainMesh {
 
                 //if (obj instanceof ScenerySupplementAreaObject) {
                 ScenerySupplementAreaObject way = (ScenerySupplementAreaObject) obj;
-                way.addToTerrainMesh(this);
+                way.addToTerrainMesh(null);
 
                 //}
 
@@ -520,92 +521,7 @@ public class TerrainMesh {
         return meshLine;
     }
 
-    /**
-     * 5.4.24: Three additional register instead of registerLine, which isn't ready for polygons.
-     * lanes is used leter to detect ways for triangulateAndTexturize
-     * connector might be null, otherwise the connecting part must have been created before.
-     * 6.4.24: Well, maybe its easier to keep existing registerLine for a while?
-     *
-     * @return
-     */
-    public MeshPolygon registerWay(long osmWayId, Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws OsmProcessException, MeshInconsistencyException {
 
-        meshService.addWay(meshName, osmWayId, JtsUtil.unproject(fromConnector, gridCellBounds.getProjection()), JtsUtil.unproject(leftLine, gridCellBounds.getProjection()), JtsUtil.unproject(rightLine, gridCellBounds.getProjection()), JtsUtil.unproject(toConnector, gridCellBounds.getProjection()), lanes);
-        return null;
-        /*12.2.26 moved to service Polygon polygon = JtsUtil.createPolygonFromWayOutlines(new CoordinateList(rightLine), new CoordinateList(leftLine));
-
-        List<MeshLine> linesToDelete = new ArrayList<>();
-        for (MeshLine line : lines) {
-            if (crosses(line, polygon)) {
-                // intersection found. If it is not a BG line, this is a failure. Either the way overlaps some existing area or the (sub)mesh is too small.
-                if (!MeshLine.isBackgroundTriangulation(line.getType())) {
-                    throw new OsmProcessException("polygon crosses unremovable line " + line);
-                }
-                linesToDelete.add(line);
-            }
-        }
-        linesToDelete.forEach(l -> deleteLineFromMesh(l));
-
-        AbstractArea/*SceneryFlatObject* / leftArea = null;
-        AbstractArea/*SceneryFlatObject* / rightArea = null;
-
-        MeshArea meshArea = addArea();
-        meshArea.setOsmWay(osmWay);
-
-        List<MeshLine> newLines = new ArrayList<>();
-        MeshNode n = meshFactoryInstance.buildMeshNode(leftLine.get(0));
-        points.add(n);
-        MeshLine l;
-        for (int i = 1; i < leftLine.size(); i++) {
-            l = addLine(n, leftLine.get(i));
-            n = l.getTo();
-            newLines.add(l);
-            l.setRight(meshArea);
-        }
-        l = addLine(n, rightLine.get(rightLine.size() - 1));
-        n = l.getTo();
-        newLines.add(l);
-
-        for (int i = rightLine.size() - 2; i >= 0; i--) {
-            l = addLine(n, rightLine.get(i));
-            n = l.getTo();
-            newLines.add(l);
-            // polygon continues, so 'right' is correct.
-            l.setRight(meshArea);
-        }
-
-        // lines.addAll(registerLineNonPreDB(JtsUtil.toList(leftLine.get(0), rightLine.get(0)), null, null));
-        l = meshFactoryInstance.buildMeshLine(n, newLines.get(0).getFrom());
-        newLines.add(l);
-        lines.addAll(newLines);
-
-        MeshPolygon newArea = null;
-        try {
-            newArea = new MeshPolygon(newLines);
-
-            // the new area has no connection to the mesh yet.
-            MeshLine someLine = findSomeEnclosingLine(newArea);
-            if (someLine == null) {
-                throw new OsmProcessException("no enclosing line");
-            }
-            MeshPolygon enclosingPolygon = traversePolygon(someLine, null, true);
-            if (enclosingPolygon == null) {
-                throw new OsmProcessException("no enclosingPolygon");
-            }
-
-            // connect ot background mesh
-            MeshLine startConnectingLine = newLines.get(newLines.size() - 1);
-            connectAreaNodeToPolygon(newLines.get(0), newLines.get(0).getFrom(), newArea, enclosingPolygon);
-            MeshLine endConnectingLine = newLines.get(leftLine.size() - 1);
-            connectAreaNodeToPolygon(endConnectingLine, endConnectingLine.getFrom(), newArea, enclosingPolygon);
-            connectAreaNodeToPolygon(endConnectingLine, endConnectingLine.getTo(), newArea, enclosingPolygon);
-            connectAreaNodeToPolygon(startConnectingLine, startConnectingLine.getFrom(), newArea, enclosingPolygon);
-            // the caller should call validate before persist. Don't remember the reason.
-            return newArea;
-        } catch (MeshInconsistencyException e) {
-            throw new OsmProcessException(e);
-        }*/
-    }
 
     /*14.2.26 private void connectAreaNodeToPolygon(MeshLine rline, MeshNode connectNode, MeshPolygon newArea, MeshPolygon enclosingPolygon) throws MeshInconsistencyException {
         MeshNodeDetails details = new MeshNodeDetails(connectNode);
@@ -680,14 +596,7 @@ public class TerrainMesh {
         return null;
     }
 
-    /**
-     * Analog to registerWay. "pair.second" is attached way id
-     */
-    MeshPolygon/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line,  Map<MapWaySegmentAtConnector,Pair<Integer,Integer>> wayAttachPoints) throws OsmProcessException, MeshInconsistencyException {
-       TerrainMesh tm = meshService.addConnector(meshName, osmNodeId,line,wayAttachPoints);
-       return tm.getConnector(osmNodeId);
 
-    }
 
     public void registerArea() {
 

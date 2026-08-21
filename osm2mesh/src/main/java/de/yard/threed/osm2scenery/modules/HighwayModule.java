@@ -4,6 +4,7 @@ package de.yard.threed.osm2scenery.modules;
 import de.yard.threed.core.Util;
 import de.yard.threed.core.Vector2;
 import de.yard.threed.osm2graph.osm.OsmUtil;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -11,6 +12,7 @@ import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.RoadDecorator;
+import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
 import de.yard.threed.osm2scenery.util.TagFilter;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.*;
@@ -60,6 +62,10 @@ public class HighwayModule extends SceneryModule {
     private static final boolean RIGHT_HAND_TRAFFIC_BY_DEFAULT = true;
     private boolean cutConnectors = false;
     SceneryObjectList roadsAndBridges;
+
+    public HighwayModule(MeshServiceFacade meshServiceFacade) {
+        super(meshServiceFacade);
+    }
     //static  private Map<Long, List<Road>> roadmap = new HashMap<>();
 
     @Override
@@ -916,7 +922,7 @@ public class HighwayModule extends SceneryModule {
         }
 
         @Override
-        public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
 
             return ;
         }

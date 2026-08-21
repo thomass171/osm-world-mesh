@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.scenery.FixedWidthProvider;
@@ -69,6 +70,10 @@ public class WaterModule extends SceneryModule {
         WATERWAY_WIDTHS.put("canal", 2f);
         WATERWAY_WIDTHS.put("ditch", 1f);
         WATERWAY_WIDTHS.put("drain", 1f);
+    }
+
+    public WaterModule(MeshServiceFacade meshServiceFacade) {
+        super(meshServiceFacade);
     }
 
     //TODO: apply to isType almost always the same! create a superclass handling this!

@@ -53,7 +53,7 @@ public class MeshTest {
     public void testDesdorf() throws IOException, OsmProcessException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Desdorf.osm.xml", "Desdorf", "superdetailed");
 
-        SurfaceAreaModule surfaceAreaModule = new SurfaceAreaModule();
+        SurfaceAreaModule surfaceAreaModule = new SurfaceAreaModule(null);
         SceneryObjectList areas = surfaceAreaModule.applyTo(SceneryTestUtil.mapData);
         surfaceAreaModule.classify(SceneryTestUtil.mapData);
 
@@ -100,11 +100,11 @@ public class MeshTest {
         /*10.2.26assertEquals(3, tm.lines.size(), "tm.lines.size");*/
 
 
-        southFarmland.addToTerrainMesh(tm);
+        southFarmland.addToTerrainMesh(null);
         assertEquals(5, tm.getBoundaries().size(), "tm.boundaries.size");
         /*10.2.26assertEquals(5 + 3, tm.lines.size(), "tm.lines.size");*/
 
-        scrubAnK41.addToTerrainMesh(tm);
+        scrubAnK41.addToTerrainMesh(null);
 
         List<MeshLine> sharedBoundaries = tm.getSharedBoundaries();
         assertEquals(1, sharedBoundaries.size(), "tm.sharedBoundaries.size");

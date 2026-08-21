@@ -9,7 +9,9 @@ import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
+import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
+import de.yard.threed.osm2scenery.scenery.components.WayTerrainMeshAdder;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2world.*;
@@ -1015,7 +1017,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
 
         /**
          * TerrainMesh vorbereiten.
@@ -1036,7 +1038,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
         }
 
         //10.3.26 now in cca() createPolygon(tm.getGridCellBounds(), tm, SceneryContext.getInstance());
-        meshWayConnector = tm.registerConnector(node.getOsmId(), polygonLine, attachpair);
+        meshWayConnector = ((WayTerrainMeshAdder)terrainMeshAdder).registerConnector(node.getOsmId(), polygonLine, attachpair);
 
         // 27.2.26: We are back at storing polygons, so don't go this way any more.
        /*

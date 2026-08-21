@@ -8,6 +8,7 @@ import de.yard.threed.osm2scenery.polygon20.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
 import de.yard.threed.osm2world.*;
 
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
         areaElevation.eleconnectorgroups.add(egr);
         elevations = areaElevation;
         deprecatedusage++;
-        terrainMeshAdder=new DefaultTerrainMeshAdder(this);
+        //20.8.26terrainMeshAdder=new DefaultTerrainMeshAdder(this);
     }
 
     /**
@@ -78,7 +79,7 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
         isClipped = true;
         isCut = true;
         //muss ja nicht mehr ins mesh
-        terrainMeshAdder=null;
+        //20.8.26terrainMeshAdder=null;
     }
 
     /**
@@ -113,7 +114,7 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
         isClipped = true;
         isCut = true;
         //muss ja nicht mehr ins mesh
-        terrainMeshAdder=null;
+        //20.8.26terrainMeshAdder=null;
     }
 
     public ScenerySupplementAreaObject(String creatortag, Material material, Category category, SceneryProjection projection) {
@@ -150,7 +151,7 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
     }
 
     @Override
-    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
 
         return ;
     }

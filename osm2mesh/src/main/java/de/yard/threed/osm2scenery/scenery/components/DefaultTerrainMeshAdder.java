@@ -1,5 +1,7 @@
 package de.yard.threed.osm2scenery.scenery.components;
 
+import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.*;
 import lombok.extern.slf4j.Slf4j;
@@ -9,10 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class DefaultTerrainMeshAdder implements TerrainMeshAdder {
+public class DefaultTerrainMeshAdder extends TerrainMeshAdder {
     SceneryFlatObject sceneryFlatObject;
 
-    public DefaultTerrainMeshAdder(SceneryFlatObject sceneryFlatObject) {
+    public DefaultTerrainMeshAdder(String meshName, MeshServiceFacade meshService, SceneryProjection projection, SceneryFlatObject sceneryFlatObject) {
+        super(meshName,meshService,projection);
         this.sceneryFlatObject = sceneryFlatObject;
     }
 

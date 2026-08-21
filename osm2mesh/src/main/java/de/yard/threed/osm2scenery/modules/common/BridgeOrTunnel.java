@@ -48,7 +48,7 @@ public abstract class BridgeOrTunnel extends HighwayModule.Highway/*SceneryVolum
         //this.roadorrailway = roadorrailway;
         isTerrainProvider=false;
         //vorerst um den vom Way loszuwerden. Ableiter kann neu setzen.
-        terrainMeshAdder=null;
+        //20.8.26 terrainMeshAdder=null;
         //3.6.19 mal ohne versuchen flatComponent.isOverlay = true;
         // shares OSM id with way segment
         //3.6.19 doppelt osmIds.add(this/*roadorrailway*/.mapWay.getOsmId());

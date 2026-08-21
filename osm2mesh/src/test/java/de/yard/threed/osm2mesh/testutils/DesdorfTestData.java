@@ -27,6 +27,7 @@ public class DesdorfTestData {
     public MapData fullMapData;
     public GridCellBounds gridCellBounds;
     public ExpectedMeshPolygon expectedBoundary;
+public MeshServiceFacade meshService;
 
     public DesdorfTestData(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
         osmData = TestUtil.loadOsmDataFromXmlClasspath("Desdorf.osm.xml");
@@ -38,7 +39,7 @@ public class DesdorfTestData {
 
         SceneryContext.init(fullMapData);
 
-        MeshServiceFacade meshService = meshServiceFactory.createMeshService(gridCellBounds);//new MeshServiceMock(gridCellBounds);
+         meshService = meshServiceFactory.createMeshService(gridCellBounds);//new MeshServiceMock(gridCellBounds);
         ValidatorServiceFacade validatorService = validatorServiceFactory.createService();
 
         //15.5.26 terrainMesh = TerrainMesh.init(gridCellBounds);
@@ -49,7 +50,7 @@ public class DesdorfTestData {
         validatorService.validateMesh(terrainMesh,  expectedBoundary);
 
         //15.5.26?? TerrainMesh.meshFactoryInstance = new PersistedMeshFactory("Desdorf", gridCellBounds.getProjection().getBaseProjection(), terrainMeshManager);
-        terrainMesh.meshService = meshService;
+        //terrainMesh.meshService = meshService;
 
 
 

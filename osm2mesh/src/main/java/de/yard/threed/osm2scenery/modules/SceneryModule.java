@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
@@ -14,6 +15,7 @@ import de.yard.threed.osm2world.Config;
 import de.yard.threed.osm2world.MapData;
 import de.yard.threed.osm2world.MapWay;
 import de.yard.threed.osm2world.MapWaySegment2;
+import lombok.AllArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +23,10 @@ import java.util.List;
 /**
  * Created on 11.07.18.
  */
+@AllArgsConstructor
 public abstract class SceneryModule {
+    public MeshServiceFacade meshServiceFacade;
+
     public static List<? extends SceneryModule> getRelevant(List<? extends SceneryModule> worldModules, MapWay mapWay) {
         return new ArrayList<>(worldModules);
     }

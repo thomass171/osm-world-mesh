@@ -56,7 +56,7 @@ public class AerowayModuleTest {
         //Simple wegen sonst ueberhaengendem DeadEnd Zipfel
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/TestData-Simplified.osm.xml", "TestData", "superdetailed");
 
-        AerowayModule aerowayModule = new AerowayModule();
+        AerowayModule aerowayModule = new AerowayModule(null);
 
         SceneryObjectList objs = aerowayModule.applyTo(SceneryTestUtil.mapData);
         aerowayModule.classify(SceneryTestUtil.mapData);
@@ -110,7 +110,7 @@ public class AerowayModuleTest {
     public void dotestEDDKSmall(boolean osmOnly, int expectedtaxiways, int expectedwaymapsize, String c4name, double c4x, double c4heading) throws IOException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/EDDK-Small.osm.xml", "EDDK-Small", "superdetailed");
 
-        AerowayModule aerowayModule = new AerowayModule();
+        AerowayModule aerowayModule = new AerowayModule(null);
         if (!osmOnly) {
             aerowayModule.doExtendMapData("EDDK-Small.osm.xml", SceneryTestUtil.mapData, SceneryTestUtil.converter);
         }

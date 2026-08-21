@@ -14,10 +14,7 @@ import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.*;
-import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import de.yard.threed.osm2scenery.scenery.components.GraphComponent;
-import de.yard.threed.osm2scenery.scenery.components.WayArea;
-import de.yard.threed.osm2scenery.scenery.components.WayTerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.*;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2world.*;
 import lombok.extern.slf4j.Slf4j;
@@ -125,7 +122,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         for (int i = startNode; startNode != -1 && i <= endNode; i++) {
             effectiveNodes.add(mapWay.getMapNodes().get(i));
         }*/
-        terrainMeshAdder = new WayTerrainMeshAdder(this);
+        //20.8.26terrainMeshAdder = new WayTerrainMeshAdder(this);
         osmWayId = mapWay.getOsmId();
     }
 
@@ -178,6 +175,8 @@ public class SceneryWayObject extends SceneryFlatObject {
      * Ausserdem kann es günstig sein, den Polygon erst dann anzulegen, wenn alle
      * Verbindungen bekannt sind. Denn ergibt sich vielleicht ein sicher verbreiterndes Element.(??)
      *
+     * 20.8.26: Should also consider existing polygons and possibly adjust the way polygon to avoid overlaps.
+     * But this is not yet implemented. So also does something that could be called "clip/cut".
      * @param width
      */
     private/*protected*/ void createPolygon(double width, GridCellBounds gridbounds, SceneryContext sceneryContext) throws MeshInconsistencyException {
@@ -386,10 +385,10 @@ public class SceneryWayObject extends SceneryFlatObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {
+    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
 
         // TODO 10.3.26 save 'meshWay' like meshconnector
-        WayTerrainMeshAdder.persistWay(this, tm);
+        ((WayTerrainMeshAdder)terrainMeshAdder).persistWay(this);
         return ;
     }
 

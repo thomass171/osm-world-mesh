@@ -60,7 +60,7 @@ public class MeshServiceMock implements MeshServiceFacade {
         // ignore name for now
 
         TerrainMesh terrainMesh = TerrainMesh.init(gridCellBounds, points, polygons);
-        terrainMesh.meshService = this;
+       //20.8.26 terrainMesh.meshService = this;
         terrainMesh.meshName = meshName;
         return terrainMesh;
     }

@@ -18,7 +18,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(24879711);
-        WayModule wayModule = new WayModule();
+        WayModule wayModule = new WayModule(desdorfTestData.meshService);
 
         SceneryWayObject w = (SceneryWayObject) wayModule.applyTo(way.getLastSegment(), desdorfTestData.terrainMesh, SceneryContext.getInstance()).get(0);
     }
@@ -29,9 +29,9 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(107468171);
-        WayModule wayModule = new WayModule();
+        WayModule wayModule = new WayModule(desdorfTestData.meshService);
 
-        for (int i=0;i<expectedK43.length;i++) {
+        for (int i = 0; i < expectedK43.length; i++) {
             SceneryWayObject w = (SceneryWayObject) wayModule.applyTo(way.getSegment(i), desdorfTestData.terrainMesh, SceneryContext.getInstance()).get(0);
         }
     }

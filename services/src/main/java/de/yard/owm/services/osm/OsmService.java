@@ -4,10 +4,7 @@ import com.vividsolutions.jts.triangulate.ConstraintEnforcementException;
 import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
-import de.yard.threed.osm2scenery.Phase;
-import de.yard.threed.osm2scenery.SceneryContext;
-import de.yard.threed.osm2scenery.SceneryConversionFacade;
-import de.yard.threed.osm2scenery.SceneryMesh;
+import de.yard.threed.osm2scenery.*;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
 import de.yard.threed.osm2scenery.modules.SurfaceAreaModule;
@@ -122,7 +119,7 @@ public class OsmService {
         //try {
         /*sceneryMesh.sceneryObjects.objects.addAll*/
         //20.3.26 osmElementService.process(mapWay,                           SceneryModule.getRelevant(worldModules, mapWay), terrainMesh, sceneryContext, OsmClassifier.LOD_BASIC);
-        processMapData(mapData, meshName, osmwayid);
+        processMapData(mapData, meshName, osmwayid, MeshService.buildMeshServiceFacade());
                /*} catch (OsmProcessException | MeshInconsistencyException e) {
                    log.error("Adding way failed", e);
                }*/
@@ -197,10 +194,10 @@ public class OsmService {
         return populateMesh(meshName, mapData, null);
     }
 
-    private void processMapData(MapData mapData, String meshName, Long osmwayid) throws MeshInconsistencyException {
-        WayModule riverModule = new WayModule();
-        SurfaceAreaModule lakeModule = new SurfaceAreaModule();
-        WayModule highwayModule = new WayModule();
+    private void processMapData(MapData mapData, String meshName, Long osmwayid, MeshServiceFacade meshService) throws MeshInconsistencyException {
+        WayModule riverModule = new WayModule(meshService);
+        SurfaceAreaModule lakeModule = new SurfaceAreaModule(meshService);
+        WayModule highwayModule = new WayModule(meshService);
 
         List<MapWay> effectiveWays = mapData.getMapWays();
         if (osmwayid != null) {

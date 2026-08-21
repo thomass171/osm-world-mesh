@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2scenery.SceneryModuleBuilder;
 import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2world.MapWay;
 import de.yard.threed.osm2world.TagGroup;
@@ -12,20 +13,20 @@ public class OsmClassifier {
     public static int LOD_BASIC = 1;
     // parking areas, forest, agricultural areas
     public static int LOD_EXTENDED = 2;
-    SceneryModule module;
+    SceneryModuleBuilder moduleBuilder;
     int lod;
 
     // See README.md
     public static int WAY = 1;
     public static int RIVER = 2;
 
-    public OsmClassifier(int lod, SceneryModule module) {
-        this.module = module;
+    public OsmClassifier(int lod, SceneryModuleBuilder moduleBuilder) {
+        this.moduleBuilder = moduleBuilder;
         this.lod = lod;
     }
 
-    public SceneryModule getModule() {
-        return module;
+    public SceneryModuleBuilder getModule() {
+        return moduleBuilder;
     }
 
     /**
@@ -35,9 +36,9 @@ public class OsmClassifier {
         TagGroup tags = mapWay.getTags();
         if (isHighway(tags) /*&& tagfilter.isAccepted(mapWay.getTags()*/) {
             if (isPath(tags)) {
-                return (new OsmClassifier(LOD_EXTENDED, new WayModule()));
+                return (new OsmClassifier(LOD_EXTENDED, (f)->new WayModule(f)));
             } else {
-                return (new OsmClassifier(LOD_BASIC, new WayModule()));
+                return (new OsmClassifier(LOD_BASIC, (f)->new WayModule(f)));
             }
         }
         return null;

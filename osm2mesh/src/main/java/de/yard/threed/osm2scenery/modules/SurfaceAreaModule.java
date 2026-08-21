@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
 import de.yard.threed.osm2world.MapArea;
@@ -51,7 +52,11 @@ public class SurfaceAreaModule extends SceneryModule {
         defaultSurfaceMap.put(new Tag("natural", "water"), "water");
 
     }
-    
+
+    public SurfaceAreaModule(MeshServiceFacade meshServiceFacade) {
+        super(meshServiceFacade);
+    }
+
     @Override
     public SceneryObjectList applyTo(MapData grid) {
         SceneryObjectList l = new SceneryObjectList();

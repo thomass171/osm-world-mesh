@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.scenery.FixedWidthProvider;
@@ -27,6 +28,10 @@ public class RailwayModule extends SceneryModule {
 	/** accepted values of the railway key */
 	private static final List<String> RAILWAY_VALUES = asList(
 			"rail", "light_rail", "tram", "subway", "disused");
+
+	public RailwayModule(MeshServiceFacade meshServiceFacade) {
+		super(meshServiceFacade);
+	}
 
 	@Override
 	public SceneryObjectList applyTo(MapData grid) {
