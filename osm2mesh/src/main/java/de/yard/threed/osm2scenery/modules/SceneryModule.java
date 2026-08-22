@@ -28,6 +28,7 @@ import java.util.List;
 public abstract class SceneryModule {
     public MeshServiceFacade meshServiceFacade;
     public SceneryProjection projection;
+    public String meshName;
 
     public static List<? extends SceneryModule> getRelevant(List<? extends SceneryModule> worldModules, MapWay mapWay) {
         return new ArrayList<>(worldModules);

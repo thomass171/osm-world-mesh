@@ -47,8 +47,8 @@ import static de.yard.threed.osm2world.WorldModuleGeometryUtil.filterWorldObject
 @Slf4j
 public class BridgeModule extends SceneryModule {
 
-    public BridgeModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
-        super(meshServiceFacade, projection);
+    public BridgeModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
+        super(meshServiceFacade, projection, meshName);
     }
 
     public static final boolean isBridge(TagGroup tags) {

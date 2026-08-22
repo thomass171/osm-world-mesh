@@ -47,8 +47,8 @@ public class BuildingModule extends SceneryModule {
     Map<MapArea, BuildingCluster> area2cluster = new HashMap<>();
     private SceneryObjectList buildingobjects;
 
-    public BuildingModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
-        super(meshServiceFacade, projection);
+    public BuildingModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
+        super(meshServiceFacade, projection, meshName);
     }
 
     @Override

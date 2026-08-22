@@ -195,9 +195,9 @@ public class OsmService {
     }
 
     private void processMapData(MapData mapData, String meshName, Long osmwayid, MeshServiceFacade meshService) throws MeshInconsistencyException {
-        WayModule riverModule = new WayModule(meshService, mapData.projection);
-        SurfaceAreaModule lakeModule = new SurfaceAreaModule(meshService, mapData.projection);
-        WayModule highwayModule = new WayModule(meshService, mapData.projection);
+        WayModule riverModule = new WayModule(meshService, mapData.projection, meshName);
+        SurfaceAreaModule lakeModule = new SurfaceAreaModule(meshService, mapData.projection, meshName);
+        WayModule highwayModule = new WayModule(meshService, mapData.projection, meshName);
 
         List<MapWay> effectiveWays = mapData.getMapWays();
         if (osmwayid != null) {

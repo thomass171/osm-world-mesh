@@ -59,8 +59,8 @@ public class WayModule extends SceneryModule {
     private boolean cutConnectors = false;
     SceneryObjectList roadsAndBridges;
 
-    public WayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
-        super(meshServiceFacade, projection);
+    public WayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
+        super(meshServiceFacade, projection, meshName);
     }
     //static  private Map<Long, List<Road>> roadmap = new HashMap<>();
     WayTerrainMeshAdder wayTerrainMeshAdder;
@@ -128,7 +128,7 @@ public class WayModule extends SceneryModule {
         try {
 
              wayTerrainMeshAdder=new WayTerrainMeshAdder(
-                    terrainMeshNotNeededOnceButNowNeeded.meshName,
+                    meshName,
                     meshServiceFacade,
                     projection);
 
@@ -138,7 +138,7 @@ public class WayModule extends SceneryModule {
             for (SceneryObject sceneryObject : roadsAndBridges.objects) {
                 SceneryWayObject sfo = (SceneryWayObject) sceneryObject;
                 // Find/Create Junctions/RoadConnector to existing highways.
-                Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> connectors = processConnectionCandidates(sfo.mapWay, /*roadsAndBridges.get(0),*/ sceneryContext, terrainMeshNotNeededOnceButNowNeeded);
+                Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> connectors = processConnectionCandidates(sfo.mapWay, /*roadsAndBridges.get(0),*/ sceneryContext);
 
                 // steps are attach connector, create polygon, then clip to connector(doesn't clip consider connector?)
                 if (connectors.getFirst() != null) {
@@ -210,11 +210,11 @@ public class WayModule extends SceneryModule {
      *
      * @return
      */
-    private  Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> processConnectionCandidates(MapWaySegment2 mapWay, /*19.2.26SceneryObjectList roadsAndBridges,*/ SceneryContext sceneryContext, TerrainMesh terrainMesh) throws MeshInconsistencyException, OsmProcessException {
+    private  Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> processConnectionCandidates(MapWaySegment2 mapWay, /*19.2.26SceneryObjectList roadsAndBridges,*/ SceneryContext sceneryContext) throws MeshInconsistencyException, OsmProcessException {
 
         Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> newConnector = new Pair<>(
-                processConnectionCandidatesForOneNode(mapWay.getStartNode(), terrainMesh, sceneryContext.getMapdata()),
-                processConnectionCandidatesForOneNode(mapWay.getEndNode(), terrainMesh, sceneryContext.getMapdata()));
+                processConnectionCandidatesForOneNode(mapWay.getStartNode(), sceneryContext.getMapdata()),
+                processConnectionCandidatesForOneNode(mapWay.getEndNode(), sceneryContext.getMapdata()));
         return newConnector;
     }
 
@@ -223,17 +223,16 @@ public class WayModule extends SceneryModule {
      * Otherwise creates and returns a new connector.
      *
      * @param node
-     * @param terrainMesh
      * @param mapdata
      * @return
      */
-    private  MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ processConnectionCandidatesForOneNode(MapNode node, /*19.2.26SceneryObjectList roadsAndBridges, SceneryContext sceneryContext,*/ TerrainMesh terrainMesh, MapData mapdata) throws MeshInconsistencyException, OsmProcessException {
+    private  MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ processConnectionCandidatesForOneNode(MapNode node, /*19.2.26SceneryObjectList roadsAndBridges, SceneryContext sceneryContext,*/ MapData mapdata) throws MeshInconsistencyException, OsmProcessException {
 
         //10.7.19: Don't create connector for outside node
         /*17.3.26 we no longer care about if (node.location == MapNode.Location.OUTSIDEGRID) {
             return null;
         }*/
-        MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ connector = terrainMesh.getConnector(node.getOsmId());
+        MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ connector = meshServiceFacade.getConnector(node.getOsmId());
         if (connector != null) {
             // Connector already exists
             if (connector.getOsmId() == 255563537 ) {

@@ -5,5 +5,5 @@ import de.yard.threed.osm2scenery.modules.SceneryModule;
 
 @FunctionalInterface
 public interface SceneryModuleBuilder {
-    SceneryModule buildModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection);
+    SceneryModule buildModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName);
 }

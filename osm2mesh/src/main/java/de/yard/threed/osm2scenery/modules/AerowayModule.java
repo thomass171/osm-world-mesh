@@ -82,8 +82,8 @@ public class AerowayModule extends SceneryModule {
     Geometry taxiwayarea = null;
     SceneryObjectList aerowayobjects = new SceneryObjectList();
 
-    public AerowayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
-        super(meshServiceFacade, projection);
+    public AerowayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
+        super(meshServiceFacade, projection, meshName);
     }
 
     @Override

@@ -64,8 +64,8 @@ public class HighwayModule extends SceneryModule {
     private boolean cutConnectors = false;
     SceneryObjectList roadsAndBridges;
 
-    public HighwayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
-        super(meshServiceFacade, projection);
+    public HighwayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
+        super(meshServiceFacade, projection,meshName);
     }
     //static  private Map<Long, List<Road>> roadmap = new HashMap<>();
 

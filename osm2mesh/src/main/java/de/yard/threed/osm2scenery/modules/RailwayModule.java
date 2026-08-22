@@ -30,8 +30,8 @@ public class RailwayModule extends SceneryModule {
 	private static final List<String> RAILWAY_VALUES = asList(
 			"rail", "light_rail", "tram", "subway", "disused");
 
-	public RailwayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
-		super(meshServiceFacade, projection);
+	public RailwayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
+		super(meshServiceFacade, projection,meshName);
 	}
 
 	@Override

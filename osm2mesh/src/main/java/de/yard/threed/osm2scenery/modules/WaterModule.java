@@ -73,8 +73,8 @@ public class WaterModule extends SceneryModule {
         WATERWAY_WIDTHS.put("drain", 1f);
     }
 
-    public WaterModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
-        super(meshServiceFacade, projection);
+    public WaterModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
+        super(meshServiceFacade, projection, meshName);
     }
 
     //TODO: apply to isType almost always the same! create a superclass handling this!

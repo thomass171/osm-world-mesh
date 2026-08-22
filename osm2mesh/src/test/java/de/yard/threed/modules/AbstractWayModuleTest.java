@@ -19,7 +19,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
     @BeforeEach
     void setUp() throws Exception {
         desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
-        wayModule = new WayModule(desdorfTestData.meshService, desdorfTestData.gridCellBounds.getProjection());
+        wayModule = new WayModule(desdorfTestData.meshService, desdorfTestData.gridCellBounds.getProjection(), "Desdorf");
     }
 
     @Test

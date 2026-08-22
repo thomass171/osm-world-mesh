@@ -54,8 +54,8 @@ public class SurfaceAreaModule extends SceneryModule {
 
     }
 
-    public SurfaceAreaModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
-        super(meshServiceFacade, projection);
+    public SurfaceAreaModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
+        super(meshServiceFacade, projection, meshName);
     }
 
     @Override

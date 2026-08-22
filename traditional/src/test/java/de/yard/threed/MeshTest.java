@@ -53,7 +53,7 @@ public class MeshTest {
     public void testDesdorf() throws IOException, OsmProcessException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Desdorf.osm.xml", "Desdorf", "superdetailed");
 
-        SurfaceAreaModule surfaceAreaModule = new SurfaceAreaModule(null,null);
+        SurfaceAreaModule surfaceAreaModule = new SurfaceAreaModule(null,null,null);
         SceneryObjectList areas = surfaceAreaModule.applyTo(SceneryTestUtil.mapData);
         surfaceAreaModule.classify(SceneryTestUtil.mapData);
 
