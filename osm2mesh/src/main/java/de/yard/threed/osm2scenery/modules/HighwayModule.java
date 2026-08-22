@@ -188,7 +188,7 @@ public class HighwayModule extends SceneryModule {
      * The returned list only contains real roads, but no connector. connector are attached to the return road
      */
     @Override
-    public SceneryObjectList applyTo(MapWaySegment2 mapway, TerrainMesh terrainMeshNotNeeded, SceneryContext sceneryContext) {
+    public SceneryObjectList applyTo(MapWaySegment2 mapway, SceneryContext sceneryContext) {
         // Also contains Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
 

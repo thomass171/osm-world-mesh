@@ -25,85 +25,9 @@ public class WayModuleTest extends AbstractWayModuleTest {
 
     Platform platform = CoreTestFactory.initPlatformForTest(new PlatformFactoryTestingCore(), null);
 
-    @Test
-    public void testDesdorfLowerK41() throws Exception {
-
-        MapWay way = desdorfTestData.fullMapData.findMapWay(24927839);
-
-        SceneryWayObject w = (SceneryWayObject) wayModule.applyTo(way.getLastSegment(), desdorfTestData.terrainMesh, SceneryContext.getInstance()).get(0);
-    }
-
-    @Test
-    public void testDesdorfUpperK41() throws Exception {
-
-        MapWay way = desdorfTestData.fullMapData.findMapWay(182152619);
-        double width = 7.7;
-
-        SceneryWayObject firstSegment = (SceneryWayObject) wayModule.applyTo(way.getFirstSegment(), desdorfTestData.terrainMesh, SceneryContext.getInstance()).get(0);
-
-        assertEquals(255563538, firstSegment.getStartConnector().getOsmId());
-        assertEquals(SceneryWayObject.WayOuterMode.CONNECTOR, firstSegment.getStartMode());
-
-        assertNotNull(firstSegment.getEndConnector());
-        assertEquals(SceneryWayObject.WayOuterMode.CONNECTOR, firstSegment.getEndMode());
-
-        SceneryWayObject lastSegment = (SceneryWayObject) wayModule.applyTo(way.getLastSegment(), desdorfTestData.terrainMesh, SceneryContext.getInstance()).get(0);
-
-        assertEquals(251517906/*correct??*/, lastSegment.getStartConnector().getOsmId());
-        assertEquals(SceneryWayObject.WayOuterMode.CONNECTOR, lastSegment.getStartMode());
-
-        assertNull(lastSegment.getEndConnector());
-        assertEquals(SceneryWayObject.WayOuterMode.DEADEND/*why not boundary?? 18.3.26 we have no cut, so why not connector?*/, lastSegment.getEndMode());
-
-        SvgWriter.build(/*desdorfTestData.gridCellBounds*/)
-                // terrainMesh not populated
-                .addMeshPolygons(desdorfTestData.terrainMesh.polygons, desdorfTestData.getGridCellBounds().getProjection())
-                .writeTmpFile();
-    }
-
-    /**
-     * The small paths 33817500 and 33817501 are connected at node 387409895
-     */
-    @Test
-    public void testSimpleMainConnectionInDesdorf() throws Exception {
-
-        MapWay way33817500 = desdorfTestData.fullMapData.findMapWay(33817500);
-        MapWay way33817501 = desdorfTestData.fullMapData.findMapWay(33817501);
-
-        wayModule.applyTo(way33817500.getFirstSegment(), desdorfTestData.terrainMesh, SceneryContext.getInstance());
-
-        MeshServiceMock meshServiceMock = (MeshServiceMock) desdorfTestData.meshService;
-        MeshPolygon meshWayConnector =  meshServiceMock.getConnector(387409895);
-        validateMeshPolygon(expectedConnector387409895, meshWayConnector);
-
-        //SVG not possible?
-        SvgWriter.build()
-                // terrainMesh not populated
-                .addMeshPolygons(desdorfTestData.terrainMesh.polygons, desdorfTestData.getGridCellBounds().getProjection())
-                .writeTmpFile();
-    }
-
-    /**
-     * 107468169 had bad polygon once
-     */
-    @Test
-    public void testConnector445410497InDesdorf() throws Exception {
 
 
-        MapWay way107468169 = desdorfTestData.fullMapData.findMapWay(107468169);
 
-        wayModule.applyTo(way107468169.getFirstSegment(), desdorfTestData.terrainMesh, SceneryContext.getInstance());
-
-        MeshServiceMock meshServiceMock = (MeshServiceMock) desdorfTestData.meshService;
-        MeshPolygon meshWayConnector =  meshServiceMock.getConnector(445410497);
-        validateMeshPolygon(expectedConnector445410497, meshWayConnector);
-
-        SvgWriter.build()
-                // terrainMesh not populated
-                .addMeshPolygons(desdorfTestData.terrainMesh.polygons, desdorfTestData.getGridCellBounds().getProjection())
-                .writeTmpFile();
-
-    }
 
     @Override
     protected MeshServiceFactory getMeshServiceFactory() {

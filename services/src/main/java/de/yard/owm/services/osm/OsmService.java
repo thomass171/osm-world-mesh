@@ -216,7 +216,7 @@ public class OsmService {
     private void applyWayModule(String meshName, List<MapWay> mapWays, WayModule wayModule) throws MeshInconsistencyException {
         for (MapWay mapWay : mapWays) {
             for (MapWaySegment2 segment : mapWay.segment2s) {
-                wayModule.applyTo(segment, meshService.loadMesh(meshName), SceneryContext.getInstance());
+                wayModule.applyTo(segment, SceneryContext.getInstance());
             }
         }
     }

@@ -62,6 +62,7 @@ public class WayModule extends SceneryModule {
     public WayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
         super(meshServiceFacade, projection, meshName);
     }
+
     //static  private Map<Long, List<Road>> roadmap = new HashMap<>();
     WayTerrainMeshAdder wayTerrainMeshAdder;
 
@@ -77,7 +78,7 @@ public class WayModule extends SceneryModule {
      * The returned list only contains real roads, but no connector. connector are attached to the return road
      */
     @Override
-    public SceneryObjectList applyTo(MapWaySegment2 mapwaySegment, TerrainMesh terrainMeshNotNeededOnceButNowNeeded, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public SceneryObjectList applyTo(MapWaySegment2 mapwaySegment, SceneryContext sceneryContext) throws MeshInconsistencyException {
         // Also contains Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
 
@@ -127,10 +128,7 @@ public class WayModule extends SceneryModule {
         }
         try {
 
-             wayTerrainMeshAdder=new WayTerrainMeshAdder(
-                    meshName,
-                    meshServiceFacade,
-                    projection);
+            wayTerrainMeshAdder = new WayTerrainMeshAdder(meshName, meshServiceFacade, projection);
 
             // 14.2.26: Main change. No longer collect elements but persist way to DB.
             // 18.3.26: The simple incoming way might have been split into segments, so iteration is needed
@@ -152,15 +150,16 @@ public class WayModule extends SceneryModule {
             }
         } catch (/*OsmProcessException |*/ MeshInconsistencyException e) {
 
-            SvgWriter svgWriter = new SvgWriter(/*terrainMeshNotNeededOnceButNowNeeded.getGridCellBounds()*/);
-            svgWriter = svgWriter.addMeshPolygons(terrainMeshNotNeededOnceButNowNeeded.polygons, projection);
+            SvgWriter svgWriter = new SvgWriter();
+            // loading full mesh here might be too much load for big meshes. But we want the full mesh to see the context of the invalid polygon.
+            svgWriter = svgWriter.addMeshPolygons(meshServiceFacade.loadMesh(meshName).polygons, projection);
             if (e.invalidPolygon != null) {
                 svgWriter = svgWriter.addPolygon(e.invalidPolygon, "red");
             }
             svgWriter.writeTmpFile("invalid-polygon-" + e.osmId);
             log.error("MeshInconsistencyException", e);
-            String sourceRef = "https://www.openstreetmap.org/way/"+mapwaySegment.getOsmId();
-            meshServiceFacade.addFailure(terrainMeshNotNeededOnceButNowNeeded.meshName, e.getMessage(), sourceRef,
+            String sourceRef = "https://www.openstreetmap.org/way/" + mapwaySegment.getOsmId();
+            meshServiceFacade.addFailure(meshName, e.getMessage(), sourceRef,
                     e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, projection));
             //throw new MeshInconsistencyException(terrainMeshNotNeededOnceButNowNeeded, e);
         } catch (OsmProcessException e) {
@@ -210,7 +209,7 @@ public class WayModule extends SceneryModule {
      *
      * @return
      */
-    private  Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> processConnectionCandidates(MapWaySegment2 mapWay, /*19.2.26SceneryObjectList roadsAndBridges,*/ SceneryContext sceneryContext) throws MeshInconsistencyException, OsmProcessException {
+    private Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> processConnectionCandidates(MapWaySegment2 mapWay, /*19.2.26SceneryObjectList roadsAndBridges,*/ SceneryContext sceneryContext) throws MeshInconsistencyException, OsmProcessException {
 
         Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> newConnector = new Pair<>(
                 processConnectionCandidatesForOneNode(mapWay.getStartNode(), sceneryContext.getMapdata()),
@@ -226,7 +225,7 @@ public class WayModule extends SceneryModule {
      * @param mapdata
      * @return
      */
-    private  MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ processConnectionCandidatesForOneNode(MapNode node, /*19.2.26SceneryObjectList roadsAndBridges, SceneryContext sceneryContext,*/ MapData mapdata) throws MeshInconsistencyException, OsmProcessException {
+    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ processConnectionCandidatesForOneNode(MapNode node, /*19.2.26SceneryObjectList roadsAndBridges, SceneryContext sceneryContext,*/ MapData mapdata) throws MeshInconsistencyException, OsmProcessException {
 
         //10.7.19: Don't create connector for outside node
         /*17.3.26 we no longer care about if (node.location == MapNode.Location.OUTSIDEGRID) {
@@ -235,7 +234,7 @@ public class WayModule extends SceneryModule {
         MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ connector = meshServiceFacade.getConnector(node.getOsmId());
         if (connector != null) {
             // Connector already exists
-            if (connector.getOsmId() == 255563537 ) {
+            if (connector.getOsmId() == 255563537) {
                 int h = 9;
             }
             log.debug("found existing connector " + connector.getOsmId());
@@ -272,7 +271,7 @@ public class WayModule extends SceneryModule {
      * @param mapdata
      * @return
      */
-    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ createAndPersistConnector(MapNode node,  MapData mapdata) throws MeshInconsistencyException, OsmProcessException {
+    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ createAndPersistConnector(MapNode node, MapData mapdata) throws MeshInconsistencyException, OsmProcessException {
         TagGroup tags = node.getOsmNode().tags;
 
         log.debug("Creating new connector " + node.getOsmId());
@@ -304,7 +303,7 @@ public class WayModule extends SceneryModule {
             }*/
 
         //if (road1.isOuterNode(node) && road2.isOuterNode(node)) {
-        SceneryWayConnector connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD,projection);
+        SceneryWayConnector connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD, projection);
         //10.9.19: Besser alle Ways an den Connector haengen stat nur zwei, sonst geht mir nachher evtl. eine inner connector way durch. (z.B. 1379039502)
         for (MapWaySegment2 way : connectedRoads) {
             //   connector.add(road1);
@@ -317,7 +316,7 @@ public class WayModule extends SceneryModule {
         connector.classify();
         // done in persist connector.createPolygon(null, null,  SceneryContext.getInstance());
         // DB persist
-        connector.cca( wayTerrainMeshAdder);//addToTerrainMesh(tm);
+        connector.cca(wayTerrainMeshAdder);//addToTerrainMesh(tm);
         return connector.meshWayConnector;
         //return connector;
         // }
@@ -888,7 +887,7 @@ public class WayModule extends SceneryModule {
 
 
         public RoadJunction(MapNode node) {
-            super("RoadJunction", node, ASPHALT, ROAD,null);
+            super("RoadJunction", node, ASPHALT, ROAD, null);
             if (node.getOsmId() == 54286220 /*&& false*/) {
                 //nur mal so ne Test Decoration.23.5.19  Wird eh nicht mehr gerendered, weil Juniton keine area hat.
                 //marking = new SceneryDecoration("Marking", GRASS);

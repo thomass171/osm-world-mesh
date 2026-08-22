@@ -48,7 +48,7 @@ public abstract class SceneryModule {
      *
      * Returns the objects to be created(or updated) in the order they should be processed.
      */
-    public SceneryObjectList applyTo(MapWaySegment2 mapWay, TerrainMesh terrainMesh, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public SceneryObjectList applyTo(MapWaySegment2 mapWay, SceneryContext sceneryContext) throws MeshInconsistencyException {
         return new SceneryObjectList();
     }
 

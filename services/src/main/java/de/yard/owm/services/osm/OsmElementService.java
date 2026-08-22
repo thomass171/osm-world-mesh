@@ -79,7 +79,7 @@ public class OsmElementService {
             }*/
         //SceneryObjectList areas =
         for (MapWaySegment2 segment : mapWay.segment2s) {
-            module.applyTo(segment, meshService.loadMesh(tm.meshName), sceneryContext);
+            module.applyTo(segment, sceneryContext);
         }
         // No longer collect scenery objects but immediately persist these
         //sceneryObjects.addAll(areas.objects);
