@@ -2,6 +2,7 @@ package de.yard.threed.osm2scenery.scenery;
 
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -54,7 +55,7 @@ public abstract class SceneryNodeObject extends SceneryFlatObject /*implements N
     }
 
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public List<ScenerySupplementAreaObject> createPolygon(MeshServiceFacade meshServiceFacade) throws MeshInconsistencyException {
         flatComponent = new AbstractArea[]{AbstractArea.EMPTYAREA};
         return null;
     }

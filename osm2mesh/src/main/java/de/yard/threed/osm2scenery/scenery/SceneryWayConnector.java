@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.*;
 import de.yard.threed.osm2graph.osm.*;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -467,7 +468,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
      * Populates "polygonline" and "attachpair"
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public List<ScenerySupplementAreaObject> createPolygon(MeshServiceFacade meshServiceFacade) throws MeshInconsistencyException {
         if (attachpair != null) {
             throw new RuntimeException("already polygoned");
         }
@@ -509,13 +510,13 @@ public class SceneryWayConnector extends SceneryNodeObject {
                 buildMinorAttachAtInnerMain(secondminor, tm);
                 break;*/
             case STANDARD_JUNCTION:
-                createPolygonSTANDARD_JUNCTION(tm.getGridCellBounds().getProjection());
+                createPolygonSTANDARD_JUNCTION(projection);
                 break;
             case MOTORWAY_ENTRY_JUNCTION:
-                createPolygonSTANDARD_JUNCTION(tm.getGridCellBounds().getProjection());
+                createPolygonSTANDARD_JUNCTION(projection);
                 break;
             case SIMPLE_CONNECTOR:
-                buildSimpleMainConnection(tm.getGridCellBounds().getProjection());
+                buildSimpleMainConnection(projection);
                 break;
             /*case CROSSING:
                 //erstmal einfach so. Bei inner node erstmal nichts. Na, das koennen auch vier Ways sein (388796251).
@@ -530,11 +531,11 @@ public class SceneryWayConnector extends SceneryNodeObject {
                 // avoid any special solution until we are sure it is a real benefit
                 //CoordinatePair c = buildSimpleMainConnection();
                 //buildSimpleMinorAttach(c, tm);
-                createPolygonSimpleJunction(tm.getGridCellBounds().getProjection());
+                createPolygonSimpleJunction(projection);
                 break;
             case GENERIC:
                 // just n ways, no major or minor.
-                buildGenericConnection(tm.getGridCellBounds().getProjection());
+                buildGenericConnection(projection);
                 break;
             default:
                 log.warn("unknown connector type " + type);

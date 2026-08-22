@@ -3,6 +3,7 @@ package de.yard.threed.osm2scenery.scenery;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
@@ -48,7 +49,7 @@ public class SceneryDecoration extends SceneryFlatObject {
      *
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+    public List<ScenerySupplementAreaObject> createPolygon(MeshServiceFacade meshServiceFacade) {
 
 
         flatComponent[0].poly = new SmartPolygon((Polygon) decoratorComponent.getDecoration().getGeometry(), new PolygonMetadata(this));

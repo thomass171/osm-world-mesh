@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
@@ -77,7 +78,7 @@ public class BridgeGap extends ScenerySupplementAreaObject {
      * 27.8.19: der overlaps aber mit den anderen Ways. Stattdessen lieber die baselines verbinden.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+    public List<ScenerySupplementAreaObject> createPolygon(MeshServiceFacade meshServiceFacade) {
         //Gap Filler
         //jeweils ein Meter weiter auseinander, weil die SideRamp daran kommt.
         //double width = bridge.getWidth() + 2;
@@ -95,7 +96,7 @@ public class BridgeGap extends ScenerySupplementAreaObject {
         }
         flatComponent[0].poly = new SmartPolygon(polygon);
 
-        boolean wasCut = super.cutArea0(gridbounds);
+        boolean wasCut = false;//21.8.26  super.cutArea0(gridbounds);
         if (wasCut) {
             log.error("cut gap filler unhandled");
         }

@@ -311,7 +311,7 @@ public class SceneryMesh {
         for (SceneryObject obj : sceneryObjects) {
             //Connector brauchen die Ways
             if (/*obj instanceof SceneryWayObject*/obj.cycle == cycle && !(obj instanceof ScenerySupplementAreaObject)) {
-                List<ScenerySupplementAreaObject> l = obj.createPolygon(/*19.2.26 Collections.unmodifiableList(sceneryObjects),*/ gridbounds, terrainMesh, sceneryContext);
+                List<ScenerySupplementAreaObject> l = obj.createPolygon(null/*19.2.26 Collections.unmodifiableList(sceneryObjects),* / gridbounds, terrainMesh, sceneryContext*/);
                 if (l != null) {
                     supplements.addAll(l);
                 }
@@ -320,7 +320,7 @@ public class SceneryMesh {
         for (SceneryObject obj : sceneryObjects) {
             //Connector brauchen die Ways
             if (/*obj instanceof SceneryWayObject*/obj.cycle == cycle && (obj instanceof ScenerySupplementAreaObject)) {
-                List<ScenerySupplementAreaObject> l = obj.createPolygon(/*19.2.26 Collections.unmodifiableList(sceneryObjects),*/ gridbounds, terrainMesh, sceneryContext);
+                List<ScenerySupplementAreaObject> l = obj.createPolygon(null/*19.2.26 Collections.unmodifiableList(sceneryObjects),* / gridbounds, terrainMesh, sceneryContext*/);
                 if (l != null) {
                     supplements.addAll(l);
                 }

@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.RenderedObject;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryRenderer;
@@ -188,9 +189,15 @@ public abstract class SceneryObject {
      * 19.2.26: sceneryobjects should not be needed for creating a polygon. The polygon should only
      * be returned, not stored inside object (flatComponent currently?)
      * 10.3.26: Part of addtoterrainmesh?
+     * 20.8.26: Should also consider existing polygons and possibly adjust the way polygon to avoid overlaps.
+     * But this is not yet implemented. So also does something that could be called "clip/cut".
+     * 21.8.26: Parameter simplified, meshService should be sufficient.
      */
-    public abstract List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException;
+    public abstract List<ScenerySupplementAreaObject> createPolygon(MeshServiceFacade meshServiceFacade/*19.2.26 List<SceneryObject> objects,*//*21.8.26  GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext*/) throws MeshInconsistencyException;
 
+    /**
+     * 21.8.26: Do we really need an explicit clip? Maybe we can do it in createPolygon() or addToTerrainMesh()?
+     */
     public void clip() throws MeshInconsistencyException{
         if (isClipped) {
             // 10.3.26: Avoid multiple

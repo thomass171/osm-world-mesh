@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.*;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.RenderedObject;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryRenderer;
@@ -137,7 +138,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * 25.4.19: Mal eine Defaultimplementierung.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public List<ScenerySupplementAreaObject> createPolygon(MeshServiceFacade meshServiceFacade) throws MeshInconsistencyException {
         //Nothing to do. Wahrscheinlich, area/poly kam schon als Parameter.
         return null;
     }
@@ -607,8 +608,8 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * For a more consistent program flow
      * 10.3.26
      */
-    public void cca(TerrainMesh tm, SceneryContext sceneryContext, TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException, OsmProcessException {
-        createPolygon(/*new ArrayList<>(),*/ tm.getGridCellBounds(), tm, sceneryContext);
+    public void cca(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException, OsmProcessException {
+        createPolygon(/*new ArrayList<>(),*/ terrainMeshAdder.meshService);
         clip();
         // DB persist
         addToTerrainMesh(terrainMeshAdder);

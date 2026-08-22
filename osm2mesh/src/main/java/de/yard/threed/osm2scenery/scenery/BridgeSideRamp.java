@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2graph.osm.CoordinateList;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.MapDataHelper;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
@@ -53,7 +54,7 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
      * Noch keine Overlaperkennung.
      */
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/ GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) {
+    public List<ScenerySupplementAreaObject> createPolygon(MeshServiceFacade meshServiceFacade) {
 
         if (bridgeHead == null || bridgeHead.backline == null) {
             log.error("incomplete bridge head");

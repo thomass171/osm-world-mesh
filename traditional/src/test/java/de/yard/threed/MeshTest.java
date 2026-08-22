@@ -64,7 +64,7 @@ public class MeshTest {
         SceneryAreaObject southFarmland = (SceneryAreaObject) areas.findObjectByOsmId(87822834);
         southFarmland.buildEleGroups();
         //cut/clip ist in createPolygon
-        southFarmland.createPolygon( SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
+        southFarmland.createPolygon( null);
         knownobjects.add(southFarmland);
 
 
@@ -73,14 +73,14 @@ public class MeshTest {
             //der wird aus irgendwelchen Gruenden nicht mit aufgenommen
             forestAnK41.buildEleGroups();
             //cut/clip ist in createPolygon
-            forestAnK41.createPolygon( SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
+            forestAnK41.createPolygon(null);
             knownobjects.add(forestAnK41);
         }
 
         SceneryAreaObject scrubAnK41 = (SceneryAreaObject) areas.findObjectByOsmId(225794276);
         scrubAnK41.buildEleGroups();
         //cut/clip ist in createPolygon
-        scrubAnK41.createPolygon( SceneryTestUtil.gridCellBounds, null, SceneryContext.getInstance());
+        scrubAnK41.createPolygon( null);
         knownobjects.add(scrubAnK41);
 
         SceneryMesh.connectAreas(knownobjects);

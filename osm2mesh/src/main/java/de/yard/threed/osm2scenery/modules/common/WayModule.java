@@ -144,7 +144,7 @@ public class WayModule extends SceneryModule {
                 if (connectors.getSecond() != null) {
                     sfo.setEndConnector(connectors.getSecond());
                 }
-                sfo.cca(/*new ArrayList<>(),*/ terrainMeshNotNeededOnceButNowNeeded, sceneryContext,wayTerrainMeshAdder);
+                sfo.cca(wayTerrainMeshAdder);
 
             }
         } catch (/*OsmProcessException |*/ MeshInconsistencyException e) {
@@ -315,7 +315,7 @@ public class WayModule extends SceneryModule {
         connector.classify();
         // done in persist connector.createPolygon(null, null,  SceneryContext.getInstance());
         // DB persist
-        connector.cca(tm, SceneryContext.getInstance(), wayTerrainMeshAdder);//addToTerrainMesh(tm);
+        connector.cca( wayTerrainMeshAdder);//addToTerrainMesh(tm);
         return connector.meshWayConnector;
         //return connector;
         // }

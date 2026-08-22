@@ -50,8 +50,9 @@ holes in polygons. Gaps might be filled later by supplements.
 * Viewer2d (benefit file io) or browser client (benefit leaflet)
 * Avoid cloned OSM data and projected coordinates in DB
 * Even though needed in principle on boundaries for a FG prototype we still refrain from using traditional 'cut's because of it's possible complexity. We'll later use a 'smart cut' on polygon lines during tile export from DB.
+* What is the difference between 'cut' and 'clip'? cut' only related to boundaries and 'clip' related to any polygon to make it fit. 
 
-Populating a blank tile in steps (order by elevation predictability desc):
+ * Populating a blank tile in steps (order by elevation predictability desc):
  * Add water (river, lake). Maybe channel bridges. Water has fix or constant/predictable elevation
  * Add railways (incl. bridges). Railways have similar predictable elevation like water.
  * Add highways 

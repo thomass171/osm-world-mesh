@@ -7,6 +7,7 @@ import de.yard.threed.core.Vector3;
 import de.yard.threed.graph.GraphNode;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
@@ -157,8 +158,8 @@ public class SceneryWayObject extends SceneryFlatObject {
     }
 
     @Override
-    public List<ScenerySupplementAreaObject> createPolygon(/*19.2.26 List<SceneryObject> objects,*/  GridCellBounds gridbounds, TerrainMesh tm, SceneryContext sceneryContext) throws MeshInconsistencyException {
-        createPolygon(widthProvider.getWidth(), gridbounds, sceneryContext);
+    public List<ScenerySupplementAreaObject> createPolygon(MeshServiceFacade meshServiceFacade) throws MeshInconsistencyException {
+        createPolygon(widthProvider.getWidth());
         return null;
     }
 
@@ -175,11 +176,9 @@ public class SceneryWayObject extends SceneryFlatObject {
      * Ausserdem kann es günstig sein, den Polygon erst dann anzulegen, wenn alle
      * Verbindungen bekannt sind. Denn ergibt sich vielleicht ein sicher verbreiterndes Element.(??)
      *
-     * 20.8.26: Should also consider existing polygons and possibly adjust the way polygon to avoid overlaps.
-     * But this is not yet implemented. So also does something that could be called "clip/cut".
      * @param width
      */
-    private/*protected*/ void createPolygon(double width, GridCellBounds gridbounds, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    private/*protected*/ void createPolygon(double width) throws MeshInconsistencyException {
         this.width = width;
         //polygon = MapDataHelper.getOutlinePolygon(mapWay, width);
         if (mapWay.getOsmId() == 107468171) {
