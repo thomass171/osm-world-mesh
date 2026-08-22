@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
@@ -72,8 +73,8 @@ public class WaterModule extends SceneryModule {
         WATERWAY_WIDTHS.put("drain", 1f);
     }
 
-    public WaterModule(MeshServiceFacade meshServiceFacade) {
-        super(meshServiceFacade);
+    public WaterModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
+        super(meshServiceFacade, projection);
     }
 
     //TODO: apply to isType almost always the same! create a superclass handling this!

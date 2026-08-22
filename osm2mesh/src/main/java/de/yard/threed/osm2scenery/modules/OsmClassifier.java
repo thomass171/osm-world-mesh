@@ -36,9 +36,9 @@ public class OsmClassifier {
         TagGroup tags = mapWay.getTags();
         if (isHighway(tags) /*&& tagfilter.isAccepted(mapWay.getTags()*/) {
             if (isPath(tags)) {
-                return (new OsmClassifier(LOD_EXTENDED, (f)->new WayModule(f)));
+                return (new OsmClassifier(LOD_EXTENDED, (f, p)->new WayModule(f, p)));
             } else {
-                return (new OsmClassifier(LOD_BASIC, (f)->new WayModule(f)));
+                return (new OsmClassifier(LOD_BASIC, (f, p)->new WayModule(f, p)));
             }
         }
         return null;

@@ -72,7 +72,7 @@ public class OsmService {
        /* 16.2.26OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(mapProjection, targetBounds);
         MapData mapData = converter.createMapData(osmData);*/
 
-        SceneryContext sceneryContext = SceneryContext.buildFromDatabase(terrainMeshManager.findOsmWays(), mapData, null);
+        SceneryContext sceneryContext = SceneryContext.buildFromDatabase(terrainMeshManager.findOsmWays(), mapData);
 
         Phase.updatePhase(Phase.OBJECTS);
 
@@ -195,9 +195,9 @@ public class OsmService {
     }
 
     private void processMapData(MapData mapData, String meshName, Long osmwayid, MeshServiceFacade meshService) throws MeshInconsistencyException {
-        WayModule riverModule = new WayModule(meshService);
-        SurfaceAreaModule lakeModule = new SurfaceAreaModule(meshService);
-        WayModule highwayModule = new WayModule(meshService);
+        WayModule riverModule = new WayModule(meshService, mapData.projection);
+        SurfaceAreaModule lakeModule = new SurfaceAreaModule(meshService, mapData.projection);
+        WayModule highwayModule = new WayModule(meshService, mapData.projection);
 
         List<MapWay> effectiveWays = mapData.getMapWays();
         if (osmwayid != null) {

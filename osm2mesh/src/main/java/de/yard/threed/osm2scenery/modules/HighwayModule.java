@@ -4,6 +4,7 @@ package de.yard.threed.osm2scenery.modules;
 import de.yard.threed.core.Util;
 import de.yard.threed.core.Vector2;
 import de.yard.threed.osm2graph.osm.OsmUtil;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
@@ -63,8 +64,8 @@ public class HighwayModule extends SceneryModule {
     private boolean cutConnectors = false;
     SceneryObjectList roadsAndBridges;
 
-    public HighwayModule(MeshServiceFacade meshServiceFacade) {
-        super(meshServiceFacade);
+    public HighwayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
+        super(meshServiceFacade, projection);
     }
     //static  private Map<Long, List<Road>> roadmap = new HashMap<>();
 

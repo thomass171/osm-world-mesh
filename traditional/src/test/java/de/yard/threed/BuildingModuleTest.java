@@ -53,7 +53,7 @@ public class BuildingModuleTest {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Desdorf.osm.xml", "Desdorf", "superdetailed");
 
 
-        BuildingModule buildingModule = new BuildingModule(null);
+        BuildingModule buildingModule = new BuildingModule(null,null);
         SceneryObjectList buildings = buildingModule.applyTo(SceneryTestUtil.mapData);
         buildingModule.classify(SceneryTestUtil.mapData);
         // List<RoadModule.Road> roads = roadModule.getRoads();
@@ -88,7 +88,7 @@ public class BuildingModuleTest {
     public void testEDDK() throws IOException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/EDDK-Small.osm.xml", "EDDK-Small", "superdetailed");
 
-        BuildingModule buildingModule = new BuildingModule(null);
+        BuildingModule buildingModule = new BuildingModule(null,null);
         SceneryObjectList buildings = buildingModule.applyTo(SceneryTestUtil.mapData);
         buildingModule.classify(SceneryTestUtil.mapData);
 
@@ -129,7 +129,7 @@ public class BuildingModuleTest {
     public void testTestData() throws IOException, MeshInconsistencyException {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/TestData.osm.xml", "TestData", "superdetailed");
 
-        BuildingModule buildingModule = new BuildingModule(null);
+        BuildingModule buildingModule = new BuildingModule(null,null);
         SceneryObjectList buildings = buildingModule.applyTo(SceneryTestUtil.mapData);
         buildingModule.classify(SceneryTestUtil.mapData);
 
@@ -202,7 +202,7 @@ public class BuildingModuleTest {
         SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Zieverich-Sued.osm.xml", "Zieverich-Sued", "superdetailed");
 
 
-        BuildingModule buildingModule = new BuildingModule(null);
+        BuildingModule buildingModule = new BuildingModule(null,null);
         SceneryObjectList buildings = buildingModule.applyTo(SceneryTestUtil.mapData);
         buildingModule.classify(SceneryTestUtil.mapData);
 

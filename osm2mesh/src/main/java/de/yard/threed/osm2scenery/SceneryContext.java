@@ -66,7 +66,7 @@ public class SceneryContext {
      * For now read it from osm ways in DB
      * 19.2.26: What is the state here. At least MapData is really needed.
      */
-    public static SceneryContext buildFromDatabase(List<OsmWay> osmWays, MapData mapData, SceneryProjection projection) {
+    public static SceneryContext buildFromDatabase(List<OsmWay> osmWays, MapData mapData) {
         SceneryContext sceneryContext = new SceneryContext();
         //21.7.18: Graph in z0
         sceneryContext.roadgraph = new Graph(GraphOrientation.buildForZ0());
@@ -74,7 +74,7 @@ public class SceneryContext {
         sceneryContext.railwaygraph = new Graph(GraphOrientation.buildForZ0());
         sceneryContext.rivergraph = new Graph(GraphOrientation.buildForZ0());
         for (OsmWay osmWay : osmWays) {
-            sceneryContext.highways.put(osmWay.getOsmId(), new SceneryWayObject(osmWay, projection));
+            sceneryContext.highways.put(osmWay.getOsmId(), new SceneryWayObject(osmWay, mapData.projection));
         }
         sceneryContext.mapdata = mapData;
         SceneryContext.instance = sceneryContext;

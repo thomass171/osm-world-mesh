@@ -6,6 +6,7 @@ import de.yard.threed.core.Util;
 import de.yard.threed.core.Vector2;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.OsmUtil;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
@@ -18,6 +19,8 @@ import de.yard.threed.osm2scenery.scenery.components.*;
 import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.*;
+import lombok.AllArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -56,8 +59,8 @@ public class WayModule extends SceneryModule {
     private boolean cutConnectors = false;
     SceneryObjectList roadsAndBridges;
 
-    public WayModule(MeshServiceFacade meshServiceFacade) {
-        super(meshServiceFacade);
+    public WayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
+        super(meshServiceFacade, projection);
     }
     //static  private Map<Long, List<Road>> roadmap = new HashMap<>();
     WayTerrainMeshAdder wayTerrainMeshAdder;
@@ -112,7 +115,7 @@ public class WayModule extends SceneryModule {
                     SceneryWayObject way = new SceneryWayObject("Road", mapwaySegment,
                             null,
                             //Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/,
-                            ROAD, new FixedWidthProvider(5.0), sceneryContext, terrainMeshNotNeededOnceButNowNeeded.getGridCellBounds().getProjection());//mapWay = line;
+                            ROAD, new FixedWidthProvider(5.0), sceneryContext, projection);//mapWay = line;
                     //sceneryContext.highways.put(osmid, road);
                     roadsAndBridges.add(way);
 
@@ -127,7 +130,7 @@ public class WayModule extends SceneryModule {
              wayTerrainMeshAdder=new WayTerrainMeshAdder(
                     terrainMeshNotNeededOnceButNowNeeded.meshName,
                     meshServiceFacade,
-                    terrainMeshNotNeededOnceButNowNeeded.getGridCellBounds().getProjection());
+                    projection);
 
             // 14.2.26: Main change. No longer collect elements but persist way to DB.
             // 18.3.26: The simple incoming way might have been split into segments, so iteration is needed
@@ -150,7 +153,7 @@ public class WayModule extends SceneryModule {
         } catch (/*OsmProcessException |*/ MeshInconsistencyException e) {
 
             SvgWriter svgWriter = new SvgWriter(/*terrainMeshNotNeededOnceButNowNeeded.getGridCellBounds()*/);
-            svgWriter = svgWriter.addMeshPolygons(terrainMeshNotNeededOnceButNowNeeded.polygons, terrainMeshNotNeededOnceButNowNeeded.getGridCellBounds().getProjection());
+            svgWriter = svgWriter.addMeshPolygons(terrainMeshNotNeededOnceButNowNeeded.polygons, projection);
             if (e.invalidPolygon != null) {
                 svgWriter = svgWriter.addPolygon(e.invalidPolygon, "red");
             }
@@ -158,7 +161,7 @@ public class WayModule extends SceneryModule {
             log.error("MeshInconsistencyException", e);
             String sourceRef = "https://www.openstreetmap.org/way/"+mapwaySegment.getOsmId();
             meshServiceFacade.addFailure(terrainMeshNotNeededOnceButNowNeeded.meshName, e.getMessage(), sourceRef,
-                    e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, terrainMeshNotNeededOnceButNowNeeded.getGridCellBounds().getProjection()));
+                    e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, projection));
             //throw new MeshInconsistencyException(terrainMeshNotNeededOnceButNowNeeded, e);
         } catch (OsmProcessException e) {
             throw new RuntimeException(e);
@@ -248,7 +251,7 @@ public class WayModule extends SceneryModule {
            /* if (road.getOsmIdsAsString().contains("23696494")) {
                 int h = 9;
             }*/
-        connector = createAndPersistConnector(node,/* roadsAndBridges,*/ terrainMesh, mapdata);
+        connector = createAndPersistConnector(node,/* roadsAndBridges,*/ mapdata);
         if (connector != null) {
             //TODO connector.add(road);
             //TODO road.setStartConnector(connector);
@@ -270,7 +273,7 @@ public class WayModule extends SceneryModule {
      * @param mapdata
      * @return
      */
-    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ createAndPersistConnector(MapNode node, /*19.2.26SceneryObjectList roadsAndBridges*/ TerrainMesh tm, MapData mapdata) throws MeshInconsistencyException, OsmProcessException {
+    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ createAndPersistConnector(MapNode node,  MapData mapdata) throws MeshInconsistencyException, OsmProcessException {
         TagGroup tags = node.getOsmNode().tags;
 
         log.debug("Creating new connector " + node.getOsmId());
@@ -302,7 +305,7 @@ public class WayModule extends SceneryModule {
             }*/
 
         //if (road1.isOuterNode(node) && road2.isOuterNode(node)) {
-        SceneryWayConnector connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD, tm.getGridCellBounds().getProjection());
+        SceneryWayConnector connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD,projection);
         //10.9.19: Besser alle Ways an den Connector haengen stat nur zwei, sonst geht mir nachher evtl. eine inner connector way durch. (z.B. 1379039502)
         for (MapWaySegment2 way : connectedRoads) {
             //   connector.add(road1);

@@ -2,6 +2,7 @@ package de.yard.threed.osm2world;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 
 
 import java.util.ArrayList;
@@ -21,19 +22,20 @@ public class MapData {
     final List<MapWaySegment> mapWaySegments;
     final List<MapArea> mapAreas;
     List<MapWay> mapWays;
-
+    public SceneryProjection projection;
     AxisAlignedBoundingBoxXZ fileBoundary;
     AxisAlignedBoundingBoxXZ dataBoundary;
 
     public MapData(List<MapNode> mapNodes, List<MapWaySegment> mapWaySegments,
-                   List<MapArea> mapAreas, List<MapWay> mapWays, AxisAlignedBoundingBoxXZ fileBoundary) {
+                   List<MapArea> mapAreas, List<MapWay> mapWays, AxisAlignedBoundingBoxXZ fileBoundary,
+                   SceneryProjection projection) {
 
         this.mapNodes = mapNodes;
         this.mapWaySegments = mapWaySegments;
         this.mapAreas = mapAreas;
         this.mapWays = mapWays;
         this.fileBoundary = fileBoundary;
-
+        this.projection = projection;
         calculateDataBoundary();
 
     }
@@ -42,13 +44,14 @@ public class MapData {
      * used for cloning
      */
     private MapData(int dummy, List<MapNode> mapNodes, List<MapWaySegment> mapWaySegments,
-                    List<MapArea> mapAreas, List<MapWay> mapWays, AxisAlignedBoundingBoxXZ dataBoundary) {
+                    List<MapArea> mapAreas, List<MapWay> mapWays, AxisAlignedBoundingBoxXZ dataBoundary, SceneryProjection projection) {
 
         this.mapNodes = mapNodes;
         this.mapWaySegments = mapWaySegments;
         this.mapAreas = mapAreas;
         this.mapWays = mapWays;
         this.dataBoundary = dataBoundary;
+        this.projection = projection;
     }
 
     private void calculateDataBoundary() {
@@ -209,6 +212,6 @@ public class MapData {
         return new MapData(9, mapNodes, mapWaySegments,
                 mapAreas,
                 mapWays.stream().filter(w -> w.getOsmId() == wayId).collect(Collectors.toUnmodifiableList()),
-                dataBoundary);
+                dataBoundary, projection);
     }
 }

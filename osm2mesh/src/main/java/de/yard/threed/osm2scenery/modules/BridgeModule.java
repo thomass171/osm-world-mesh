@@ -4,6 +4,7 @@ package de.yard.threed.osm2scenery.modules;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineSegment;
 import de.yard.threed.osm2graph.osm.JtsUtil;
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
@@ -46,8 +47,8 @@ import static de.yard.threed.osm2world.WorldModuleGeometryUtil.filterWorldObject
 @Slf4j
 public class BridgeModule extends SceneryModule {
 
-    public BridgeModule(MeshServiceFacade meshServiceFacade) {
-        super(meshServiceFacade);
+    public BridgeModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
+        super(meshServiceFacade, projection);
     }
 
     public static final boolean isBridge(TagGroup tags) {

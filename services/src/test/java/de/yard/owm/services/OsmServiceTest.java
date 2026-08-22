@@ -62,10 +62,12 @@ public class OsmServiceTest extends AbstractSceneryTest {
 
     @Autowired
     private PlatformService platformService;
+    private DesdorfTestData desdorfTestData;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         testServices.cleanup();
+        desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
     }
 
 
@@ -73,16 +75,13 @@ public class OsmServiceTest extends AbstractSceneryTest {
     //Using maingrid appears easier finally @Sql({"classpath:meshDesdorf.sql"})
     public void testDesdorfK41Segment() throws Exception {
 
-        //DesdorfTestData desdorfTestdata = setupForDesdorf(meshService, testServices, terrainMeshManager);
-        DesdorfTestData desdorfTestdata = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
-
-        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestdata.fullMapData, 24927839L);
+        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 24927839L);
         assertNotNull(results.sceneryMesh);
 
         TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
 
         testServices.validateMesh(terrainMesh,
-                desdorfTestdata.expectedBoundary,
+                desdorfTestData.expectedBoundary,
                 expectedConnector255563538,
                 expectedLowerK41);
 
@@ -95,9 +94,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
     @Test
     public void testDesdorf107468171K43() throws Exception {
 
-        DesdorfTestData desdorfTestdata = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
-
-        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestdata.fullMapData, 107468171L);
+        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
         assertNotNull(results.sceneryMesh);
 
         TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
@@ -105,7 +102,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
         terrainMesh.writeToSvg();
 
         testServices.validateMesh(terrainMesh,
-                desdorfTestdata.expectedBoundary,
+                desdorfTestData.expectedBoundary,
                 expectedConnector445410497,
                 expectedConnector270353278,
                 expectedK43[0],
@@ -132,30 +129,27 @@ public class OsmServiceTest extends AbstractSceneryTest {
     @Test
     public void testDesdorfStepByStep() throws Exception {
 
-        //DesdorfTestData desdorfTestdata = setupForDesdorf(meshService, testServices, terrainMeshManager);
-        DesdorfTestData desdorfTestdata = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
-
         // lower K41 (full map data is needed for connector, so no filterWay(24927839)
-        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestdata.fullMapData, 24927839L);
+        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 24927839L);
         assertNotNull(results.sceneryMesh);
 
         TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
 
         testServices.validateMesh(terrainMesh,
-                desdorfTestdata.expectedBoundary,
+                desdorfTestData.expectedBoundary,
                 expectedConnector255563538,
                 expectedLowerK41);
 
         terrainMesh.writeToSvg();
 
         // upper K41
-        results = osmService.populateMesh("Desdorf", desdorfTestdata.fullMapData, 182152619L);
+        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 182152619L);
         assertNotNull(results.sceneryMesh);
 
         terrainMesh = meshService.loadMesh("Desdorf");
 
         testServices.validateMesh(terrainMesh,
-                desdorfTestdata.expectedBoundary,
+                desdorfTestData.expectedBoundary,
                 expectedConnector255563538,
                 expectedLowerK41,
                 expectedConnector251517906,
@@ -163,12 +157,12 @@ public class OsmServiceTest extends AbstractSceneryTest {
                 expectedUpperK41s1);
 
         // left branch
-        osmService.populateMesh("Desdorf", desdorfTestdata.fullMapData, 107468171L);
+        osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
 
         terrainMesh = meshService.loadMesh("Desdorf");
 
         testServices.validateMesh(terrainMesh,
-                desdorfTestdata.expectedBoundary,
+                desdorfTestData.expectedBoundary,
                 DesdorfExpectations.expectedConnector255563538,
                 expectedLowerK41,
                 expectedConnector251517906,

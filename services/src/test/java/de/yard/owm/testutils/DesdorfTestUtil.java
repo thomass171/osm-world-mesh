@@ -46,7 +46,7 @@ public class DesdorfTestUtil {
     public void processK41Low() throws MeshInconsistencyException, OsmProcessException {
 
         //Processor processor = sb.execute(desdorfk41, configsuffix, "Desdorf", false, customconfig, MATERIAL_FLIGHT).processor;
-        HighwayModule roadModule = new HighwayModule(null);
+        HighwayModule roadModule = new HighwayModule(null,null);
         List<SceneryObject> sceneryObjects = null;//osmElementService.process(k41Low, List.of(roadModule), stu.terrainMesh, stu.sceneryContext, OsmClassifier.LOD_BASIC);
 
         stu.terrainMesh.writeToSvg();
@@ -56,7 +56,7 @@ public class DesdorfTestUtil {
     }
 
     public void processK41Upper() throws MeshInconsistencyException, OsmProcessException {
-        HighwayModule roadModule = new HighwayModule(null);
+        HighwayModule roadModule = new HighwayModule(null,null);
         List<SceneryObject> sceneryObjects = null;//osmElementService.process(k41Upper, List.of(roadModule), stu.terrainMesh, stu.sceneryContext, OsmClassifier.LOD_BASIC);
 
         stu.terrainMesh.writeToSvg();

@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
@@ -53,8 +54,8 @@ public class SurfaceAreaModule extends SceneryModule {
 
     }
 
-    public SurfaceAreaModule(MeshServiceFacade meshServiceFacade) {
-        super(meshServiceFacade);
+    public SurfaceAreaModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
+        super(meshServiceFacade, projection);
     }
 
     @Override

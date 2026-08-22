@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
 import de.yard.threed.osm2scenery.SceneryContext;
@@ -26,6 +27,7 @@ import java.util.List;
 @AllArgsConstructor
 public abstract class SceneryModule {
     public MeshServiceFacade meshServiceFacade;
+    public SceneryProjection projection;
 
     public static List<? extends SceneryModule> getRelevant(List<? extends SceneryModule> worldModules, MapWay mapWay) {
         return new ArrayList<>(worldModules);

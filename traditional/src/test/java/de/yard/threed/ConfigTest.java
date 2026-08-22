@@ -43,7 +43,7 @@ public class ConfigTest {
     public void testTagMap() throws IOException {
 
         Config.reinit(Processor.defaultconfigfile, loadMaterialConfig(MATERIAL_FLIGHT), loadConfig("superdetailed"), null);
-        HighwayModule highwayModule = new HighwayModule(null);
+        HighwayModule highwayModule = new HighwayModule(null,null);
         TagMap materialmap = highwayModule.getTagMap("materialmap");
         assertEquals(5, materialmap.getSize(), "materialmap");
 

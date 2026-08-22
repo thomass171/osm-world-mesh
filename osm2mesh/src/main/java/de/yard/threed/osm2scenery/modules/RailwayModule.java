@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
@@ -29,8 +30,8 @@ public class RailwayModule extends SceneryModule {
 	private static final List<String> RAILWAY_VALUES = asList(
 			"rail", "light_rail", "tram", "subway", "disused");
 
-	public RailwayModule(MeshServiceFacade meshServiceFacade) {
-		super(meshServiceFacade);
+	public RailwayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection) {
+		super(meshServiceFacade, projection);
 	}
 
 	@Override

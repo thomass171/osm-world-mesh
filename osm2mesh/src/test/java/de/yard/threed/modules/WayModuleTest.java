@@ -28,10 +28,7 @@ public class WayModuleTest extends AbstractWayModuleTest {
     @Test
     public void testDesdorfLowerK41() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
-
         MapWay way = desdorfTestData.fullMapData.findMapWay(24927839);
-        WayModule wayModule = new WayModule(desdorfTestData.meshService);
 
         SceneryWayObject w = (SceneryWayObject) wayModule.applyTo(way.getLastSegment(), desdorfTestData.terrainMesh, SceneryContext.getInstance()).get(0);
     }
@@ -39,12 +36,9 @@ public class WayModuleTest extends AbstractWayModuleTest {
     @Test
     public void testDesdorfUpperK41() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
-
         MapWay way = desdorfTestData.fullMapData.findMapWay(182152619);
         double width = 7.7;
 
-        WayModule wayModule = new WayModule(desdorfTestData.meshService);
         SceneryWayObject firstSegment = (SceneryWayObject) wayModule.applyTo(way.getFirstSegment(), desdorfTestData.terrainMesh, SceneryContext.getInstance()).get(0);
 
         assertEquals(255563538, firstSegment.getStartConnector().getOsmId());
@@ -73,12 +67,9 @@ public class WayModuleTest extends AbstractWayModuleTest {
     @Test
     public void testSimpleMainConnectionInDesdorf() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
-
         MapWay way33817500 = desdorfTestData.fullMapData.findMapWay(33817500);
         MapWay way33817501 = desdorfTestData.fullMapData.findMapWay(33817501);
 
-        WayModule wayModule = new WayModule(desdorfTestData.meshService);
         wayModule.applyTo(way33817500.getFirstSegment(), desdorfTestData.terrainMesh, SceneryContext.getInstance());
 
         MeshServiceMock meshServiceMock = (MeshServiceMock) desdorfTestData.meshService;
@@ -98,11 +89,9 @@ public class WayModuleTest extends AbstractWayModuleTest {
     @Test
     public void testConnector445410497InDesdorf() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
 
         MapWay way107468169 = desdorfTestData.fullMapData.findMapWay(107468169);
 
-        WayModule wayModule = new WayModule(desdorfTestData.meshService);
         wayModule.applyTo(way107468169.getFirstSegment(), desdorfTestData.terrainMesh, SceneryContext.getInstance());
 
         MeshServiceMock meshServiceMock = (MeshServiceMock) desdorfTestData.meshService;

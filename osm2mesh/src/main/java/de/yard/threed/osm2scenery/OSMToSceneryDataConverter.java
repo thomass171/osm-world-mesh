@@ -68,7 +68,7 @@ public class OSMToSceneryDataConverter {
         createMapElements(osmData, mapNodes, mapWaySegs, mapAreas, mapWays, (GridCellBounds) targetBounds);
 
         MapData mapData = new MapData(mapNodes, mapWaySegs, mapAreas, mapWays,
-                calculateFileBoundary(osmData.getBounds()));
+                calculateFileBoundary(osmData.getBounds()), targetBounds.getProjection());
 
         calculateIntersectionsInMapData(mapData);
 
