@@ -34,6 +34,10 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         MapWay way = desdorfTestData.fullMapData.findMapWay(24879711);
 
         SceneryWayObject w = (SceneryWayObject) wayModule.applyTo(way.getLastSegment(), SceneryContext.getInstance()).get(0);
+
+        SvgWriter.build()
+                .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
+                .writeTmpFile();
     }
 
     @Test
@@ -44,6 +48,9 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         for (int i = 0; i < expectedK43.length; i++) {
             SceneryWayObject w = (SceneryWayObject) wayModule.applyTo(way.getSegment(i), SceneryContext.getInstance()).get(0);
         }
+        SvgWriter.build()
+                .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
+                .writeTmpFile();
     }
 
     @Test
@@ -110,7 +117,6 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
     @Test
     public void testConnector445410497InDesdorf() throws Exception {
 
-
         MapWay way107468169 = desdorfTestData.fullMapData.findMapWay(107468169);
 
         wayModule.applyTo(way107468169.getFirstSegment(), SceneryContext.getInstance());
@@ -120,8 +126,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         validateMeshPolygon(expectedConnector445410497, meshWayConnector);
 
         SvgWriter.build()
-                // terrainMesh not populated
-                .addMeshPolygons(desdorfTestData.terrainMesh.polygons, desdorfTestData.getGridCellBounds().getProjection())
+                .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
                 .writeTmpFile();
 
     }
