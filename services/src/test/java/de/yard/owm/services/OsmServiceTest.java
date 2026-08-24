@@ -8,7 +8,6 @@ import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
 import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.osm.OsmService;
 import de.yard.owm.services.persistence.*;
-import de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon;
 import de.yard.owm.testutils.TestServices;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -23,7 +22,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import static de.yard.threed.osm2mesh.DesdorfExpectations.*;
-import static de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -83,7 +81,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
                 expectedConnector255563538,
-                expectedLowerK41);
+                expected24927839LowerK41);
 
         terrainMesh.writeToSvg();
     }
@@ -112,18 +110,9 @@ public class OsmServiceTest extends AbstractSceneryTest {
                 expectedK43[2],
                 expectedConnector255563537,
                 expectedK43[3],
-                expectedConnector255563538
-                //??desdorfTestdata.expectedK43[4]
-
-                //expectedConnector255563538,
-                //expectedLowerK41,
-                //expectedConnector251517906,
-                //expectedUpperK41s0,
-                //expectedUpperK41s1,
-                //expectedLConnector445410497,
+                expectedConnector255563538,
+                expectedK43[4]
         );
-
-
     }
 
     @Test
@@ -138,7 +127,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
                 expectedConnector255563538,
-                expectedLowerK41);
+                expected24927839LowerK41);
 
         terrainMesh.writeToSvg();
 
@@ -151,7 +140,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
                 expectedConnector255563538,
-                expectedLowerK41,
+                expected24927839LowerK41,
                 expectedConnector251517906,
                 expectedUpperK41s0,
                 expectedUpperK41s1);
@@ -164,7 +153,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
                 DesdorfExpectations.expectedConnector255563538,
-                expectedLowerK41,
+                expected24927839LowerK41,
                 expectedConnector251517906,
                 expectedUpperK41s0,
                 expectedUpperK41s1,
@@ -181,6 +170,70 @@ public class OsmServiceTest extends AbstractSceneryTest {
         );
 
         terrainMesh.writeToSvg();
+    }
+
+    @Test
+    public void testDesdorfFull() throws Exception {
+
+        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, null);
+        assertNotNull(results.sceneryMesh);
+
+        TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
+
+        testServices.validateMesh(terrainMesh,
+                desdorfTestData.expectedBoundary,
+                DesdorfExpectations.expectedConnector255563538,
+                expected24927839LowerK41,
+                expectedConnector251517906,
+                expectedUpperK41s0,
+                expectedUpperK41s1,
+                expectedConnector445410497,
+                expectedConnector270353278,
+                expectedK43[0],
+                expectedConnector445409643,
+                expectedK43[1],
+                expectedConnector387409890,
+                expectedK43[2],
+                expectedConnector255563537,
+                expectedK43[3],
+                expectedK43[4]
+        );
+
+        terrainMesh.writeToSvg();
+    }
+
+    /*17.5.26 public static DesdorfTestData setupForDesdorf(MeshService meshService, TestServices testServices, TerrainMeshManager terrainMeshManager) throws Exception {
+        // The 'lower' segment. Full data will provide one connector
+        //OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("K41-segment.osm.xml");
+        OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("Desdorf.osm.xml");
+
+        Configuration customconfig = new BaseConfiguration();
+        customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider");
+        customconfig.setProperty("modules.HighwayModule.tagfilter", "highway=secondary");
+
+        GridCellBounds gridCellBounds = MainGrid.buildDesdorf();
+        meshService.createMesh("Desdorf", gridCellBounds.getBoundary());
+        //temeshService.loadMesh("Desdorf", gridCellBounds.getBoundary());
+
+        TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
+        ExpectedMeshPolygon expectedBoundary = expectedBoundary(3);
+        testServices.validateMesh(terrainMesh,
+                expectedBoundary);
+
+        TerrainMesh.meshFactoryInstance = new PersistedMeshFactory("Desdorf", gridCellBounds.getProjection().getBaseProjection(), terrainMeshManager);
+
+        OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
+        MapData mapData = converter.createMapData(osmData);
+
+        ExpectedMeshPolygon[] expectedK43 = new ExpectedMeshPolygon[]{
+                expectedWay(107468171L, 0, 10),
+                expectedWay(107468171L, 1, 6),
+                expectedWay(107468171L, 2, 4),
+                expectedWay(107468171L, 3, 4),
+                expectedWay(107468171L, 4, 4)
+        };
+
+        return new DesdorfTestdata(expectedBoundary, mapData, expectedK43);
     }
 
     /*17.5.26 public static DesdorfTestData setupForDesdorf(MeshService meshService, TestServices testServices, TerrainMeshManager terrainMeshManager) throws Exception {

@@ -57,7 +57,7 @@ public class DesdorfExpectations {
             new ExpectedMeshNodePair(33817499, new Degree(2), 5, 4));
 
     // osmway has 5 nodes
-    public static ExpectedMeshPolygon expectedLowerK41 = expectedWay(24927839L, 0, 10);
+    public static ExpectedMeshPolygon expected24927839LowerK41 = expectedWay(24927839L, 0, 10);
 
     // osmway has 6 nodes
     public static ExpectedMeshPolygon expectedUpperK41s0 = expectedWay(182152619L, 0, 4);
