@@ -69,8 +69,8 @@ public class DesdorfExpectations {
     public static ExpectedMeshPolygon[] expectedK43 = new ExpectedMeshPolygon[]{
             expectedWay(107468171L, 0, 10),
             expectedWay(107468171L, 1, 10/*TODO fix 6*/),
-            expectedWay(107468171L, 2, 10/*??4*/),
-            expectedWay(107468171L, 3, 10/*??4*/),
-            expectedWay(107468171L, 4, 4)
+            expectedWay(107468171L, 2, 10/*TODO CHECK ??4*/),
+            expectedWay(107468171L, 3, 10/*TODO CHECK ??4*/),
+            expectedWay(107468171L, 4, 10/*TODO CHECK ??4*/)
     };
 }

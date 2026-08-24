@@ -67,7 +67,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
     Map<MapWaySegment2, WayArea> wayAreaCandidates = new HashMap<>();
     // set by createPolygon. 2026 approach for polygon? "second" is the osm id. Of what and for what?
     private List<Pair<GeoCoordinate, Long>> polygonLine = null;
-    public MeshPolygon meshWayConnector = null;
+    //24.8.26 public MeshPolygon meshWayConnector = null;
 
     public SceneryWayConnector(String creatortag, MapNode node, ConfMaterial material, Category category, SceneryProjection projection) {
         super(creatortag, node, material, category, projection);
@@ -1039,7 +1039,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
         }
 
         //10.3.26 now in cca() createPolygon(tm.getGridCellBounds(), tm, SceneryContext.getInstance());
-        meshWayConnector = ((WayTerrainMeshAdder)terrainMeshAdder).registerConnector(node.getOsmId(), polygonLine, attachpair);
+        /*24.8.26 meshWayConnector =*/ ((WayTerrainMeshAdder)terrainMeshAdder).registerConnector(node.getOsmId(), polygonLine, attachpair);
 
         // 27.2.26: We are back at storing polygons, so don't go this way any more.
        /*

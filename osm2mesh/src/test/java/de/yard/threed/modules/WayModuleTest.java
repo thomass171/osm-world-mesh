@@ -25,9 +25,10 @@ public class WayModuleTest extends AbstractWayModuleTest {
 
     Platform platform = CoreTestFactory.initPlatformForTest(new PlatformFactoryTestingCore(), null);
 
-
-
-
+    @Override
+    protected DesdorfTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
+        return new DesdorfTestData(meshServiceFactory, validatorServiceFactory);
+    }
 
     @Override
     protected MeshServiceFactory getMeshServiceFactory() {

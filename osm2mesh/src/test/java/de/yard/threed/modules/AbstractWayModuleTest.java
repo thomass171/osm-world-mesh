@@ -1,8 +1,9 @@
 package de.yard.threed.modules;
 
+import de.yard.threed.MeshServiceFactory;
+import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.osm2mesh.testutils.DefaultMockingSceneryTest;
 import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
-import de.yard.threed.osm2mesh.testutils.MeshServiceMock;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
@@ -19,12 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
+    protected abstract DesdorfTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception;
+
     DesdorfTestData desdorfTestData;
     WayModule wayModule;
 
     @BeforeEach
-    void setUp() throws Exception {
-        desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+    public void setUp() throws Exception {
+        desdorfTestData = setupForDesdorf(getMeshServiceFactory(), getValidatorServiceFactory());
         wayModule = new WayModule(desdorfTestData.meshService, desdorfTestData.gridCellBounds.getProjection(), "Desdorf");
     }
 
@@ -100,8 +103,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         wayModule.applyTo(way33817500.getFirstSegment(), SceneryContext.getInstance());
 
-        MeshServiceMock meshServiceMock = (MeshServiceMock) desdorfTestData.meshService;
-        MeshPolygon meshWayConnector =  meshServiceMock.getConnector(387409895);
+        MeshPolygon meshWayConnector =  desdorfTestData.meshService.getConnector(387409895);
         validateMeshPolygon(expectedConnector387409895, meshWayConnector);
 
         //SVG not possible?
@@ -121,8 +123,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         wayModule.applyTo(way107468169.getFirstSegment(), SceneryContext.getInstance());
 
-        MeshServiceMock meshServiceMock = (MeshServiceMock) desdorfTestData.meshService;
-        MeshPolygon meshWayConnector =  meshServiceMock.getConnector(445410497);
+        MeshPolygon meshWayConnector =  desdorfTestData.meshService.getConnector(445410497);
         validateMeshPolygon(expectedConnector445410497, meshWayConnector);
 
         SvgWriter.build()

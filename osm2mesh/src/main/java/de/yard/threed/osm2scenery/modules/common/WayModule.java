@@ -136,7 +136,7 @@ public class WayModule extends SceneryModule {
             for (SceneryObject sceneryObject : roadsAndBridges.objects) {
                 SceneryWayObject sfo = (SceneryWayObject) sceneryObject;
                 // Find/Create Junctions/RoadConnector to existing highways.
-                Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> connectors = processConnectionCandidates(sfo.mapWay, /*roadsAndBridges.get(0),*/ sceneryContext);
+                Pair<MeshPolygon, MeshPolygon> connectors = processConnectionCandidates(sfo.mapWay, sceneryContext);
 
                 // steps are attach connector, create polygon, then clip to connector(doesn't clip consider connector?)
                 if (connectors.getFirst() != null) {
@@ -317,7 +317,7 @@ public class WayModule extends SceneryModule {
         // done in persist connector.createPolygon(null, null,  SceneryContext.getInstance());
         // DB persist
         connector.cca(wayTerrainMeshAdder);//addToTerrainMesh(tm);
-        return connector.meshWayConnector;
+        return meshServiceFacade.getConnector(connector.getOsmId());
         //return connector;
         // }
         // }

@@ -35,13 +35,13 @@ public abstract class TerrainMeshAdder implements SceneryObjectComponent {
      * lanes is used leter to detect ways for triangulateAndTexturize
      * connector might be null, otherwise the connecting part must have been created before.
      * 6.4.24: Well, maybe its easier to keep existing registerLine for a while?
-     *
+     * 24.8.26: No longer returns a value to avoid confusion.
      * @return
      */
-    public MeshPolygon registerWay(long osmWayId, Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws OsmProcessException, MeshInconsistencyException {
+    public void registerWay(long osmWayId, Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws OsmProcessException, MeshInconsistencyException {
 
         meshService.addWay(meshName, osmWayId, JtsUtil.unproject(fromConnector, projection), JtsUtil.unproject(leftLine, projection), JtsUtil.unproject(rightLine, projection), JtsUtil.unproject(toConnector, projection), lanes);
-        return null;
+        //return null;
         /*12.2.26 moved to service Polygon polygon = JtsUtil.createPolygonFromWayOutlines(new CoordinateList(rightLine), new CoordinateList(leftLine));
 
         List<MeshLine> linesToDelete = new ArrayList<>();
@@ -119,10 +119,11 @@ public abstract class TerrainMeshAdder implements SceneryObjectComponent {
 
     /**
      * Analog to registerWay. "pair.second" is attached way id
+     * 24.8.26: No longer returns a value to avoid confusion.
      */
-    public MeshPolygon/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) throws OsmProcessException, MeshInconsistencyException {
+    public void/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) throws OsmProcessException, MeshInconsistencyException {
         TerrainMesh tm = meshService.addConnector(meshName, osmNodeId, line, wayAttachPoints);
-        return tm.getConnector(osmNodeId);
+        //24.8.26 return tm.getConnector(osmNodeId);
 
     }
 }

@@ -171,13 +171,13 @@ public class OsmServiceTest extends AbstractSceneryTest {
                 expectedConnector445410497,
                 expectedConnector270353278,
                 expectedK43[0],
-                //expectedConnector(445409643, 4 or 6??),
+                expectedConnector445409643,
                 expectedK43[1],
-                expectedConnector(387409890, 6),
+                expectedConnector387409890,
                 expectedK43[2],
-                expectedConnector(255563537, 4/*??6*/)
-                //??desdorfTestdata.expectedK43[3],
-                //??desdorfTestdata.expectedK43[4]
+                expectedConnector255563537,
+                expectedK43[3],
+                expectedK43[4]
         );
 
         terrainMesh.writeToSvg();
