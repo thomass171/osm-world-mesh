@@ -25,6 +25,12 @@ var foundGeoRoute = null;
 var map_routeMarker = null;
 var currentMesh = null;
 
+// rectangular area selection on the map
+var selectAreaMode = false;
+var selectionStart = null;
+var selectionRectangle = null;
+var selectionImageOverlay = null;
+
 /**
  *
  */
@@ -47,6 +53,80 @@ function initMap() {
         //var marker = L.marker(e.latlng).addTo(mymap)
         console.log("map click at " + e.latlng);
         // TODO? retrieve polygon etc from server
+    });
+
+    map.on('mousedown', onMapMouseDownForSelection);
+}
+
+/**
+ * Toggles rectangular area selection mode. While active, map dragging is disabled
+ * so a mousedown+drag on the map draws a selection rectangle instead of panning.
+ */
+function toggleSelectArea() {
+    selectAreaMode = !selectAreaMode;
+    $("#btn_selectarea").toggleClass("w3-blue", !selectAreaMode);
+    $("#btn_selectarea").toggleClass("w3-green", selectAreaMode);
+    if (selectAreaMode) {
+        map.dragging.disable();
+        showMessage("Click and drag on the map to select a rectangular area");
+    } else {
+        map.dragging.enable();
+    }
+}
+
+function onMapMouseDownForSelection(e) {
+    if (!selectAreaMode) {
+        return;
+    }
+    selectionStart = e.latlng;
+    if (selectionRectangle != null) {
+        map.removeLayer(selectionRectangle);
+        selectionRectangle = null;
+    }
+    map.on('mousemove', onMapMouseMoveForSelection);
+    map.on('mouseup', onMapMouseUpForSelection);
+}
+
+function onMapMouseMoveForSelection(e) {
+    var bounds = L.latLngBounds(selectionStart, e.latlng);
+    if (selectionRectangle == null) {
+        selectionRectangle = L.rectangle(bounds, {color: "orange", weight: 2, fillOpacity: 0.1}).addTo(map);
+    } else {
+        selectionRectangle.setBounds(bounds);
+    }
+}
+
+function onMapMouseUpForSelection(e) {
+    map.off('mousemove', onMapMouseMoveForSelection);
+    map.off('mouseup', onMapMouseUpForSelection);
+    if (selectionStart == null) {
+        return;
+    }
+    map.removeLayer(selectionRectangle);
+    selectionRectangle = null;
+    var bounds = L.latLngBounds(selectionStart, e.latlng);
+    selectionStart = null;
+    toggleSelectArea();
+    loadTileImage(bounds);
+}
+
+/**
+ * Calls the tile image API for the selected bounding box and shows the returned
+ * image as an overlay on the map, positioned exactly over the selected area.
+ */
+function loadTileImage(bounds) {
+    var sw = bounds.getSouthWest();
+    var ne = bounds.getNorthEast();
+    var url = serviceshost + "/owm/tile/image"
+        + "?min.lat=" + sw.lat + "&min.lon=" + sw.lng
+        + "&max.lat=" + ne.lat + "&max.lon=" + ne.lng;
+    doGetBlob(url, blob => {
+        if (selectionImageOverlay != null) {
+            map.removeLayer(selectionImageOverlay);
+        }
+        var objectUrl = URL.createObjectURL(blob);
+        //selectionImageOverlay = L.imageOverlay(objectUrl, bounds, {opacity: 0.8}).addTo(map);
+        showMessage("Tile image loaded");
     });
 }
 

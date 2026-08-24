@@ -21,6 +21,20 @@ async function doGet(url, jsonHandler) {
     }
 }
 
+async function doGetBlob(url, blobHandler) {
+    try {
+      const response = await fetch(url, { method: 'GET'});
+      if (response.ok) {
+          var blob = await response.blob();
+          blobHandler(blob);
+      } else {
+          console.log('There was an error loading blob from ' + url, response.status);
+      }
+    } catch (error) {
+        console.log('There was an error', error);
+    }
+}
+
 async function doPost(url, jsonHandler, data) {
     try {
         const response = await fetch(url, {
