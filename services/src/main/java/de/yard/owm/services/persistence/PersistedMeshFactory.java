@@ -34,7 +34,7 @@ public class PersistedMeshFactory implements MeshFactory {
 
     @Override
     public MeshNode buildMeshNode(Coordinate coordinate) {
-        PersistedMeshNode newNode = new PersistedMeshNode(coordinate, projection.unproject(coordinate));
+        PersistedMeshNode newNode = new PersistedMeshNode(projection.unproject(coordinate));
         newNode.setPersistedMesh(persistedMesh);
         // persist it to give it an id which is needed for equals.
         terrainMeshManager.persistNode(newNode);
@@ -84,7 +84,7 @@ public class PersistedMeshFactory implements MeshFactory {
         for (Coordinate c : coordinates) {
             PersistedMeshNode existingNode = null;//TODO find
             if (existingNode == null) {
-                existingNode = new PersistedMeshNode(c, GeoCoordinate.fromLatLon(projection.unproject(c), c.z)/*, projection*/);
+                existingNode = new PersistedMeshNode(GeoCoordinate.fromLatLon(projection.unproject(c), c.z)/*, projection*/);
             }
             if (lastNode != null) {
                 lines.add(new PersistedMeshLine(lastNode, existingNode));

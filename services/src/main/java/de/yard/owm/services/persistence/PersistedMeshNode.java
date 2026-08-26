@@ -74,13 +74,7 @@ public class PersistedMeshNode implements MeshNode {
 
     }
 
-    public PersistedMeshNode(Coordinate coordinate, GeoCoordinate latlon/*MetricMapProjection projection*/) {
-        /*if (coordinate==null){
-            throw new RuntimeException("coordinate is null");
-        }
-        this.coordinate = coordinate;*/
-        //setProjection(projection);
-        //GeoCoordinate latlon = projection.unproject(coordinate);
+    public PersistedMeshNode(GeoCoordinate latlon) {
         lat = latlon.getLatDeg().getDegree();
         lon = latlon.getLonDeg().getDegree();
     }

@@ -82,50 +82,48 @@ public class WayModule extends SceneryModule {
         // Also contains Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
 
+        if (mapwaySegment.getMapNodes().size() == 0) {
+            // might be some inconsistency in the OSM data. E.g. a way with only one node. Ignore it.
+            log.warn("Ignoring mapwaySegment " + mapwaySegment.getOsmId() + " with only " + mapwaySegment.getMapNodes().size() + " nodes");
+            return roadsAndBridges;
+        }
+
         log.info("Adding segment " + mapwaySegment.segmentIndex + "(" + mapwaySegment.getStartNode().getOsmId() + "->" + mapwaySegment.getEndNode().getOsmId() + ") for way " + mapwaySegment.getOsmId());
         // material not needed yet?
         TagMap materialmap = null;//getTagMap("materialmap");
         if (mapwaySegment.getOsmId() == 8610418) {
             int h = 6;
         }
-        // just to be sure
-        if (isHighway(mapwaySegment.getTags())) {
-            long osmid = mapwaySegment.getOsmId();
+        //24.8.26 don't care about the type any more this way. if (isHighway(mapwaySegment.getTags())) {
+        long osmid = mapwaySegment.getOsmId();
 
-            //Ein Way ohne Segmente? Das ist doch bestimmt was inkonsistentes.
-            if (mapwaySegment.getMapNodes().size() > 0) {
-                if (BridgeModule.isBridge(mapwaySegment.getTags())) {
-                    //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
-                    BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapwaySegment, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, sceneryContext);
-                    //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
-                    sceneryContext.highways.put(osmid, bridge);
-                    roadsAndBridges.add(bridge);
-                    sceneryContext.bridges.put(osmid, bridge);
-                    bridge.addToWayMap(ROAD, sceneryContext);
-                } else if (TunnelModule.isTunnel(mapwaySegment.getTags())) {
-                    //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
-                    Highway road = new Highway(mapwaySegment, materialmap, sceneryContext);
-                    sceneryContext.highways.put(osmid, road);
-                    roadsAndBridges.add(road);
-                    road.addToWayMap(ROAD, sceneryContext);
-                } else {
-                    // regular highway
-                    //Highway road = new Highway(mapway, materialmap, sceneryContext);
+        if (BridgeModule.isBridge(mapwaySegment.getTags())) {
+            //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
+            BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapwaySegment, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, sceneryContext);
+            //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
+            sceneryContext.highways.put(osmid, bridge);
+            roadsAndBridges.add(bridge);
+            sceneryContext.bridges.put(osmid, bridge);
+            bridge.addToWayMap(ROAD, sceneryContext);
+        } else if (TunnelModule.isTunnel(mapwaySegment.getTags())) {
+            //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
+            Highway road = new Highway(mapwaySegment, materialmap, sceneryContext);
+            sceneryContext.highways.put(osmid, road);
+            roadsAndBridges.add(road);
+            road.addToWayMap(ROAD, sceneryContext);
+        } else {
+            // regular way
 
+            SceneryWayObject way = new SceneryWayObject("Road", mapwaySegment,
+                    null,
+                    //Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/,
+                    ROAD, new FixedWidthProvider(5.0), sceneryContext, projection);//mapWay = line;
+            //sceneryContext.highways.put(osmid, road);
+            roadsAndBridges.add(way);
 
-                    SceneryWayObject way = new SceneryWayObject("Road", mapwaySegment,
-                            null,
-                            //Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/,
-                            ROAD, new FixedWidthProvider(5.0), sceneryContext, projection);//mapWay = line;
-                    //sceneryContext.highways.put(osmid, road);
-                    roadsAndBridges.add(way);
-
-                    //road.addToWayMap(ROAD, sceneryContext);
-                }
-            } else {
-                log.warn("Ignoring mapyway " + mapwaySegment.getOsmId() + " with only " + mapwaySegment.getMapNodes().size() + " nodes");
-            }
+            //road.addToWayMap(ROAD, sceneryContext);
         }
+
         try {
 
             wayTerrainMeshAdder = new WayTerrainMeshAdder(meshName, meshServiceFacade, projection);
@@ -304,10 +302,8 @@ public class WayModule extends SceneryModule {
 
         //if (road1.isOuterNode(node) && road2.isOuterNode(node)) {
         SceneryWayConnector connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD, projection);
-        //10.9.19: Besser alle Ways an den Connector haengen stat nur zwei, sonst geht mir nachher evtl. eine inner connector way durch. (z.B. 1379039502)
+        //10.9.19: Better have all ways at connector to avoid loosing one.
         for (MapWaySegment2 way : connectedRoads) {
-            //   connector.add(road1);
-            // connector.add(road2);
             connector.add(way);
         }
         //19.2.26  sceneryContext.wayMap.addConnector(ROAD, node, connector);

@@ -449,10 +449,11 @@ public class SceneryWayConnector extends SceneryNodeObject {
 
     /**
      * Might be called multiple times for the same way.
+     * 24.8.26: Really? Anyway it is checked.
      *
      * @param way
      */
-    public void add(MapWaySegment2/*MapWay/*SceneryWayObject */way) throws MeshInconsistencyException {
+    public void add(MapWaySegment2 way) throws MeshInconsistencyException {
         if (!ways.contains(way)) {
             ways.add(way);
             // TODO no hard coded width

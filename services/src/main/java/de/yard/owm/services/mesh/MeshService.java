@@ -204,6 +204,11 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         meshPolygon.close();
         // keep relation sync, otherwise reuse inside this TX won't know it.
         mesh.getPolygons().add(meshPolygon);
+
+        // Be sure it is a valid polygon
+        if (!meshPolygon.isValidForSave()) {
+            throw new MeshInconsistencyException("way polygon not valid for osmNodeId "+osmWayId);
+        }
         meshPolygonRepository.save(meshPolygon);
 
         // No validate and rollback in case of failure (exception)
@@ -243,6 +248,11 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         }
         //incoming already is closed. But we need to be sure to reuse the same start node at end
         meshPolygon.close();
+
+        // Be sure it is a valid polygon
+        if (!meshPolygon.isValidForSave()) {
+            throw new MeshInconsistencyException("connector polygon not valid for osmNodeId "+osmNodeId);
+        }
         meshPolygonRepository.save(meshPolygon);
 
         for (MapWaySegmentAtConnector waySegment : wayAttachPoints.keySet()) {
@@ -316,8 +326,8 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
 
 
 
-    private PersistedMeshNode buildMeshNode(GeoCoordinate coordinate, PersistedMesh mesh) {
-        PersistedMeshNode newNode = new PersistedMeshNode(null, coordinate);
+    public PersistedMeshNode buildMeshNode(GeoCoordinate coordinate, PersistedMesh mesh) {
+        PersistedMeshNode newNode = new PersistedMeshNode(coordinate);
         newNode.setPersistedMesh(mesh);
         //newNode.setPersistedMesh(persistedMesh);
         // persist it to give it an id which is needed for equals.

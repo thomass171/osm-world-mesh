@@ -78,7 +78,7 @@ public class OsmService {
 
         Phase.updatePhase(Phase.OBJECTS);
 
-        List<SceneryModule> worldModules = null;
+        /*24.8.26 not needed/used?? List<SceneryModule> worldModules = null;
         worldModules = new ArrayList<>();
         for (String modulename : modules) {
 
@@ -91,7 +91,7 @@ public class OsmService {
                 log.error("Failure loading module " + modulename);
                 e.printStackTrace();
             }
-        }
+        }*/
 
         //26.3.24 Materials.configureMaterials(compositeConfiguration);
         //this will cause problems if multiple conversions are run

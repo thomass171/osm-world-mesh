@@ -6,6 +6,7 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.Degree;
 import de.yard.threed.core.Pair;
+import de.yard.threed.osm2graph.osm.CoordinateList;
 import de.yard.threed.osm2scenery.polygon20.*;
 import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.Util;
@@ -21,6 +22,8 @@ import jakarta.persistence.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static de.yard.threed.osm2graph.osm.JtsUtil.geoCoordinatesToCoordinates;
 
 /**
  * A wayConnector is just a special polygon
@@ -188,15 +191,24 @@ public class PersistedMeshPolygon implements MeshPolygon/*10.8.26, MeshWayConnec
 
     @Override
     public GeoPolygon getGeoPolygon() {
+
+        try {
+            return new GeoPolygon(getPolygonCoordinates());
+        } catch (MeshInconsistencyException e) {
+            // 11.7.26: this should not happen because the polygon is already validated when created
+            // if it happens though, it is to be solved during creation of the polygon, not here. So throw a runtime exception.
+            // 26.8.26: Better not that restrictive, because it might just happen. Only log it and return null. The caller should handle it.
+            log.error("MeshInconsistencyException while creating GeoPolygon for OSM element {}: " + e.getMessage(), osmId);
+            //throw new RuntimeException(e);
+            return null;
+        }
+    }
+
+    private List<GeoCoordinate> getPolygonCoordinates() {
         List<GeoCoordinate> geoCoordinates = getGeoCoordinates();
         // Need to add closing node to make it a valid polygon
         geoCoordinates.add(geoCoordinates.get(0));
-        try {
-            return new GeoPolygon(geoCoordinates);
-        } catch (MeshInconsistencyException e) {
-            // 11.7.26: this should not happen because the polygon is already validated when created
-            throw new RuntimeException(e);
-        }
+        return geoCoordinates;
     }
 
     /**
@@ -246,6 +258,15 @@ public class PersistedMeshPolygon implements MeshPolygon/*10.8.26, MeshWayConnec
     @Override
     public List<? extends MeshPolygonNode> getPolygonNodes(){
         return meshPolygonNodes;
+    }
+
+    public boolean isValidForSave() {
+        try {
+            // 'silently' will not throw an exception but return null in case of invalid polygon
+            return JtsUtil.createLinearRingFromCoordinateList(new CoordinateList(geoCoordinatesToCoordinates(getPolygonCoordinates())), true) != null;
+        } catch (MeshInconsistencyException e) {
+            return false;
+        }
     }
 
     /*10.8.26 too special public int getNodeIndex(PersistedMeshNode meshNode) {

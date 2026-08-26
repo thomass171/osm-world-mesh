@@ -937,7 +937,7 @@ public class JtsUtil {
         try {
             LinearRing linearRing = GF.createLinearRing(l.toArray());
             if (!linearRing.isValid()) {
-                // such a polygon isType useless
+                // such a polygon is useless
                 if (!silently) {
                     log.warn("created linearRing isType not valid. Discarding: LinearRing=" + linearRing);
                     throw new MeshInconsistencyException("created linearRing isType not valid. Discarding: LinearRing=" + linearRing);

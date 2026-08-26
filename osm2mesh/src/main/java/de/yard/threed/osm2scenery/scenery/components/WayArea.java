@@ -112,8 +112,9 @@ public class WayArea extends AbstractArea {
      * 14.6.19: P20: Hier dann doch den cut/clip schon beachten. Dafuer optional start/endPair reingeben. 28.8.19:Das hat sich durch LazyCut erledigt.
      * 28.8.19: Bei closed ways (z.B. roundabout) sind die EndOutlines durch die Art der Berechnung (kein average an den Enden) nicht deckungsgleich. Darum
      * in solchen Fällen das Startpair auch am Ende nutzen.
+     * 24.8.26: Make it more specific and always return a Wayarea. If not possible an exception is thrown.
      */
-    public static AbstractArea buildOutlinePolygonFromCenterLine(List<Vector2> centerline, List<MapNode> nodelist, double width, Object parent, Material material, /*18.3.26 MapWay*/MapWaySegment2 mapWay) throws MeshInconsistencyException {
+    public static WayArea/*AbstractArea*/ buildOutlinePolygonFromCenterLine(List<Vector2> centerline, List<MapNode> nodelist, double width, Object parent, Material material, /*18.3.26 MapWay*/MapWaySegment2 mapWay) throws MeshInconsistencyException {
         /*if (mapWay.getOsmId() == 26927466) {
             int osmid = 6;
         }*/
@@ -188,11 +189,12 @@ public class WayArea extends AbstractArea {
         if (uncutcoord.length < 4) {
             // even possible? Yes, eg. due to precut.
             log.warn("invalid polygon with uncutcoord.length=" + uncutcoord.length + ". Using empty polygon for way ?");
-            return EMPTYAREA;
+            //24.8.26 return EMPTYAREA;
+            throw new MeshInconsistencyException("invalid polygon with uncutcoord.length=" + uncutcoord.length);
         }
 
         GeometryFactory geometryFactory = new GeometryFactory();
-        AbstractArea abstractArea;
+        WayArea abstractArea;
         Polygon polygon;
         if (isClosed) {
             //dann mit Hole
@@ -222,14 +224,15 @@ public class WayArea extends AbstractArea {
                     " from centerline " + JtsUtil.createLine(centerline));
             // Dann als Fallback ueber gemergte Segemnte bauen. 5.4.19: Auch hier kann null kommen! Das ist irgendwie krumm.
             // TODO vermeiden oder anders: Damit wird getPolygonCrossLine() nicht mehr gehen
-            abstractArea = new Area(null, material);
-            /*flatComponent*/
+            /*24.8.26 abstractArea = new Area(null, material);
             if (nodelist == null) {
                 // 24.5.19 das ist genauso fragwürdig wie die Fallbacks. Das muss sich alles noch finden.
                 log.warn("no nodelist->no polygon");
                 return null;
             }
-            abstractArea.poly = MapDataHelper.getOutlinePolygon(nodelist/*mapWay*/, width);
+            abstractArea.poly = MapDataHelper.getOutlinePolygon(nodelist/*mapWay* /, width);
+*/
+            throw new MeshInconsistencyException("Failed to create valid polygon for OSM way " + osmid);
 
         }
         abstractArea.uncutcoord = uncutcoord;

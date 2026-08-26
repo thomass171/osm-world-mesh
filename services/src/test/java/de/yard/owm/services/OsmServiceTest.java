@@ -172,6 +172,9 @@ public class OsmServiceTest extends AbstractSceneryTest {
         terrainMesh.writeToSvg();
     }
 
+    /**
+     * Takes appx. 1min on my machine. The test is not really needed, but it is a good check that the whole process works.
+     */
     @Test
     public void testDesdorfFull() throws Exception {
 
