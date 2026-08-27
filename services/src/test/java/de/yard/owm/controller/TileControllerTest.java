@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Slf4j
 public class TileControllerTest {
 
-    public static String ENDPOINT_TILE = "/owm/tile";
+    public static String ENDPOINT_TILE = "/worldmesh/tile";
 
     @Value(value = "${local.server.port}")
     private int port;

@@ -25,7 +25,7 @@ public class OsmController {
      * Rely on ControllerAdvice for exception handling (at least most?)
      */
     @CrossOrigin
-    @GetMapping(value = "/owm/osm")
+    @GetMapping(value = "/worldmesh/osm")
     public ResponseEntity<OsmResponse> getDatasetlist(@RequestParam(value = "meshName", required = true) String meshName) throws GeneralOwmException {
 
         OsmResponse response = null;

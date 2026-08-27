@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Slf4j
 public class MeshControllerTest {
 
-    public static String ENDPOINT_MESH = "/owm/mesh";
+    public static String ENDPOINT_MESH = "/worldmesh/mesh";
 
     @Value(value = "${local.server.port}")
     private int port;

@@ -1,6 +1,7 @@
 package de.yard.owm.services;
 
 import de.yard.threed.osm2graph.viewer.Viewer2D;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -13,6 +14,7 @@ import java.awt.*;
  * From https://github.com/mightychip/spring-boot-swing/blob/master/src/main/java/ca/purpleowl/examples/swing/SpringBootSwingCommandLineRunner.java
  */
 @Component
+@Slf4j
 public class SpringBootSwingCommandLineRunner implements CommandLineRunner {
     private static Viewer2D viewer2D;
 
@@ -23,6 +25,7 @@ public class SpringBootSwingCommandLineRunner implements CommandLineRunner {
     @Autowired
     public SpringBootSwingCommandLineRunner() {
         String viewer2dEnabled = System.getProperty("viewer2d.enabled");
+        log.info("viewer2dEnabled={}", viewer2dEnabled);
         // instantiation needs to be here (this thread?). In run() doesn't work.
         if (viewer2dEnabled != null && viewer2dEnabled.equals("true") && viewer2D == null) {
             Viewer2D.mainEntry(false);

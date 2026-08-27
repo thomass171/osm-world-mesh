@@ -33,7 +33,7 @@ public class CustomRestExceptionHandler {
     @ExceptionHandler(GeneralOwmException.class)
     @ResponseBody
     public ResponseEntity<BaseResponse> handleGeneralOwmException(GeneralOwmException ex) {
-        log.debug("Handling GeneralOwmException");
+        log.debug("Handling GeneralOwmException", ex);
         BaseResponse response = new BaseResponse();
         response.setError(ex.getMessage());
         return ResponseEntity.badRequest().body(response);

@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 public class OsmControllerTest {
 
-    public static String ENDPOINT_OSM = "/owm/osm";
+    public static String ENDPOINT_OSM = "/worldmesh/osm";
 
     @Value(value = "${local.server.port}")
     private int port;

@@ -30,7 +30,7 @@ public class TileController {
      * In Europe min is southwest while max is northeast.
      */
     @CrossOrigin
-    @GetMapping(value = "/owm/tile/image", produces = MediaType.IMAGE_PNG_VALUE)
+    @GetMapping(value = "/worldmesh/tile/image", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
     public ResponseEntity<byte[]> getImage(@ModelAttribute WebBoundingBox request) {
         try {
@@ -48,7 +48,7 @@ public class TileController {
      * Currently no filter, so return all
      */
     /*@CrossOrigin
-    @GetMapping("/owm/tile/search/findByFilter")
+    @GetMapping("/worldmesh/tile/search/findByFilter")
     public ResponseEntity<TileSearchResponse> findByFilter() {
 
         TileSearchResponse response = null;

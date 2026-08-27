@@ -42,7 +42,7 @@ public class MeshController {
      * Rely on ControllerAdvice for exception handling (at least most?)
      */
     @CrossOrigin
-    @PostMapping(value = "/owm/mesh")
+    @PostMapping(value = "/worldmesh/mesh")
     public ResponseEntity<MeshResponse> createMesh(@RequestParam(value = "meshName", required = true) String meshName) throws MeshInconsistencyException, GeneralOwmException {
 
         //try {
@@ -73,7 +73,7 @@ public class MeshController {
      * Returns the full mesh for now (not just newly created polygons and the failures of this build).
      */
     @CrossOrigin
-    @PutMapping(value = "/owm/mesh"/*might be XML or a file name, consumes = MediaType.APPLICATION_XML_VALUE*/)
+    @PutMapping(value = "/worldmesh/mesh"/*might be XML or a file name, consumes = MediaType.APPLICATION_XML_VALUE*/)
     public ResponseEntity<MeshResponse> put(@RequestParam(value = "meshName", required = true) String meshName, @RequestBody String osmXmlOrFileName) {
 
         try {
@@ -113,7 +113,7 @@ public class MeshController {
     }
 
     @CrossOrigin
-    @GetMapping(value = "/owm/mesh")
+    @GetMapping(value = "/worldmesh/mesh")
     public ResponseEntity<MeshResponse> getMesh(@RequestParam(value = "meshName", required = true) String meshName) {
 
         MeshResponse response = null;
@@ -136,7 +136,7 @@ public class MeshController {
     }
 
     @CrossOrigin
-    @DeleteMapping(value = "/owm/mesh")
+    @DeleteMapping(value = "/worldmesh/mesh")
     public ResponseEntity<MeshResponse> deleteMesh(@RequestParam(value = "meshName", required = true) String meshName) {
 
         MeshResponse response = null;
@@ -161,7 +161,7 @@ public class MeshController {
      * Currently no filter, so return all
      */
     /*@CrossOrigin
-    @GetMapping("/owm/tile/search/findByFilter")
+    @GetMapping("/worldmesh/tile/search/findByFilter")
     public ResponseEntity<TileSearchResponse> findByFilter() {
 
         TileSearchResponse response = null;

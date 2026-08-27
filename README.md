@@ -1,5 +1,6 @@
 # osm-world-mesh
-Create world scenery from OSM data
+Create world scenery from OSM data. See also [Draft of a prototype](https://ubuntu-server.udehlavj1efjeuqv.myfritz.net/worldmesh/worldmesh.html).
+
 
 # History
 The most wrong estimation for building a world scenery from OSM data

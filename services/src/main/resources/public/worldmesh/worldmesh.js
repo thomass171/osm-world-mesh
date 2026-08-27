@@ -117,7 +117,7 @@ function onMapMouseUpForSelection(e) {
 function loadTileImage(bounds) {
     var sw = bounds.getSouthWest();
     var ne = bounds.getNorthEast();
-    var url = serviceshost + "/owm/tile/image"
+    var url = serviceshost + "/worldmesh/tile/image"
         + "?min.lat=" + sw.lat + "&min.lon=" + sw.lng
         + "&max.lat=" + ne.lat + "&max.lon=" + ne.lng;
     doGetBlob(url, blob => {
@@ -271,7 +271,7 @@ function createMesh() {
     var meshName = $("#inp_meshname").val();
     console.log("Creating mesh " + meshName);
     var body = {};
-    doPost(serviceshost+"/owm/mesh?meshName=" + meshName, json => {
+    doPost(serviceshost+"/worldmesh/mesh?meshName=" + meshName, json => {
         console.log("got " + json);
         showMeshFromResponse(json);
         populateOsmDatasets(meshName);
@@ -286,7 +286,7 @@ function populateMesh() {
     var dataset = $("#sel_osmdataset").val();
     console.log("Populating mesh " + meshName + " with " + dataset);
     // put just the file name
-    httpPut(serviceshost+"/owm/mesh?meshName=" + meshName, json => {
+    httpPut(serviceshost+"/worldmesh/mesh?meshName=" + meshName, json => {
         console.log("got " + json);
         showMeshFromResponse(json);
         showMessage("Mesh "+meshName+" populated");
@@ -297,7 +297,7 @@ function deleteMesh() {
     var meshName = $("#inp_meshname").val();
     console.log("Deleting mesh " + meshName);
     var body = {};
-    httpDelete(serviceshost+"/owm/mesh?meshName=" + meshName, json => {
+    httpDelete(serviceshost+"/worldmesh/mesh?meshName=" + meshName, json => {
         console.log("got " + json);
         currentMesh = null;
         showMessage("Mesh "+meshName+" deleted");
@@ -313,7 +313,7 @@ function loadMesh(meshName, selectValue) {
     // Initially clear everything
     clearList("ul_failures");
 
-    doGet(serviceshost+"/owm/mesh?meshName="+meshName, json => {
+    doGet(serviceshost+"/worldmesh/mesh?meshName="+meshName, json => {
         console.log("got " + json);
         showMeshFromResponse(json);
         populateOsmDatasets(meshName);
@@ -448,7 +448,7 @@ function showError(message) {
 }
 
 function populateOsmDatasets(meshName) {
-    doGet(serviceshost+"/owm/osm?meshName="+meshName, json => {
+    doGet(serviceshost+"/worldmesh/osm?meshName="+meshName, json => {
         console.log("got ", json);
         clearOptions("sel_osmdataset");
         //addOption("sel_runway_"+idsuffix, " ");
