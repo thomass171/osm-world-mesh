@@ -154,11 +154,12 @@ public class WayModule extends SceneryModule {
             if (e.invalidPolygon != null) {
                 svgWriter = svgWriter.addPolygon(e.invalidPolygon, "red");
             }
-            svgWriter.writeTmpFile("invalid-polygon-" + e.osmId);
+            // writing to a file isn't helpful (docker)
+            //svgWriter.writeTmpFile("invalid-polygon-" + e.osmId);
             log.error("MeshInconsistencyException", e);
             String sourceRef = "https://www.openstreetmap.org/way/" + mapwaySegment.getOsmId();
             meshServiceFacade.addFailure(meshName, e.getMessage(), sourceRef,
-                    e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, projection));
+                    e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, projection), svgWriter.buildSvg());
             //throw new MeshInconsistencyException(terrainMeshNotNeededOnceButNowNeeded, e);
         } catch (OsmProcessException e) {
             throw new RuntimeException(e);

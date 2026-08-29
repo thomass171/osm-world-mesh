@@ -297,7 +297,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void addFailure(String meshName, String message, String sourceRef, GeoPolygon geoPolygon) {
+    public void addFailure(String meshName, String message, String sourceRef, GeoPolygon geoPolygon, String svg) {
         PersistedMesh mesh = meshRepository.findByName(meshName);
         if (mesh == null) {
             return;
@@ -309,6 +309,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         if (geoPolygon != null) {
             failure.setPolygon(geoPolygon.toText());
         }
+        failure.setSvg(svg);
         failure.setPersistedMesh(mesh);
         meshFailureRepository.save(failure);
     }
@@ -364,8 +365,8 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
 
             @Override
-            public void addFailure(String meshName, String message, String sourceref, GeoPolygon polygon) {
-                ms.addFailure(meshName, message, sourceref, polygon);
+            public void addFailure(String meshName, String message, String sourceref, GeoPolygon polygon, String svg) {
+                ms.addFailure(meshName, message, sourceref, polygon, svg);
             }
 
             @Override

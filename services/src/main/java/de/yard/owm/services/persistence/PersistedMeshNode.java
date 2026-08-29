@@ -30,7 +30,7 @@ import java.util.List;
 @Entity
 @EqualsAndHashCode(of = "id")
 @Table(name = "meshnode")
-public class PersistedMeshNode implements MeshNode {
+public class PersistedMeshNode extends AuditedEntity implements MeshNode {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshnode_id_generator")
     @SequenceGenerator(name = "meshnode_id_generator", sequenceName = "meshnode_seq", allocationSize = 1)

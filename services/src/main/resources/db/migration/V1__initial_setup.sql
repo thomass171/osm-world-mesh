@@ -47,6 +47,8 @@ create table osmwaynode (
 create table mesh (
     id bigint not null,
     name varchar not null,
+    created_at timestamp with time zone not null,
+    modified_at timestamp with time zone not null,
 
     primary key(id),
     unique(name)
@@ -61,6 +63,8 @@ create table meshnode (
     -- the OSM 'parent'
     osmnode_id bigint references osmnode,
     mesh_id bigint references mesh not null,
+    created_at timestamp with time zone not null,
+    modified_at timestamp with time zone not null,
 
     primary key(id)
 );
@@ -104,6 +108,8 @@ create table meshpolygon (
     -- for now no reference. And not unique, who knows what happens
     osmid bigint,
     mesh_id bigint not null,
+    created_at timestamp with time zone not null,
+    modified_at timestamp with time zone not null,
 
     primary key(id)
 );
@@ -118,6 +124,8 @@ create table meshpolygonnode (
     index int not null,
     meshpolygon_id bigint not null references meshpolygon,
     meshnode_id bigint not null references meshnode,
+    created_at timestamp with time zone not null,
+    modified_at timestamp with time zone not null,
 
     primary key(id),
     unique(meshpolygon_id, meshnode_id, index)
@@ -137,6 +145,9 @@ create table meshnodepair (
     meshpolygon_id bigint not null references meshpolygon,
     --opposite_node_osm_id bigint not null,
     heading double precision not null,
+    created_at timestamp with time zone not null,
+    modified_at timestamp with time zone not null,
+
     primary key(id)
 );
 
@@ -147,7 +158,10 @@ create table meshfailure (
     sourceref varchar,
     polygon varchar,
     message varchar,
+    svg varchar,
     mesh_id bigint not null references mesh,
+    created_at timestamp with time zone not null,
+    modified_at timestamp with time zone not null,
 
     primary key(id)
 );

@@ -66,7 +66,7 @@ public class MeshServiceMock implements MeshServiceFacade {
     }
 
     @Override
-    public void addFailure(String meshName, String message, String sourceref, GeoPolygon polygon) {
+    public void addFailure(String meshName, String message, String sourceref, GeoPolygon polygon, String svg) {
 
     }
 

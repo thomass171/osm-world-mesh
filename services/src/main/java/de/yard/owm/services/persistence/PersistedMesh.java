@@ -23,7 +23,7 @@ import java.util.*;
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
 @Table(name = "mesh")
-public class PersistedMesh {
+public class PersistedMesh extends AuditedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "mesh_id_generator")
     @SequenceGenerator(name = "mesh_id_generator", sequenceName = "mesh_seq", allocationSize = 1)

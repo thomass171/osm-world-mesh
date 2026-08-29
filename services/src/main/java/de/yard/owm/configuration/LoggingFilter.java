@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -35,6 +36,7 @@ import java.util.regex.Pattern;
  */
 @Component
 @Configuration
+@EnableJpaAuditing
 public class LoggingFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(LoggingFilter.class);
 

@@ -36,7 +36,10 @@ public interface MeshServiceFacade {
 
     TerrainMesh loadMesh(String meshName) throws MeshInconsistencyException;
 
-    void addFailure(String meshName, String message, String sourceref, GeoPolygon polygon);
+    /**
+     * Instead of just saving a specific polygon it seems more flexible and helpful to also save a SVG
+     */
+    void addFailure(String meshName, String message, String sourceref, GeoPolygon polygon, String svg);
 
     /**
      * Returns null if not found

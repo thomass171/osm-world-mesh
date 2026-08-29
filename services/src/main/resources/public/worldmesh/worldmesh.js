@@ -406,7 +406,9 @@ function showPolygons(polygons) {
     clearTileGroup();
     tileGroup = L.layerGroup();
     polygons.forEach(polygon => {
-        showPolygon(polygon, "black");
+        if (polygon != null) {
+            showPolygon(polygon, "black");
+        }
     });
     tileGroup.addTo(map);
     relocateMap(polygons[0].points[0]);

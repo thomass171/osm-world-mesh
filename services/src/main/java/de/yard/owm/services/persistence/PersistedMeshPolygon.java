@@ -33,7 +33,7 @@ import static de.yard.threed.osm2graph.osm.JtsUtil.geoCoordinatesToCoordinates;
 @Table(name = "meshpolygon")
 @Slf4j
 @NoArgsConstructor
-public class PersistedMeshPolygon implements MeshPolygon/*10.8.26, MeshWayConnector */{
+public class PersistedMeshPolygon extends AuditedEntity implements MeshPolygon/*10.8.26, MeshWayConnector */{
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshpolygon_id_generator")
     @SequenceGenerator(name = "meshpolygon_id_generator", sequenceName = "meshpolygon_seq", allocationSize = 1)

@@ -12,6 +12,7 @@ import lombok.Data;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -96,7 +97,7 @@ public class SvgWriter {
         return addPolygon(polygon, color, null);
     }
 
-    public SvgWriter addPolygon(Polygon polygon,  LabelMode labelMode) {
+    public SvgWriter addPolygon(Polygon polygon, LabelMode labelMode) {
         return addPolygon(polygon, "black", labelMode);
     }
 
@@ -124,12 +125,18 @@ public class SvgWriter {
         writeTmpFile("tmp");
     }
 
-    public void writeTmpFile(String basefilename) {
+    public String buildSvg() {
         buildContent();
         String svg = svgHeader + svgContent + svgTrailer;
+        return svg;
+    }
+
+    public void writeTmpFile(String basefilename) {
         // string -> bytes
         try {
-            Files.write(Paths.get("/Users/thomas/tmp/" + basefilename + ".svg"), svg.getBytes(StandardCharsets.UTF_8));
+            Path userDir = Paths.get(System.getProperty("user.home"));
+            Path tmpDir = userDir.resolve("tmp");
+            Files.write(tmpDir.resolve(basefilename + ".svg"), buildSvg().getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

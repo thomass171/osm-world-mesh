@@ -27,7 +27,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(of = "id")
 @Table(name = "meshfailure")
-public class PersistedMeshFailure implements MeshFailure {
+public class PersistedMeshFailure extends AuditedEntity implements MeshFailure {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshfailure_id_generator")
     @SequenceGenerator(name = "meshfailure_id_generator", sequenceName = "meshfailure_seq", allocationSize = 1)
@@ -41,6 +41,9 @@ public class PersistedMeshFailure implements MeshFailure {
 
     @Column(name = "message")
     private String message;
+
+    @Column(name = "svg")
+    private String svg;
 
     @ManyToOne
     @JoinColumn(name = "mesh_id", referencedColumnName = "id", nullable = false)

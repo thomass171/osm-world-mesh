@@ -19,7 +19,7 @@ import java.util.List;
 @Table(name = "meshpolygonnode")
 @Slf4j
 @NoArgsConstructor
-public class PersistedMeshPolygonNode implements MeshPolygonNode {
+public class PersistedMeshPolygonNode extends AuditedEntity implements MeshPolygonNode {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "meshpolygon_id_generator")
     @SequenceGenerator(name = "meshpolygon_id_generator", sequenceName = "meshpolygon_seq", allocationSize = 1)
