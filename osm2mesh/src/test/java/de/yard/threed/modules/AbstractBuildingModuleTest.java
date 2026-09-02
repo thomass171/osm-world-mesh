@@ -35,7 +35,7 @@ public abstract class AbstractBuildingModuleTest extends DefaultMockingSceneryTe
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(322751224);
 
-        buildingModule.applyTo(way.getLastSegment(), SceneryContext.getInstance());
+        buildingModule.applyTo(way, SceneryContext.getInstance());
 
         SvgWriter.build()
                 .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())

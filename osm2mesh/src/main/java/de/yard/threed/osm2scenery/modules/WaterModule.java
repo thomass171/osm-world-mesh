@@ -105,7 +105,7 @@ public class WaterModule extends WayModule {
     }
 
     @Override
-    public void applyTo(MapWaySegment2 mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public void applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
         SceneryObjectList rivers = new SceneryObjectList();
 
         // material not needed yet?

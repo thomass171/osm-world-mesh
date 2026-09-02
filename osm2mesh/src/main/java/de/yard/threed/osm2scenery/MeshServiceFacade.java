@@ -23,7 +23,7 @@ public interface MeshServiceFacade {
     void createMesh(String meshName, List<GeoCoordinate> boundary);
 
     //   * from TerrainMesh.registerWay()
-    TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes) throws OsmProcessException, MeshInconsistencyException;
+    TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes) throws MeshInconsistencyException;
 
     /**
      * @param meshName

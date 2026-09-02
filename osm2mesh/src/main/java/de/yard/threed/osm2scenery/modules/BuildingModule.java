@@ -87,34 +87,30 @@ public class BuildingModule extends SceneryModule {
     }
 
     @Override
-    public void applyTo(MapWaySegment2 mapwaySegment, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public void applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
         buildingobjects = new SceneryObjectList();
 
         //boolean useBuildingColors = Config.getCurrentConfiguration().getBoolean("useBuildingColors", true);
         //boolean drawBuildingWindows = Config.getCurrentConfiguration().getBoolean("drawBuildingWindows", true);
 
 
-        String buildingValue = mapwaySegment.getTags().getValue("building");
+        String buildingValue = mapway.getTags().getValue("building");
 
         if (buildingValue != null && !buildingValue.equals("no")) {
-            try {
-                // 31.8.26 Building OSM buildings is tricky.
-                // For now temp solution for keeping existing area implementation.
-                // For the mesh, we for now only create an area for later use for ambient occlusion.
-                MapArea area = new MapArea(mapwaySegment.mapWay.getOsmWay(), mapwaySegment.mapWay.getMapNodes(), null, null);
+            // 31.8.26 Building OSM buildings is tricky.
+            // For now temp solution for keeping existing area implementation.
+            // For the mesh, we for now only create an area for later use for ambient occlusion.
+            MapArea area = new MapArea(mapway.getOsmWay(), mapway.getMapNodes(), null, null);
 
-                Building building = new Building(area, false, false/* useBuildingColors, drawBuildingWindows*/);
-                BuildingComponent buildingComponent = new BuildingComponent(building);
-                SceneryAreaObject buildingobject = SceneryObjectFactory.createBuilding(area, null, buildingComponent);
-                //area.addRepresentation(building);
-                buildingobjects.add(buildingobject);
-                //area2building.put(area, building);
+            Building building = new Building(area, false, false/* useBuildingColors, drawBuildingWindows*/);
+            BuildingComponent buildingComponent = new BuildingComponent(building);
+            SceneryAreaObject buildingobject = SceneryObjectFactory.createBuilding(area, null, buildingComponent);
+            //area.addRepresentation(building);
+            buildingobjects.add(buildingobject);
+            //area2building.put(area, building);
 
-                TerrainMeshAdder terrainMeshAdder = new DefaultTerrainMeshAdder(meshName, meshServiceFacade, projection, buildingobject);
-                buildingobject.cca(terrainMeshAdder);
-            } catch (OsmProcessException e) {
-                throw new RuntimeException(e);
-            }
+            TerrainMeshAdder terrainMeshAdder = new DefaultTerrainMeshAdder(meshName, meshServiceFacade, projection, buildingobject);
+            buildingobject.cca(terrainMeshAdder);
         }
 
         return;

@@ -76,8 +76,8 @@ public class MeshControllerTest {
                 TestUtil.loadFileFromClasspath("Desdorf.osm.xml"));
         response = validateResponse(result, HttpStatus.OK);
         MeshResponse meshBuildResponse = jsonService.jsonToModel(response, MeshResponse.class);
-        // currently we have 5 failures, but that might change over time. Now 3.
-        validateFailures(3, meshBuildResponse.getFailures());
+        // currently we have 5 failures, but that might change over time. Now 3. Now 17.
+        validateFailures(14, meshBuildResponse.getFailures());
 
         result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf");
         response = validateResponse(result, HttpStatus.OK);

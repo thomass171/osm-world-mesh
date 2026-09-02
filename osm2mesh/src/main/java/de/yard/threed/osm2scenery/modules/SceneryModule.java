@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.modules;
 
+import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
@@ -11,6 +12,7 @@ import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2scenery.util.TagFilter;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.Config;
@@ -18,6 +20,7 @@ import de.yard.threed.osm2world.MapData;
 import de.yard.threed.osm2world.MapWay;
 import de.yard.threed.osm2world.MapWaySegment2;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +28,7 @@ import java.util.List;
 /**
  * Created on 11.07.18.
  */
+@Slf4j
 @AllArgsConstructor
 public abstract class SceneryModule {
     public MeshServiceFacade meshServiceFacade;
@@ -42,14 +46,12 @@ public abstract class SceneryModule {
     public abstract SceneryObjectList applyTo(MapData mapData);
 
     /**
-     * Default implementation. TerrainMesh is for knowing
-     * the context but not for adding to it. That is done later.
-     * TODO should be sufficint to pass sceneryContext.
+     * Default implementation.
      * 1.5.24: By 2024 design SceneryContext is still used as a container for higl level terrainmesh wrapper.
      *
-     * Returns the objects to be created(or updated) in the order they should be processed.
+     *
      */
-    public void applyTo(MapWaySegment2 mapWay, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public void applyTo(MapWay mapWay, SceneryContext sceneryContext) throws MeshInconsistencyException {
         //return new SceneryObjectList();
     }
 

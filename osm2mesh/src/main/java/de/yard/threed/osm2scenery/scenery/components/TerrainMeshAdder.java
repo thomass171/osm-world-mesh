@@ -39,7 +39,7 @@ public abstract class TerrainMeshAdder implements SceneryObjectComponent {
      * 24.8.26: No longer returns a value to avoid confusion.
      * @return
      */
-    public void registerWay(long osmWayId, Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws OsmProcessException, MeshInconsistencyException {
+    public void registerWay(long osmWayId, Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws MeshInconsistencyException {
 
         meshService.addWay(meshName, osmWayId, JtsUtil.unproject(fromConnector, projection), JtsUtil.unproject(leftLine, projection), JtsUtil.unproject(rightLine, projection), JtsUtil.unproject(toConnector, projection), lanes);
         //return null;
@@ -123,7 +123,7 @@ public abstract class TerrainMeshAdder implements SceneryObjectComponent {
      * 24.8.26: No longer returns a value to avoid confusion.
      * 1.9.26 TODO should expect Coordinate like registerWay and registerArea, not GeoCoordinate. But for now it is easier to keep it like this.
      */
-    public void/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) throws OsmProcessException, MeshInconsistencyException {
+    public void/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) throws MeshInconsistencyException {
         TerrainMesh tm = meshService.addConnector(meshName, osmNodeId, line, wayAttachPoints);
         //24.8.26 return tm.getConnector(osmNodeId);
 
@@ -133,7 +133,7 @@ public abstract class TerrainMeshAdder implements SceneryObjectComponent {
      * Analog to registerWay.
      *
      */
-    public void/*MeshWayConnector*/ registerArea(long osmNodeId, MeshPolygonType type, List<Coordinate> coordinates) throws OsmProcessException, MeshInconsistencyException {
+    public void/*MeshWayConnector*/ registerArea(long osmNodeId, MeshPolygonType type, List<Coordinate> coordinates) throws MeshInconsistencyException {
         TerrainMesh tm = meshService.addArea(meshName, osmNodeId, type, JtsUtil.unproject(coordinates, projection));
 
     }

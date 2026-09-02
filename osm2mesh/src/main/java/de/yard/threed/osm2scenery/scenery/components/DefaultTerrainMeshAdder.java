@@ -45,7 +45,7 @@ public class DefaultTerrainMeshAdder extends TerrainMeshAdder {
     /**
      * Like persistWay.
      */
-    public /*static*/ void persistArea(SceneryAreaObject sceneryAreaObject) throws MeshInconsistencyException, OsmProcessException {
+    public /*static*/ void persistArea(SceneryAreaObject sceneryAreaObject) throws MeshInconsistencyException {
         // for now only the first area is used. TODO: add all areas to the mesh.
         AbstractArea area = sceneryAreaObject.flatComponent[0];
         //area.getPolygon()

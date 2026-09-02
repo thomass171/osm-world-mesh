@@ -9,7 +9,6 @@ import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.*;
-import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MapWaySegmentAtConnector;
 import lombok.extern.slf4j.Slf4j;
@@ -155,7 +154,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
      * @return
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes) throws OsmProcessException, MeshInconsistencyException {
+    public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes) throws MeshInconsistencyException {
 
         long startTime = System.currentTimeMillis();
 
@@ -373,7 +372,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
 
             @Override
-            public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes) throws OsmProcessException, MeshInconsistencyException {
+            public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes) throws MeshInconsistencyException {
                 return ms.addWay(meshName, osmWayId, fromConnector, leftLine, rightLine, toConnector, lanes);
             }
 

@@ -79,53 +79,54 @@ public abstract class WayModule extends SceneryModule {
      * Generic implementation for 'real ways'
      */
     //@Override
-    public void applyToWay(MapWaySegment2 mapwaySegment, SceneryContext sceneryContext) throws MeshInconsistencyException {
-        // Also contains Filler unter der Brücke
-        roadsAndBridges = new SceneryObjectList();
+    public void applyToWay(MapWay mapWay, SceneryContext sceneryContext) throws MeshInconsistencyException {
 
-        if (mapwaySegment.getMapNodes().size() == 0) {
-            // might be some inconsistency in the OSM data. E.g. a way with only one node. Ignore it.
-            log.warn("Ignoring mapwaySegment " + mapwaySegment.getOsmId() + " with only " + mapwaySegment.getMapNodes().size() + " nodes");
-            return;// roadsAndBridges;
-        }
+        // Segment by segment for adding connector.
+        for (MapWaySegment2 mapwaySegment : mapWay.segment2s) {
+            // Also contains Filler unter der Brücke
+            roadsAndBridges = new SceneryObjectList();
 
-        log.info("Adding segment " + mapwaySegment.segmentIndex + "(" + mapwaySegment.getStartNode().getOsmId() + "->" + mapwaySegment.getEndNode().getOsmId() + ") for way " + mapwaySegment.getOsmId());
-        // material not needed yet?
-        TagMap materialmap = null;//getTagMap("materialmap");
-        if (mapwaySegment.getOsmId() == 8610418) {
-            int h = 6;
-        }
-        //24.8.26 don't care about the type any more this way. if (isHighway(mapwaySegment.getTags())) {
-        long osmid = mapwaySegment.getOsmId();
+            if (mapwaySegment.getMapNodes().size() == 0) {
+                // might be some inconsistency in the OSM data. E.g. a way with only one node. Ignore it.
+                log.warn("Ignoring mapwaySegment " + mapwaySegment.getOsmId() + " with only " + mapwaySegment.getMapNodes().size() + " nodes");
+                return;// roadsAndBridges;
+            }
 
-        if (BridgeModule.isBridge(mapwaySegment.getTags())) {
-            //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
-            BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapwaySegment, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, sceneryContext);
-            //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
-            sceneryContext.highways.put(osmid, bridge);
-            roadsAndBridges.add(bridge);
-            sceneryContext.bridges.put(osmid, bridge);
-            bridge.addToWayMap(ROAD, sceneryContext);
-        } else if (TunnelModule.isTunnel(mapwaySegment.getTags())) {
-            //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
-            Highway road = new Highway(mapwaySegment, materialmap, sceneryContext);
-            sceneryContext.highways.put(osmid, road);
-            roadsAndBridges.add(road);
-            road.addToWayMap(ROAD, sceneryContext);
-        } else {
-            // regular way
+            log.info("Adding segment " + mapwaySegment.segmentIndex + "(" + mapwaySegment.getStartNode().getOsmId() + "->" + mapwaySegment.getEndNode().getOsmId() + ") for way " + mapwaySegment.getOsmId());
+            // material not needed yet?
+            TagMap materialmap = null;//getTagMap("materialmap");
+            if (mapwaySegment.getOsmId() == 8610418) {
+                int h = 6;
+            }
+            //24.8.26 don't care about the type any more this way. if (isHighway(mapwaySegment.getTags())) {
+            long osmid = mapwaySegment.getOsmId();
 
-            SceneryWayObject way = new SceneryWayObject("Road", mapwaySegment,
-                    null,
-                    //Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/,
-                    ROAD, new FixedWidthProvider(5.0), sceneryContext, projection);//mapWay = line;
-            //sceneryContext.highways.put(osmid, road);
-            roadsAndBridges.add(way);
+            if (BridgeModule.isBridge(mapwaySegment.getTags())) {
+                //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
+                BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapwaySegment, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, sceneryContext);
+                //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
+                sceneryContext.highways.put(osmid, bridge);
+                roadsAndBridges.add(bridge);
+                sceneryContext.bridges.put(osmid, bridge);
+                bridge.addToWayMap(ROAD, sceneryContext);
+            } else if (TunnelModule.isTunnel(mapwaySegment.getTags())) {
+                //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
+                Highway road = new Highway(mapwaySegment, materialmap, sceneryContext);
+                sceneryContext.highways.put(osmid, road);
+                roadsAndBridges.add(road);
+                road.addToWayMap(ROAD, sceneryContext);
+            } else {
+                // regular way
 
-            //road.addToWayMap(ROAD, sceneryContext);
-        }
+                SceneryWayObject way = new SceneryWayObject("Road", mapwaySegment,
+                        null,
+                        //Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/,
+                        ROAD, new FixedWidthProvider(5.0), sceneryContext, projection);//mapWay = line;
+                //sceneryContext.highways.put(osmid, road);
+                roadsAndBridges.add(way);
 
-        try {
+                //road.addToWayMap(ROAD, sceneryContext);
+            }
 
             wayTerrainMeshAdder = new WayTerrainMeshAdder(meshName, meshServiceFacade, projection);
 
@@ -147,30 +148,11 @@ public abstract class WayModule extends SceneryModule {
                 sfo.cca(wayTerrainMeshAdder);
 
             }
-        } catch (/*OsmProcessException |*/ MeshInconsistencyException e) {
 
-            SvgWriter svgWriter = new SvgWriter();
-            // loading full mesh here might be too much load for big meshes. But we want the full mesh to see the context of the invalid polygon.
-            svgWriter = svgWriter.addMeshPolygons(meshServiceFacade.loadMesh(meshName).polygons, projection);
-            if (e.invalidPolygon != null) {
-                svgWriter = svgWriter.addPolygon(e.invalidPolygon, "red");
-            }
-            // writing to a file isn't helpful (docker)
-            //svgWriter.writeTmpFile("invalid-polygon-" + e.osmId);
-            log.error("MeshInconsistencyException", e);
-            String sourceRef = "https://www.openstreetmap.org/way/" + mapwaySegment.getOsmId();
-            meshServiceFacade.addFailure(meshName, e.getMessage(), sourceRef,
-                    e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, projection), svgWriter.buildSvg());
-            //throw new MeshInconsistencyException(terrainMeshNotNeededOnceButNowNeeded, e);
-        } catch (OsmProcessException e) {
-            throw new RuntimeException(e);
+            //Elevation and BridgeApproaches comes later
         }
 
-
-        //Elevation and BridgeApproaches comes later
-        return;// roadsAndBridges;
     }
-
 
     public void createConnector() {
 
@@ -209,7 +191,7 @@ public abstract class WayModule extends SceneryModule {
      *
      * @return
      */
-    private Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> processConnectionCandidates(MapWaySegment2 mapWay, /*19.2.26SceneryObjectList roadsAndBridges,*/ SceneryContext sceneryContext) throws MeshInconsistencyException, OsmProcessException {
+    private Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> processConnectionCandidates(MapWaySegment2 mapWay, /*19.2.26SceneryObjectList roadsAndBridges,*/ SceneryContext sceneryContext) throws MeshInconsistencyException {
 
         Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> newConnector = new Pair<>(
                 processConnectionCandidatesForOneNode(mapWay.getStartNode(), sceneryContext.getMapdata()),
@@ -225,7 +207,7 @@ public abstract class WayModule extends SceneryModule {
      * @param mapdata
      * @return
      */
-    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ processConnectionCandidatesForOneNode(MapNode node, /*19.2.26SceneryObjectList roadsAndBridges, SceneryContext sceneryContext,*/ MapData mapdata) throws MeshInconsistencyException, OsmProcessException {
+    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ processConnectionCandidatesForOneNode(MapNode node, /*19.2.26SceneryObjectList roadsAndBridges, SceneryContext sceneryContext,*/ MapData mapdata) throws MeshInconsistencyException {
 
         //10.7.19: Don't create connector for outside node
         /*17.3.26 we no longer care about if (node.location == MapNode.Location.OUTSIDEGRID) {
@@ -271,7 +253,7 @@ public abstract class WayModule extends SceneryModule {
      * @param mapdata
      * @return
      */
-    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ createAndPersistConnector(MapNode node, MapData mapdata) throws MeshInconsistencyException, OsmProcessException {
+    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ createAndPersistConnector(MapNode node, MapData mapdata) throws MeshInconsistencyException {
         TagGroup tags = node.getOsmNode().tags;
 
         log.debug("Creating new connector " + node.getOsmId());
@@ -895,7 +877,7 @@ public abstract class WayModule extends SceneryModule {
         }
 
         @Override
-        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
+        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
 
             return;
         }

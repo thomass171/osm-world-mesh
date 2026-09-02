@@ -86,11 +86,11 @@ public class SurfaceAreaModule extends SceneryModule {
     }
 
     @Override
-    public void applyTo(MapWaySegment2 mapwaySegment, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public void applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
         SceneryObjectList l = new SceneryObjectList();
 
         // For now temp solution for keeping existing area implementation.
-        MapArea area = new MapArea(mapwaySegment.mapWay.getOsmWay(), mapwaySegment.mapWay.getMapNodes(), null, null);
+        MapArea area = new MapArea(mapway.getOsmWay(), mapway.getMapNodes(), null, null);
 
         //for (MapArea area : grid.getMapAreas()) {
 
@@ -98,7 +98,6 @@ public class SurfaceAreaModule extends SceneryModule {
 
         TagGroup tags = area.getTags();
 
-        try {
             if (tags.containsKey("surface")) {
                 SurfaceArea surfaceArea = new SurfaceArea(area, tags.getValue("surface"));
                 cca(surfaceArea);
@@ -109,15 +108,15 @@ public class SurfaceAreaModule extends SceneryModule {
                         SurfaceArea surfaceArea = new SurfaceArea(
                                 area, defaultSurfaceMap.get(tagWithDefault));
                         cca(surfaceArea);
+                        // avoid creating more than one surface area for the same OSM area
+                        break;
                     }
                 }
             }
-        } catch (OsmProcessException e) {
-            throw new RuntimeException(e);
-        }
+
     }
 
-    private void cca(SurfaceArea surfaceArea) throws MeshInconsistencyException, OsmProcessException {
+    private void cca(SurfaceArea surfaceArea) throws MeshInconsistencyException {
         // TODO Auto-generated method stub
         TerrainMeshAdder terrainMeshAdder = new DefaultTerrainMeshAdder(meshName, meshServiceFacade, projection, surfaceArea);
         surfaceArea.cca(terrainMeshAdder);

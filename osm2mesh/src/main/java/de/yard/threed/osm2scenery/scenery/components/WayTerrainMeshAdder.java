@@ -30,7 +30,6 @@ public class WayTerrainMeshAdder extends TerrainMeshAdder {
     /**
      * TODO das ist doch eine zu grosse Dependency, oder?
      *
-     * @param sceneryWayObject
      */
     public WayTerrainMeshAdder(String meshName, MeshServiceFacade meshService, SceneryProjection projection/*, SceneryWayObject sceneryWayObject*/) {
         super(meshName,meshService,projection);
@@ -42,7 +41,7 @@ public class WayTerrainMeshAdder extends TerrainMeshAdder {
      */
     /*26.2.26 @Override
     public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException {*/
-public /*static*/ void persistWay(SceneryWayObject sceneryWayObject) throws MeshInconsistencyException, OsmProcessException {
+public /*static*/ void persistWay(SceneryWayObject sceneryWayObject) throws MeshInconsistencyException {
         /*16.2.26 TODO NPE if (areas[0].isEmpty(tm)) {
             return;
         }*/

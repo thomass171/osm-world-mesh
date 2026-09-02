@@ -30,7 +30,7 @@ public abstract class AbstractSurfaceAreaModuleTest extends DefaultMockingScener
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(322751236);
 
-        surfaceAreaModule.applyTo(way.getLastSegment(), SceneryContext.getInstance());
+        surfaceAreaModule.applyTo(way, SceneryContext.getInstance());
 
         SvgWriter.build()
                 .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())

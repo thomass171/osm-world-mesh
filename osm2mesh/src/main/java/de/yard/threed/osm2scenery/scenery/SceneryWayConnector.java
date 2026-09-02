@@ -1019,7 +1019,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
+    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
 
         /**
          * TerrainMesh vorbereiten.

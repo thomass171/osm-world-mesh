@@ -924,12 +924,13 @@ public class JtsUtil {
     /**
      * Used for probing also, so option silently
      * 11.7.26: Comply to new design and throw MeshInconsistencyException(see header) if not silently
+     *
      * @param l
      * @param silently
      * @return
      */
     public static Polygon createPolygonFromCoordinateList(de.yard.threed.osm2graph.osm.CoordinateList l, boolean silently) throws MeshInconsistencyException {
-        return GF.createPolygon(createLinearRingFromCoordinateList(l,silently));
+        return GF.createPolygon(createLinearRingFromCoordinateList(l, silently));
     }
 
     public static LinearRing createLinearRingFromCoordinateList(de.yard.threed.osm2graph.osm.CoordinateList l, boolean silently) throws MeshInconsistencyException {
@@ -1452,8 +1453,10 @@ public class JtsUtil {
             //doesn't know better
             return null;
         }
-        //Welcher Grenzwert guenstig ist, ist unklar. "1" ist jedenfalls zu gross.
-        return intersection.getArea() > 0.00001;
+        // What is a good limit? 1 is too large in any case. But if geocoordinates are used, the intersection can
+        // be really small. 0.00001->0.000000001
+        double intersectionSize = intersection.getArea();
+        return intersectionSize > 0.000000001;
         /*
         if (p1.within(p2)) {
             return true;
@@ -1978,7 +1981,7 @@ public class JtsUtil {
         return result;
     }
 
-    public static <T> void processWayOutlines(List<T> leftLine , List<T> rightLine, Consumer<T> c) {
+    public static <T> void processWayOutlines(List<T> leftLine, List<T> rightLine, Consumer<T> c) {
         for (int i = 0; i < leftLine.size(); i++) {
             c.accept(leftLine.get(i));
         }
@@ -1986,4 +1989,4 @@ public class JtsUtil {
             c.accept(rightLine.get(i));
         }
     }
-    }
+}

@@ -86,6 +86,8 @@ public class OsmServiceTest extends AbstractSceneryTest {
                 expected24927839LowerK41);
 
         terrainMesh.writeToSvg();
+
+        assertTrue(terrainMesh.isValid());
     }
 
     /**

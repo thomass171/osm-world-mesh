@@ -3,13 +3,14 @@ package de.yard.owm.services.osm;
 import com.vividsolutions.jts.triangulate.ConstraintEnforcementException;
 import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.persistence.TerrainMeshManager;
+import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.*;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.*;
-import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2world.*;
 import de.yard.threed.trafficcore.ElevationProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -206,12 +207,31 @@ public class OsmService {
         }
         for (MapWay mapWay : effectiveWays) {
             log.debug("Processing {}", mapWay.getOsmId());
-            for (SceneryModule module:worldModules) {
-                for (MapWaySegment2 segment : mapWay.segment2s) {
-                    module.applyTo(segment, SceneryContext.getInstance());
+            for (SceneryModule module : worldModules) {
+                // main exception handling. If one way fails, just add it as failure and continue with the next way.
+                try {
+                    module.applyTo(mapWay, SceneryContext.getInstance());
+                } catch (MeshInconsistencyException e) {
+                    SvgWriter svgWriter = new SvgWriter();
+                    // loading full mesh here might be too much load for big meshes. But we want the full mesh to see the context of the invalid polygon.
+                    svgWriter = svgWriter.addMeshPolygons(meshService.loadMesh(meshName).polygons, mapData.projection);
+                    if (e.invalidPolygon != null) {
+                        svgWriter = svgWriter.addPolygon(e.invalidPolygon, "red");
+                    }
+                    // writing to a file isn't helpful (docker)
+                    //svgWriter.writeTmpFile("invalid-polygon-" + e.osmId);
+                    log.error("MeshInconsistencyException", e);
+                    String sourceRef = "https://www.openstreetmap.org/way/" + mapWay.getOsmId();
+                    meshService.addFailure(meshName, e.getMessage(), sourceRef,
+                            e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, mapData.projection), svgWriter.buildSvg());
+                    //throw new MeshInconsistencyException(terrainMeshNotNeededOnceButNowNeeded, e);
                 }
             }
         }
+    }
+
+    private void handleMeshInconsistencyException(MeshInconsistencyException e, Long osmId, MeshServiceFacade meshService) throws MeshInconsistencyException {
+
     }
 
     /**

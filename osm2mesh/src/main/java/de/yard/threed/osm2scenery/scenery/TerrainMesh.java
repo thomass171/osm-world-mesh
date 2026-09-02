@@ -402,13 +402,10 @@ public class TerrainMesh {
             }
         }
         step = 2;
-        try {
-            if (!isValid(true)) {
-                log.error("invalid after adding ways and way connector");
-            }
-        } catch (MeshInconsistencyException e) {
+        if (!isValid()) {
             log.error("invalid after adding ways and way connector");
         }
+
     }
 
     // 20.8.26: Deprecated ot still in use?
@@ -435,13 +432,10 @@ public class TerrainMesh {
             }
         }
         step = 3;
-        try {
-            if (!isValid(true)) {
-                log.error("invalid after adding areas");
-            }
-        } catch (MeshInconsistencyException e) {
+        if (!isValid()) {
             log.error("invalid after adding areas");
         }
+
     }
 
     /**
@@ -597,36 +591,34 @@ public class TerrainMesh {
     }
 
 
-
     public void registerArea() {
 
     }
 
     public void validate() throws MeshInconsistencyException {
-        if (!isValid(true)) {
+        if (!isValid()) {
             throw new MeshInconsistencyException("not valid");
         }
     }
 
-    public boolean isValid() {
-        try {
-            return isValid(false);
-        } catch (MeshInconsistencyException e) {
-            log.error(e.getMessage());
-            return false;
-        }
-    }
-
     /**
-     * Ob points mir nur zwei lines wirklich invalid sind?? eigentlich doch nicht. Für manche Tests ist es aber brauchbar.
-     * 24.4.24 Until full triangulation there might be nodes with only two lines.
-     * 25.4.24: Might also throw MeshInconsistencyException
-     *
-     * @param ignoretwoliner
-     * @return
+     * 25.4.24: Might also throw MeshInconsistencyException. 2.9.26 no longer.
      */
-    public boolean isValid(boolean ignoretwoliner) throws MeshInconsistencyException {
+    public boolean isValid() {
         boolean valid = true;
+
+        // no olygons might overlap. But they might touch at a line or point.
+        for (MeshPolygon p0 : polygons) {
+            for (MeshPolygon p1 : polygons) {
+                if (p0 != p1 && p0.getType() != MeshPolygonType.BOUNDARY && p1.getType() != MeshPolygonType.BOUNDARY) {
+                    if (JtsUtil.overlaps(p0.getGeoPolygon(), p1.getGeoPolygon())) {
+                        log.error("polygon " + p0 + " overlaps " + p1);
+                        return false;
+                    }
+                }
+            }
+        }
+
         for (int i = 0; i < points.size(); i++) {
             MeshNode point = points.get(i);
 
@@ -702,16 +694,7 @@ public class TerrainMesh {
         // No line might intersect any other line.
         if (!isPreDbStyle()) {
 
-         /*TODO    for (MeshLine l0 : lines) {
-                for (MeshLine l1 : lines) {
-                    if (!l0.equals(l1)) {
-                        if (JtsUtil.isReallyIntersectingLine(l0.getLineSegment(), l1.getLineSegment())) {
-                            throw new MeshInconsistencyException("line " + l0 + " intersects " + l1);
-                            //log.error("line " + l0 + " intersects " + l1);
-                        }
-                    }
-                }
-            }*/
+            /*TODO  */
         }
         return valid;
     }
@@ -1559,8 +1542,8 @@ public class TerrainMesh {
     }
 
     public MeshPolygon/*MeshWayConnector*/ getConnector(long osmId) {
-        for (MeshPolygon p:polygons){
-            if (p.getOsmId()!=null && p.getOsmId()==osmId){
+        for (MeshPolygon p : polygons) {
+            if (p.getOsmId() != null && p.getOsmId() == osmId) {
                 return p;//new SceneryWayConnector(p);
             }
         }
@@ -1572,7 +1555,7 @@ public class TerrainMesh {
      * Ready to search for polygons without osmId
      */
     public Object findPolygonsByOsmId(Long osmId) {
-       List<MeshPolygon> result = polygons. stream()
+        List<MeshPolygon> result = polygons.stream()
                 .filter(poly -> {
                     if (poly.getOsmId() == null && osmId == null) {
                         return true;
@@ -1585,10 +1568,10 @@ public class TerrainMesh {
                     }
                     return poly.getOsmId().longValue() == osmId;
                 }).collect(Collectors.toUnmodifiableList());
-       if (result.size()==0){
-           return null;
-       }
-       return result.get(0);
+        if (result.size() == 0) {
+            return null;
+        }
+        return result.get(0);
     }
 
     public static class PointPosition {
@@ -1735,7 +1718,7 @@ public class TerrainMesh {
                 svg += labelledLine(nodes.get(i).getCoordinate(), nodes.get(i + 1).getCoordinate(), scale, ""/*line.getLabel()* /, fontSize10px);
             }
         }*/
-        svgWriter.addMeshPolygons(polygons,gridCellBounds.getProjection());
+        svgWriter.addMeshPolygons(polygons, gridCellBounds.getProjection());
         /*TODO for (MeshNode node : points) {
             int x = (int) (node.getCoordinate().x * scale);
             int y = -(int) (node.getCoordinate().y * scale);

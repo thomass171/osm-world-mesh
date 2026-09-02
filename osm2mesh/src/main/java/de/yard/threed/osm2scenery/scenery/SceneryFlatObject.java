@@ -608,9 +608,12 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * For a more consistent program flow
      * 10.3.26
      */
-    public void cca(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException, OsmProcessException {
+    public void cca(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
         createPolygon(/*new ArrayList<>(),*/ terrainMeshAdder.meshService);
-        // already done/set in createPolygon clip();
+        // clip() is needed for ways, but already done/set in createPolygon for other surfaces
+        if (!isClipped) {
+            clip();
+        }
         // DB persist
         addToTerrainMesh(terrainMeshAdder);
     }

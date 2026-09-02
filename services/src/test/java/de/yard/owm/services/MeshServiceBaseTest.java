@@ -217,7 +217,7 @@ public class MeshServiceBaseTest {
        // terrainMesh = manager.loadTerrainMesh(terrainMesh.getGridCellBounds());
         terrainMesh = meshService.loadMesh("small2024"/*, terrainMesh.getGridCellBounds()*/);
         assertEquals(4 + 4, terrainMesh.points.size(), "points");
-        assertTrue(terrainMesh.isValid(true));
+        assertTrue(terrainMesh.isValid());
     }
 
     @Test

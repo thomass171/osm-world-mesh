@@ -244,7 +244,7 @@ public class OsmGridTest {
         TerrainMesh tm = sceneryMesh.terrainMesh;
         //3 normale Edges, 6 LazyCuts, 3 Areas. Aber 12 ist doch etwas wenig! 14 besser? 19.8.19: 14->16. Ganz plausibel.
         assertEquals(16, tm.getBoundaries().size(), "TerrainMesh.Bounds.size");
-        assertTrue(tm.isValid(true), "TerrainMesh.valid");
+        assertTrue(tm.isValid(), "TerrainMesh.valid");
         List<MeshLine> sharedLines = tm.getSharedLines();
         //13 ist plausibel
         assertEquals(13, sharedLines.size(), "TerrainMesh.sharedLines.size");

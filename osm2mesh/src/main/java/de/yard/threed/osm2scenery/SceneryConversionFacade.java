@@ -392,11 +392,7 @@ public class SceneryConversionFacade {
             throw new RuntimeException(e);
         }
         boolean meshValid = false;
-        try {
-            meshValid = sceneryMesh.terrainMesh.isValid(true);
-        } catch (MeshInconsistencyException e) {
-            meshValid=false;
-        }
+            meshValid = sceneryMesh.terrainMesh.isValid();
         //gap filler sind zwar auch supplements. Aber die haengen sich schon selber ins mesh.
         log.info("Supplements added to terrain mesh (mesh " + ((meshValid) ? "valid" : "invalid") + "). Creating gap filler");
         int cnt = sceneryMesh.createWayToAreaFiller();

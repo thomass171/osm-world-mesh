@@ -37,7 +37,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(24879711);
 
-        wayModule.applyTo(way.getLastSegment(), SceneryContext.getInstance());
+        wayModule.applyTo(way, SceneryContext.getInstance());
 
         SvgWriter.build()
                 .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
@@ -49,9 +49,8 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(107468171);
 
-        for (int i = 0; i < expectedK43.length; i++) {
-           wayModule.applyTo(way.getSegment(i), SceneryContext.getInstance());
-        }
+        wayModule.applyTo(way, SceneryContext.getInstance());
+
         SvgWriter.build()
                 .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
                 .writeTmpFile();
@@ -62,7 +61,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(24927839);
 
-        wayModule.applyTo(way.getLastSegment(), SceneryContext.getInstance());
+        wayModule.applyTo(way, SceneryContext.getInstance());
     }
 
     @Test
@@ -71,15 +70,15 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         MapWay way = desdorfTestData.fullMapData.findMapWay(182152619);
         double width = 7.7;
 
-       wayModule.applyTo(way.getFirstSegment(), SceneryContext.getInstance());
+       wayModule.applyTo(way, SceneryContext.getInstance());
 
         /*assertEquals(255563538, firstSegment.getStartConnector().getOsmId());
         assertEquals(SceneryWayObject.WayOuterMode.CONNECTOR, firstSegment.getStartMode());
 
         assertNotNull(firstSegment.getEndConnector());
         assertEquals(SceneryWayObject.WayOuterMode.CONNECTOR, firstSegment.getEndMode());
+        wayModule.applyTo(way, SceneryContext.getInstance());
 */
-        wayModule.applyTo(way.getLastSegment(), SceneryContext.getInstance());
 
        /* assertEquals(251517906/*correct??* /, lastSegment.getStartConnector().getOsmId());
         assertEquals(SceneryWayObject.WayOuterMode.CONNECTOR, lastSegment.getStartMode());
@@ -102,7 +101,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         MapWay way33817500 = desdorfTestData.fullMapData.findMapWay(33817500);
         MapWay way33817501 = desdorfTestData.fullMapData.findMapWay(33817501);
 
-        wayModule.applyTo(way33817500.getFirstSegment(), SceneryContext.getInstance());
+        wayModule.applyTo(way33817500, SceneryContext.getInstance());
 
         MeshPolygon meshWayConnector =  desdorfTestData.meshService.getConnector(387409895);
         validateMeshPolygon(expectedConnector387409895, meshWayConnector);
@@ -122,7 +121,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         MapWay way107468169 = desdorfTestData.fullMapData.findMapWay(107468169);
 
-        wayModule.applyTo(way107468169.getFirstSegment(), SceneryContext.getInstance());
+        wayModule.applyTo(way107468169, SceneryContext.getInstance());
 
         MeshPolygon meshWayConnector =  desdorfTestData.meshService.getConnector(445410497);
         validateMeshPolygon(expectedConnector445410497, meshWayConnector);

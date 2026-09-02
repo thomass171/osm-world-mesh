@@ -483,15 +483,11 @@ public class SceneryMesh {
                 throw new RuntimeException("inconsistent background size " + background.background.size());
             }
             TerrainMesh tm = terrainMesh;
-            try {
-                if (!tm.isValid(true)) {
+                if (!tm.isValid()) {
                     log.error("Terrain mesh not valid. Not building BG filler");
                     tm.errorCounter++;
                     return;
                 }
-            } catch (MeshInconsistencyException e) {
-                throw new RuntimeException(e);
-            }
             //19.8.19: Wenn man nicht von Boundaries ausgeht, sondern von innen, kann man auf nicht entscheidbare
             //Successorfragen stossen (z.B. am Desdorf farmland). Darum erstmal an den Boundaries beginnen.
             MeshLine meshLine = tm.findOpenLine(1);
@@ -559,14 +555,10 @@ public class SceneryMesh {
         }
         background.addFiller(bgfiller);
         //log.debug("resolved open mesh line to" + meshPolygon);
-        try {
-            if (!tm.isValid(true)) {
+            if (!tm.isValid()) {
                 log.error("not valid");
                 return false;
             }
-        } catch (MeshInconsistencyException e) {
-            throw new RuntimeException(e);
-        }
         return true;
     }
 

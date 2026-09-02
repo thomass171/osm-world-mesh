@@ -466,7 +466,7 @@ public class AerowayModule extends SceneryModule {
         }
 
         @Override
-        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
+        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
 
             return ;
         }

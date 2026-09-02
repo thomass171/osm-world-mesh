@@ -120,7 +120,7 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
+    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
         super.addToTerrainMesh(terrainMeshAdder);
         return ;
     }

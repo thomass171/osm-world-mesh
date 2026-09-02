@@ -57,7 +57,7 @@ public class SceneryDecoration extends SceneryFlatObject {
     }
 
     @Override
-    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
+    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
 
         return ;
     }

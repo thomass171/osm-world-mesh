@@ -384,7 +384,7 @@ public class SceneryWayObject extends SceneryFlatObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
+    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
 
         // TODO 10.3.26 save 'meshWay' like meshconnector
         ((WayTerrainMeshAdder)terrainMeshAdder).persistWay(this);

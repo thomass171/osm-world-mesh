@@ -189,7 +189,7 @@ public class HighwayModule extends WayModule {
      * The returned list only contains real roads, but no connector. connector are attached to the return road
      */
     @Override
-    public void applyTo(MapWaySegment2 mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public void applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
         // Also contains Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
 
@@ -875,7 +875,7 @@ public class HighwayModule extends WayModule {
         }
 
         @Override
-        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
+        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
 
             return;
         }

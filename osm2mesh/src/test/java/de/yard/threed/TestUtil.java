@@ -200,7 +200,7 @@ public class TestUtil {
     }
 
     public static void validateResult(SceneryMesh sceneryMesh, int toleratedWarnings, int expectedBgFiller, TerrainMesh tm) throws MeshInconsistencyException {
-        assertTrue(tm.isValid(true), "TerrainMesh.valid");
+        assertTrue(tm.isValid(), "TerrainMesh.valid");
         assertEquals(0, SceneryContext.getInstance().unresolvedoverlaps, "unresolvedoverlaps");
         assertEquals(0, SceneryContext.getInstance().overlappingways, "overlappingways");
         assertEquals(0, SceneryContext.getInstance().overlappingterrain, "overlappingterrain");
