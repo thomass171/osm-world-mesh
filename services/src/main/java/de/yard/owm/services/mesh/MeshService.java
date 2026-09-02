@@ -79,6 +79,8 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TerrainMesh loadMesh(String meshName) throws MeshInconsistencyException {
 
+        long startTime = System.currentTimeMillis();
+
         PersistedMesh mesh = meshRepository.findByName(meshName);
         if (mesh == null) {
             return null;
@@ -94,8 +96,8 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             n.projection = gridCellBounds.getProjection().getBaseProjection();
             terrainMesh.points.add(n);
         });*/
-        // We should have some kind of order, at least for test reliability
-        Iterator<PersistedMeshPolygon> ps = mesh.getPolygons().stream().sorted(Comparator.comparing(PersistedMeshPolygon::getId)).iterator();
+        // Result is sorted by id and index
+        Iterator<PersistedMeshPolygon> ps = meshPolygonRepository.findByMesh(mesh).iterator();
         while (ps.hasNext()) {
             PersistedMeshPolygon p = ps.next();
 
@@ -110,6 +112,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
             ((PersistedMeshNode) l.getTo()).linesOfPoint.add(l);*/
 
+            // Collecting the points has no significant impact on performance.
             p.getNodesSortedByIndex().forEach(n -> {
 
                 if (!points.contains(n)) {
@@ -118,6 +121,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
                 }
             });
         }
+        log.debug("Loaded {} polygons of mesh. Took {} ms.", polygons.size(), System.currentTimeMillis() - startTime);
 
         if (boundary == null) {
             throw new MeshInconsistencyException("no mesh boundary found");
@@ -137,6 +141,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         for (PersistedMeshFailure meshFailure : mesh.getFailures()) {
             terrainMesh.failures.add(meshFailure);
         }
+        log.debug("Loaded mesh {} with {} polygons and {} nodes. Took {} ms.", meshName, polygons.size(), points.size(), System.currentTimeMillis() - startTime);
         return terrainMesh;
     }
 
@@ -152,8 +157,26 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes) throws OsmProcessException, MeshInconsistencyException {
 
-        log.debug("Adding way {} to mesh", osmWayId);
+        long startTime = System.currentTimeMillis();
 
+        List<GeoCoordinate> l = new ArrayList<>();
+        JtsUtil.processWayOutlines(leftLine, rightLine, (geoCoordinate) -> {
+            l.add(geoCoordinate);
+        });
+        TerrainMesh terrainMesh = addPolygon(meshName, osmWayId, MeshPolygonType.WAY, l.iterator());
+        log.debug("Added way {} to mesh. Took {} ms.", osmWayId, System.currentTimeMillis() - startTime);
+        return terrainMesh;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates) throws MeshInconsistencyException {
+        long startTime = System.currentTimeMillis();
+        TerrainMesh terrainMesh = addPolygon(meshName, osmId, type, geoCoordinates.iterator());
+        log.debug("Added area {} of type {} to mesh. Took {} ms.", osmId, type, System.currentTimeMillis() - startTime);
+        return terrainMesh;
+    }
+
+    private TerrainMesh addPolygon(String meshName, long osmId, MeshPolygonType type, Iterator<GeoCoordinate> nodeProvider) throws MeshInconsistencyException {
         TerrainMesh terrainMesh = loadMesh(meshName);
         PersistedMesh mesh = meshRepository.findByName(meshName);
         if (mesh == null) {
@@ -178,8 +201,8 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
 */
         //MeshArea meshArea = addArea();
         PersistedMeshPolygon meshPolygon = new PersistedMeshPolygon();
-        meshPolygon.setType(MeshPolygonType.WAY);
-        meshPolygon.setOsmId(osmWayId);
+        meshPolygon.setType(type);
+        meshPolygon.setOsmId(osmId);
         meshPolygon.setMesh(mesh);
         //TODO meshArea.setOsmWay(osmWay);
 
@@ -196,10 +219,11 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             n = buildMeshNode(rightLine.get(i), mesh);
             meshPolygon.addNode(n);
         }*/
-        JtsUtil.processWayOutlines(leftLine, rightLine,(geoCoordinate)->{
-            PersistedMeshNode n = buildMeshNode(geoCoordinate, mesh);
+        while (nodeProvider.hasNext()) {
+            PersistedMeshNode n = buildMeshNode(nodeProvider.next(), mesh);
             meshPolygon.addNode(n);
-        });
+        }
+        ;
 
         meshPolygon.close();
         // keep relation sync, otherwise reuse inside this TX won't know it.
@@ -207,7 +231,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
 
         // Be sure it is a valid polygon
         if (!meshPolygon.isValidForSave()) {
-            throw new MeshInconsistencyException("way polygon not valid for osmNodeId "+osmWayId);
+            throw new MeshInconsistencyException("polygon not valid for osmId " + osmId);
         }
         meshPolygonRepository.save(meshPolygon);
 
@@ -251,7 +275,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
 
         // Be sure it is a valid polygon
         if (!meshPolygon.isValidForSave()) {
-            throw new MeshInconsistencyException("connector polygon not valid for osmNodeId "+osmNodeId);
+            throw new MeshInconsistencyException("connector polygon not valid for osmNodeId " + osmNodeId);
         }
         meshPolygonRepository.save(meshPolygon);
 
@@ -321,10 +345,9 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         if (ps.isEmpty()) {
             return null;
         }
-        PersistedMeshPolygon persistedMeshPolygon=ps.get(0);
+        PersistedMeshPolygon persistedMeshPolygon = ps.get(0);
         return persistedMeshPolygon;
     }
-
 
 
     public PersistedMeshNode buildMeshNode(GeoCoordinate coordinate, PersistedMesh mesh) {
@@ -372,6 +395,11 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             @Override
             public MeshPolygon/*WayConnector*/ getConnector(long osmNodeId) {
                 return ms.getConnector(osmNodeId);
+            }
+
+            @Override
+            public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates) throws MeshInconsistencyException {
+                return ms.addArea(meshName, osmId, type, geoCoordinates);
             }
         };
     }

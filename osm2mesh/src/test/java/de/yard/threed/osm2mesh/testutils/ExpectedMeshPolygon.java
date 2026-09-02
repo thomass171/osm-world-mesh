@@ -9,6 +9,9 @@ public class ExpectedMeshPolygon {
     public int segmentIndex;
     public ExpectedMeshNodePair[] expectedMeshNodePairs = new ExpectedMeshNodePair[0];
 
+    /**
+     * @param nodes exclusive the closing one, so corresponds to the number of nodes in OSM for simple polygons.
+     */
     private ExpectedMeshPolygon(Long osmId, int segmentIndex, MeshPolygonType type, int nodes) {
         this.osmId = osmId;
         this.segmentIndex = segmentIndex;
@@ -22,6 +25,10 @@ public class ExpectedMeshPolygon {
 
     public static ExpectedMeshPolygon expectedWay(long osmId, int segmentIndex, int nodes) {
         return new ExpectedMeshPolygon(osmId, segmentIndex, MeshPolygonType.WAY, nodes);
+    }
+
+    public static ExpectedMeshPolygon expectedArea(long osmId, MeshPolygonType type, int nodes) {
+        return new ExpectedMeshPolygon(osmId, 0, type, nodes);
     }
 
     public static ExpectedMeshPolygon expectedConnector(long osmId, int nodes, ExpectedMeshNodePair... expectedMeshNodePairs) {

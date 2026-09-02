@@ -9,7 +9,9 @@ import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.osm.OsmService;
 import de.yard.owm.services.persistence.*;
 import de.yard.owm.testutils.TestServices;
+import de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -168,6 +170,20 @@ public class OsmServiceTest extends AbstractSceneryTest {
                 expectedK43[3],
                 expectedK43[4]
         );
+
+        // forest
+        osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 322751236L);
+        terrainMesh = meshService.loadMesh("Desdorf");
+        testServices.validateMesh(terrainMesh,
+                desdorfTestData.expectedBoundary,
+                ExpectedMeshPolygon.expectedArea(322751236L, MeshPolygonType.AREA, 20));
+
+        // building
+        osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 322751224L);
+        terrainMesh = meshService.loadMesh("Desdorf");
+        testServices.validateMesh(terrainMesh,
+                desdorfTestData.expectedBoundary,
+                ExpectedMeshPolygon.expectedArea(322751224L, MeshPolygonType.AREA, 7));
 
         terrainMesh.writeToSvg();
     }

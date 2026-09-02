@@ -81,4 +81,17 @@ public class MeshServiceMock implements MeshServiceFacade {
         }
         return null;
     }
+
+    @Override
+    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates) throws MeshInconsistencyException {
+        List<Pair<GeoCoordinate, Long>> polyList = new ArrayList<>();
+
+        for (GeoCoordinate geoCoordinate:geoCoordinates) {
+            polyList.add(new Pair<>(geoCoordinate, 0L));
+        }
+        polyList.add(polyList.get(0)); // close polygon
+
+        polygons.add(new MeshPolygonMock(osmId, type, polyList));
+        return TerrainMesh.init(gridCellBounds, points, polygons);
+    }
 }

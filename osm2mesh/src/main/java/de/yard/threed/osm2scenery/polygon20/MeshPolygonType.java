@@ -3,6 +3,7 @@ package de.yard.threed.osm2scenery.polygon20;
 public enum MeshPolygonType {
     BOUNDARY(22),
     WAY(100),
+    AREA(101),
     CONNECTOR(200);
 
     private final int type;

@@ -116,6 +116,8 @@ create table meshpolygon (
 
 create sequence meshpolygon_seq start with 1;
 
+create index meshpolygon_mesh_id_idx on meshpolygon(mesh_id);
+
 /**
  * closed (like JTS polygons?)
  */
@@ -132,6 +134,9 @@ create table meshpolygonnode (
 );
 
 create sequence meshpolygonnode_seq start with 1;
+
+create index meshpolygonnode_meshpolygon_id_idx on meshpolygonnode(meshpolygon_id);
+create index meshpolygonnode_meshnode_id_idx on meshpolygonnode(meshnode_id);
 
 /**
  *
@@ -152,6 +157,8 @@ create table meshnodepair (
 );
 
 create sequence meshnodepair_seq start with 1;
+
+create index meshnodepair_meshpolygon_id_idx on meshnodepair(meshpolygon_id);
 
 create table meshfailure (
     id bigint not null,

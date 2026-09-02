@@ -2,14 +2,14 @@ package de.yard.threed.osm2scenery.modules;
 
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
-import de.yard.threed.osm2world.MapArea;
-import de.yard.threed.osm2world.MapData;
-import de.yard.threed.osm2world.Materials;
-import de.yard.threed.osm2world.Tag;
-import de.yard.threed.osm2world.TagGroup;
-import de.yard.threed.osm2world.TriangleXZ;
+import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
+import de.yard.threed.osm2world.*;
 
 
 import java.util.Collection;
@@ -22,10 +22,10 @@ import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.GENERICA
  * Eine Oberfläche (direkt oder indirekt als area in OSM definiert), z.B. (Forests, farmland, lakes, aso.).
  * Kann auch eine Dummyarea sein (Taxiway?)?
  * Wird vorab in den Background eingebaut.
- *
+ * <p>
  * adds generic areas with surface information to the world.
  * Is based on surface information on otherwise unknown/unspecified areas.
- *
+ * <p>
  * 20.4.19: Wirklich nur für Areas, die sicher nicht in einen höheren Kontext gehören, wie z.B. Lakes (WaterModule), Parkplätze (HighWayModule),
  * Aprons (AerowayModule).
  * 3.6.19: (was ist "höherer Kontext"?).
@@ -51,6 +51,7 @@ public class SurfaceAreaModule extends SceneryModule {
         //additional to OSM2World. River duerfte nicht faelschlicherweise erkannt werden, weil er keine Area ist.
         defaultSurfaceMap.put(new Tag("landuse", "farmland"), "farmland");
         defaultSurfaceMap.put(new Tag("natural", "water"), "water");
+        defaultSurfaceMap.put(new Tag("landuse", "forest"), "forest");
 
     }
 
@@ -84,7 +85,43 @@ public class SurfaceAreaModule extends SceneryModule {
         return l;
     }
 
-   
+    @Override
+    public void applyTo(MapWaySegment2 mapwaySegment, SceneryContext sceneryContext) throws MeshInconsistencyException {
+        SceneryObjectList l = new SceneryObjectList();
+
+        // For now temp solution for keeping existing area implementation.
+        MapArea area = new MapArea(mapwaySegment.mapWay.getOsmWay(), mapwaySegment.mapWay.getMapNodes(), null, null);
+
+        //for (MapArea area : grid.getMapAreas()) {
+
+        if (!area.getRepresentations().isEmpty()) return;
+
+        TagGroup tags = area.getTags();
+
+        try {
+            if (tags.containsKey("surface")) {
+                SurfaceArea surfaceArea = new SurfaceArea(area, tags.getValue("surface"));
+                cca(surfaceArea);
+            } else {
+
+                for (Tag tagWithDefault : defaultSurfaceMap.keySet()) {
+                    if (tags.contains(tagWithDefault)) {
+                        SurfaceArea surfaceArea = new SurfaceArea(
+                                area, defaultSurfaceMap.get(tagWithDefault));
+                        cca(surfaceArea);
+                    }
+                }
+            }
+        } catch (OsmProcessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void cca(SurfaceArea surfaceArea) throws MeshInconsistencyException, OsmProcessException {
+        // TODO Auto-generated method stub
+        TerrainMeshAdder terrainMeshAdder = new DefaultTerrainMeshAdder(meshName, meshServiceFacade, projection, surfaceArea);
+        surfaceArea.cca(terrainMeshAdder);
+    }
 
     public static class SurfaceArea extends SceneryAreaObject {
 
@@ -93,7 +130,7 @@ public class SurfaceAreaModule extends SceneryModule {
         private Collection<TriangleXZ> triangulationXZ;
 
         public SurfaceArea(MapArea area, String surface) {
-            super(area,"Area-"+surface, Materials.getSurfaceMaterial(surface),GENERICAREA,null);
+            super(area, "Area-" + surface, null/*Materials.getSurfaceMaterial(surface)*/, GENERICAREA, null);
             this.surface = surface;
             cycle = Cycle.GENERICAREA;
         }

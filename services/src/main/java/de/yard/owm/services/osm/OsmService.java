@@ -6,8 +6,7 @@ import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.*;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
-import de.yard.threed.osm2scenery.modules.SceneryModule;
-import de.yard.threed.osm2scenery.modules.SurfaceAreaModule;
+import de.yard.threed.osm2scenery.modules.*;
 import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -78,9 +77,17 @@ public class OsmService {
 
         Phase.updatePhase(Phase.OBJECTS);
 
-        /*24.8.26 not needed/used?? List<SceneryModule> worldModules = null;
+        MeshServiceFacade meshService = MeshService.buildMeshServiceFacade();
+
+        List<SceneryModule> worldModules = null;
         worldModules = new ArrayList<>();
-        for (String modulename : modules) {
+        worldModules.add(new HighwayModule(meshService, mapData.projection, meshName));
+        SurfaceAreaModule lakeModule = new SurfaceAreaModule(meshService, mapData.projection, meshName);
+        worldModules.add(new WaterModule(meshService, mapData.projection, meshName));
+        worldModules.add(new BuildingModule(meshService, mapData.projection, meshName));
+        worldModules.add(new SurfaceAreaModule(meshService, mapData.projection, meshName));
+
+       /* for (String modulename : modules) {
 
             try {
                 String classname = "de.yard.threed.osm2scenery.modules." + modulename;
@@ -118,7 +125,7 @@ public class OsmService {
         //try {
         /*sceneryMesh.sceneryObjects.objects.addAll*/
         //20.3.26 osmElementService.process(mapWay,                           SceneryModule.getRelevant(worldModules, mapWay), terrainMesh, sceneryContext, OsmClassifier.LOD_BASIC);
-        processMapData(mapData, meshName, osmwayid, MeshService.buildMeshServiceFacade());
+        processMapData(worldModules, mapData, meshName, osmwayid, meshService);
 
         /* 26.3.24 no longer here
         //4.8.18 mal vor der Elevation, weil scheinbar bei der Trianglation die z-Coordinaten durcheinander kommen können. Schon skuril!
@@ -191,18 +198,18 @@ public class OsmService {
      * Apply defined modules to the map data and create scenery objects.
      * Passing a single osmwayid is intended for test purposes only.
      */
-    private void processMapData(MapData mapData, String meshName, Long osmwayid, MeshServiceFacade meshService) throws MeshInconsistencyException {
-        WayModule wayModule = new WayModule(meshService, mapData.projection, meshName);
-        SurfaceAreaModule lakeModule = new SurfaceAreaModule(meshService, mapData.projection, meshName);
-        WayModule highwayModule = new WayModule(meshService, mapData.projection, meshName);
+    private void processMapData(List<SceneryModule> worldModules, MapData mapData, String meshName, Long osmwayid, MeshServiceFacade meshService) throws MeshInconsistencyException {
 
         List<MapWay> effectiveWays = mapData.getMapWays();
         if (osmwayid != null) {
             effectiveWays = effectiveWays.stream().filter(w -> w.getOsmId() == osmwayid).collect(Collectors.toUnmodifiableList());
         }
         for (MapWay mapWay : effectiveWays) {
-            for (MapWaySegment2 segment : mapWay.segment2s) {
-                wayModule.applyTo(segment, SceneryContext.getInstance());
+            log.debug("Processing {}", mapWay.getOsmId());
+            for (SceneryModule module:worldModules) {
+                for (MapWaySegment2 segment : mapWay.segment2s) {
+                    module.applyTo(segment, SceneryContext.getInstance());
+                }
             }
         }
     }

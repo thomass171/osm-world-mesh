@@ -7,6 +7,7 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -48,8 +49,8 @@ public abstract class SceneryModule {
      *
      * Returns the objects to be created(or updated) in the order they should be processed.
      */
-    public SceneryObjectList applyTo(MapWaySegment2 mapWay, SceneryContext sceneryContext) throws MeshInconsistencyException {
-        return new SceneryObjectList();
+    public void applyTo(MapWaySegment2 mapWay, SceneryContext sceneryContext) throws MeshInconsistencyException {
+        //return new SceneryObjectList();
     }
 
     protected String getSubConfig(String subproperty) {

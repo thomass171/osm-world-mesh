@@ -4,31 +4,13 @@ import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
+import de.yard.threed.osm2scenery.modules.common.WayModule;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.FixedWidthProvider;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.util.TagFilter;
-import de.yard.threed.osm2world.AbstractAreaWorldObject;
-import de.yard.threed.osm2world.EleConstraintEnforcer;
-import de.yard.threed.osm2world.GroundState;
-import de.yard.threed.osm2world.JunctionNodeWorldObject;
-import de.yard.threed.osm2world.MapArea;
-import de.yard.threed.osm2world.MapData;
-import de.yard.threed.osm2world.MapNode;
-import de.yard.threed.osm2world.MapWay;
-import de.yard.threed.osm2world.MapWaySegment;
-import de.yard.threed.osm2world.NetworkAreaWorldObject;
-import de.yard.threed.osm2world.OsmOrigin;
-import de.yard.threed.osm2world.PolylineXZ;
-import de.yard.threed.osm2world.RenderableToAllTargets;
-import de.yard.threed.osm2world.ShapeXZ;
-import de.yard.threed.osm2world.Tag;
-import de.yard.threed.osm2world.TagGroup;
-import de.yard.threed.osm2world.Target;
-import de.yard.threed.osm2world.TerrainBoundaryWorldObject;
-import de.yard.threed.osm2world.TriangleXYZ;
-import de.yard.threed.osm2world.VectorXYZ;
-import de.yard.threed.osm2world.VectorXZ;
-import de.yard.threed.osm2world.WorldModuleParseUtil;
+import de.yard.threed.osm2scenery.util.TagMap;
+import de.yard.threed.osm2world.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,7 +36,7 @@ import static java.util.Collections.nCopies;
  * 20.4.19: Doch auch für z.B. Lakes, halt alles, was zum Kontext Gewässer gehört.
  * 27.5.19: Darum umbenannt RiverModule->WaterModule
  */
-public class WaterModule extends SceneryModule {
+public class WaterModule extends WayModule {
     List<Waterway> rivers = new ArrayList<>();
     //TODO: add canal, ditch, drain
 
@@ -120,6 +102,27 @@ public class WaterModule extends SceneryModule {
             }
         }
         return rivers;
+    }
+
+    @Override
+    public void applyTo(MapWaySegment2 mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
+        SceneryObjectList rivers = new SceneryObjectList();
+
+        // material not needed yet?
+        TagMap materialmap = null;//getTagMap("materialmap");
+        if (mapway.getOsmId() == 8610418) {
+            int h = 6;
+        }
+        for (String value : WATERWAY_WIDTHS.keySet()) {
+            if (mapway.getTags().contains("waterway", value) /*&& tagfilter.isAccepted(line.getTags()*/) {
+                //Waterway waterway = new Waterway(line, SceneryContext.getInstance());
+                /*rivers.objects.addAll(*/applyToWay(mapway, sceneryContext);
+                //line.addRepresentation(waterway);
+            }
+        }
+
+        //Elevation and BridgeApproaches comes later
+        //return rivers;
     }
 
     public static class Waterway extends SceneryWayObject {

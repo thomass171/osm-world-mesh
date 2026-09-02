@@ -7,6 +7,7 @@ import de.yard.threed.core.Pair;
 import de.yard.threed.osm2scenery.polygon20.GeoPolygon;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MapWaySegmentAtConnector;
@@ -45,4 +46,9 @@ public interface MeshServiceFacade {
      * Returns null if not found
      */
     /*MeshWayConnector*/ MeshPolygon getConnector(long osmNodeId);
+
+    /**
+     * The most generic use case
+     */
+    TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates) throws MeshInconsistencyException;
 }

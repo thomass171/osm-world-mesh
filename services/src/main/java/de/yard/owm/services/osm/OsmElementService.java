@@ -58,7 +58,7 @@ public class OsmElementService {
 
         Phase.updatePhase(Phase.OBJECTS);
 
-        OsmClassifier classifier = OsmClassifier.classify(mapWay);
+        /*2.9.26 not useful? OsmClassifier classifier = OsmClassifier.classify(mapWay);
         if (classifier == null) {
             // unclassified
             return 2;
@@ -66,9 +66,9 @@ public class OsmElementService {
         if (!classifier.lodMatches(lod)) {
             // skipped
             return 1;
-        }
+        }*/
         //  for (SceneryModule module : modules) {
-        SceneryModule module = classifier.getModule().buildModule(null,null, null);//new WayModule();
+        SceneryModule module = null;//classifier.getModule().buildModule(null,null, null);//new WayModule();
             /*Not possible here because it might be an area SceneryWayConnector fromConnector;
             if ((fromConnector = tm.getFromConnector()) == null) {
                 fromConnector = wayModule.createConnector();
@@ -79,7 +79,7 @@ public class OsmElementService {
             }*/
         //SceneryObjectList areas =
         for (MapWaySegment2 segment : mapWay.segment2s) {
-            module.applyTo(segment, sceneryContext);
+            //1.9.26 module.applyTo(segment, sceneryContext);
         }
         // No longer collect scenery objects but immediately persist these
         //sceneryObjects.addAll(areas.objects);

@@ -8,6 +8,7 @@ import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MapWaySegmentAtConnector;
@@ -120,10 +121,20 @@ public abstract class TerrainMeshAdder implements SceneryObjectComponent {
     /**
      * Analog to registerWay. "pair.second" is attached way id
      * 24.8.26: No longer returns a value to avoid confusion.
+     * 1.9.26 TODO should expect Coordinate like registerWay and registerArea, not GeoCoordinate. But for now it is easier to keep it like this.
      */
     public void/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) throws OsmProcessException, MeshInconsistencyException {
         TerrainMesh tm = meshService.addConnector(meshName, osmNodeId, line, wayAttachPoints);
         //24.8.26 return tm.getConnector(osmNodeId);
+
+    }
+
+    /**
+     * Analog to registerWay.
+     *
+     */
+    public void/*MeshWayConnector*/ registerArea(long osmNodeId, MeshPolygonType type, List<Coordinate> coordinates) throws OsmProcessException, MeshInconsistencyException {
+        TerrainMesh tm = meshService.addArea(meshName, osmNodeId, type, JtsUtil.unproject(coordinates, projection));
 
     }
 }

@@ -6,11 +6,17 @@ import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
+import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
+import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObjectFactory;
 import de.yard.threed.osm2scenery.scenery.components.BuildingComponent;
+import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.WayTerrainMeshAdder;
 import de.yard.threed.osm2world.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
@@ -78,6 +84,40 @@ public class BuildingModule extends SceneryModule {
 
 
         return buildingobjects;
+    }
+
+    @Override
+    public void applyTo(MapWaySegment2 mapwaySegment, SceneryContext sceneryContext) throws MeshInconsistencyException {
+        buildingobjects = new SceneryObjectList();
+
+        //boolean useBuildingColors = Config.getCurrentConfiguration().getBoolean("useBuildingColors", true);
+        //boolean drawBuildingWindows = Config.getCurrentConfiguration().getBoolean("drawBuildingWindows", true);
+
+
+        String buildingValue = mapwaySegment.getTags().getValue("building");
+
+        if (buildingValue != null && !buildingValue.equals("no")) {
+            try {
+                // 31.8.26 Building OSM buildings is tricky.
+                // For now temp solution for keeping existing area implementation.
+                // For the mesh, we for now only create an area for later use for ambient occlusion.
+                MapArea area = new MapArea(mapwaySegment.mapWay.getOsmWay(), mapwaySegment.mapWay.getMapNodes(), null, null);
+
+                Building building = new Building(area, false, false/* useBuildingColors, drawBuildingWindows*/);
+                BuildingComponent buildingComponent = new BuildingComponent(building);
+                SceneryAreaObject buildingobject = SceneryObjectFactory.createBuilding(area, null, buildingComponent);
+                //area.addRepresentation(building);
+                buildingobjects.add(buildingobject);
+                //area2building.put(area, building);
+
+                TerrainMeshAdder terrainMeshAdder = new DefaultTerrainMeshAdder(meshName, meshServiceFacade, projection, buildingobject);
+                buildingobject.cca(terrainMeshAdder);
+            } catch (OsmProcessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return;
     }
 
     @Override
@@ -243,7 +283,7 @@ public class BuildingModule extends SceneryModule {
              */
 
             outlineConnectors = new O2WEleConnectorGroup();
-            outlineConnectors.addConnectorsFor(area.getPolygon(), null, ON);
+            /*1.9.26  outlineConnectors.addConnectorsFor(area.getPolygon(), null, ON);*/
 
         }
 
@@ -446,6 +486,8 @@ public class BuildingModule extends SceneryModule {
             setAttributes(useBuildingColors, drawBuildingWindows);
             // 6.5.19: Check optional OSM details.
             Configuration extension;
+            //2.9.26 exit here
+            if (true) return;
             Util.notyet();
             if ((extension = null/*24.3.26 SceneryBuilder.loadExtensionConfig(area.getOsmId())*/) != null) {
                 ConfMaterial specificMaterial = new ConfMaterial("OSM" + area.getOsmId(), Material.Interpolation.FLAT,
@@ -1507,11 +1549,11 @@ public class BuildingModule extends SceneryModule {
 
                 } catch (TriangulationException e) {
 */
-                    triangles = JTSTriangulationUtil.triangulate(
-                            getPolygon().getOuter(),
-                            getPolygon().getHoles(),
-                            getInnerSegments(),
-                            getInnerPoints());
+                triangles = JTSTriangulationUtil.triangulate(
+                        getPolygon().getOuter(),
+                        getPolygon().getHoles(),
+                        getInnerSegments(),
+                        getInnerPoints());
 
                 //}
 

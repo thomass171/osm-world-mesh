@@ -3,18 +3,11 @@ package de.yard.owm.modules;
 import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.persistence.*;
 import de.yard.owm.testutils.TestServices;
-import de.yard.owm.testutils.TestUtils;
 import de.yard.threed.MeshServiceFactory;
 import de.yard.threed.ValidatorServiceFactory;
-import de.yard.threed.core.platform.Platform;
-import de.yard.threed.core.testutil.CoreTestFactory;
-import de.yard.threed.core.testutil.PlatformFactoryTestingCore;
-import de.yard.threed.modules.AbstractWayModuleTest;
+import de.yard.threed.modules.AbstractSurfaceAreaModuleTest;
 import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
-import de.yard.threed.osm2mesh.testutils.MeshServiceMock;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
-import de.yard.threed.osm2mesh.testutils.ValidatorServiceForMocking;
-import de.yard.threed.osm2world.MetricMapProjection;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +22,7 @@ import org.springframework.web.context.WebApplicationContext;
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-public class WayModuleTest extends AbstractWayModuleTest {
+public class SurfaceAreaModuleTest extends AbstractSurfaceAreaModuleTest {
 
     @Autowired
     private TestServices testServices;

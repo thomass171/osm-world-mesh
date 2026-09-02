@@ -8,6 +8,7 @@ import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
+import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
@@ -55,7 +56,7 @@ import static java.util.Arrays.asList;
  * 20.4.19: Auch für z.B. Parkplätze, halt alles, was zum Kontext Strassen(verkehr) gehört.
  */
 @Slf4j
-public class HighwayModule extends SceneryModule {
+public class HighwayModule extends WayModule {
 
     /**
      * determines whether right-hand or left-hand traffic isType the default
@@ -65,7 +66,7 @@ public class HighwayModule extends SceneryModule {
     SceneryObjectList roadsAndBridges;
 
     public HighwayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
-        super(meshServiceFacade, projection,meshName);
+        super(meshServiceFacade, projection, meshName);
     }
     //static  private Map<Long, List<Road>> roadmap = new HashMap<>();
 
@@ -188,7 +189,7 @@ public class HighwayModule extends SceneryModule {
      * The returned list only contains real roads, but no connector. connector are attached to the return road
      */
     @Override
-    public SceneryObjectList applyTo(MapWaySegment2 mapway, SceneryContext sceneryContext) {
+    public void applyTo(MapWaySegment2 mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
         // Also contains Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
 
@@ -197,61 +198,12 @@ public class HighwayModule extends SceneryModule {
         if (mapway.getOsmId() == 8610418) {
             int h = 6;
         }
-        // just to be sure
         if (isHighway(mapway.getTags())) {
-            long osmid = mapway.getOsmId();
-
-            //Ein Way ohne Segmente? Das ist doch bestimmt was inkonsistentes.
-            if (mapway.getMapNodes().size() > 0) {
-                if (BridgeModule.isBridge(mapway.getTags())) {
-                    //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
-                    BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapway, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, sceneryContext);
-                    //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
-                    sceneryContext.highways.put(osmid, bridge);
-                    roadsAndBridges.add(bridge);
-                    sceneryContext.bridges.put(osmid, bridge);
-                    bridge.addToWayMap(ROAD, sceneryContext);
-                } else if (TunnelModule.isTunnel(mapway.getTags())) {
-                    //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
-                    Highway road = new Highway(mapway, materialmap, sceneryContext);
-                    sceneryContext.highways.put(osmid, road);
-                    roadsAndBridges.add(road);
-                    road.addToWayMap(ROAD, sceneryContext);
-                } else {
-                    // regular highway
-                    Highway road = new Highway(mapway, materialmap, sceneryContext);
-                    sceneryContext.highways.put(osmid, road);
-                    roadsAndBridges.add(road);
-                    road.addToWayMap(ROAD, sceneryContext);
-                }
-            } else {
-                log.warn("Ignoring mapyway " + mapway.getOsmId() + " with only " + mapway.getMapNodes().size() + " nodes");
-            }
+            /*roadsAndBridges = */applyToWay(mapway, sceneryContext);
         }
 
-        // Create Junctions/RoadConnector to existing highways.
-        //19.4.19: Connector/Junction sind normale SceneryObjects, die vielleich auch eine Darstellung haben
-        //29.3.24: Are now taken from terrain mesh. 2.5.24: No, we still have SceneryContext
-        //for (List<SceneryWayObject> roads : SceneryContext.getInstance().wayMap.getMapForCategory(ROAD).values()) {
-        for (List<SceneryWayObject> roads : /*terrainMesh*/sceneryContext.wayMap.getMapForCategory(ROAD).values()) {
-            for (SceneryWayObject road : roads) {
-                if (road.getOsmIdsAsString().contains("23696494")) {
-                    int h = 9;
-                }
-                /*SceneryWayConnector connector = processConnectionCandidate(road.mapWay.getStartNode(), roadsAndBridges, sceneryContext);
-                if (connector != null) {
-                    connector.add(road.mapWay);
-                    road.setStartConnector(connector);
-                }
-                connector = processConnectionCandidate(road.mapWay.getEndNode(), roadsAndBridges, sceneryContext);
-                if (connector != null) {
-                    connector.add(road.mapWay);
-                    road.setEndConnector(connector);
-                }*/
-            }
-        }
         //Elevation and BridgeApproaches comes later
-        return roadsAndBridges;
+        return ;//roadsAndBridges;
     }
 
     @Override
@@ -325,7 +277,7 @@ public class HighwayModule extends SceneryModule {
             }*/
 
         //if (road1.isOuterNode(node) && road2.isOuterNode(node)) {
-        connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD,null);
+        connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD, null);
         //10.9.19: Besser alle Ways an den Connector haengen stat nur zwei, sonst geht mir nachher evtl. eine inner connector way durch. (z.B. 1379039502)
         for (SceneryWayObject way : connectedRoads) {
             //   connector.add(road1);
@@ -925,7 +877,7 @@ public class HighwayModule extends SceneryModule {
         @Override
         public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
 
-            return ;
+            return;
         }
 
 

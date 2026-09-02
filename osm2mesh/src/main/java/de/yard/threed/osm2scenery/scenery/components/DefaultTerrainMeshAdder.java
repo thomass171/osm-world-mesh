@@ -3,11 +3,13 @@ package de.yard.threed.osm2scenery.scenery.components;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
 import de.yard.threed.osm2scenery.scenery.*;
 import lombok.extern.slf4j.Slf4j;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -38,5 +40,15 @@ public class DefaultTerrainMeshAdder extends TerrainMeshAdder {
             }
         }
 
+    }
+
+    /**
+     * Like persistWay.
+     */
+    public /*static*/ void persistArea(SceneryAreaObject sceneryAreaObject) throws MeshInconsistencyException, OsmProcessException {
+        // for now only the first area is used. TODO: add all areas to the mesh.
+        AbstractArea area = sceneryAreaObject.flatComponent[0];
+        //area.getPolygon()
+        registerArea(sceneryAreaObject.getOsmIds().get(0), MeshPolygonType.AREA, Arrays.asList(area.poly.polygon.getCoordinates()));
     }
 }

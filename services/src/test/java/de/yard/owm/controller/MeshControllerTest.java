@@ -77,8 +77,7 @@ public class MeshControllerTest {
         response = validateResponse(result, HttpStatus.OK);
         MeshResponse meshBuildResponse = jsonService.jsonToModel(response, MeshResponse.class);
         // currently we have 5 failures, but that might change over time. Now 3.
-        // Now 89
-        validateFailures(89, meshBuildResponse.getFailures());
+        validateFailures(3, meshBuildResponse.getFailures());
 
         result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf");
         response = validateResponse(result, HttpStatus.OK);

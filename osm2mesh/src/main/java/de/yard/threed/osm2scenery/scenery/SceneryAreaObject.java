@@ -12,10 +12,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
-import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import de.yard.threed.osm2scenery.scenery.components.Area;
-import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
-import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.*;
 import de.yard.threed.osm2scenery.util.PolygonMetadata;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
 import de.yard.threed.osm2world.JTSConversionUtil;
@@ -87,7 +84,7 @@ public class SceneryAreaObject extends SceneryFlatObject {
     @Override
     public List<ScenerySupplementAreaObject> createPolygon(MeshServiceFacade meshServiceFacade) {
         if (maparea != null) {
-            SimplePolygonXZ pXZ = maparea.getOuterPolygon();
+            //1.9.26 SimplePolygonXZ pXZ = maparea.getOuterPolygon();
 
             PolygonMetadata polygonMetadata = new PolygonMetadata(this);
 
@@ -161,6 +158,7 @@ public class SceneryAreaObject extends SceneryFlatObject {
 
     @Override
     public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws OsmProcessException, MeshInconsistencyException {
+        ((DefaultTerrainMeshAdder)terrainMeshAdder).persistArea(this);
 
         return ;
     }

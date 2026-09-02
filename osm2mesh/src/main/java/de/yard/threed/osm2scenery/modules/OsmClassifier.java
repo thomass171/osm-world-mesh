@@ -32,9 +32,9 @@ public class OsmClassifier {
     /**
      * For simplicity for now doesn't use tag filter from config
      */
-    public static OsmClassifier classify(MapWay mapWay) {
+   /* 2.9.26 not really useful public static OsmClassifier classify(MapWay mapWay) {
         TagGroup tags = mapWay.getTags();
-        if (isHighway(tags) /*&& tagfilter.isAccepted(mapWay.getTags()*/) {
+        if (isHighway(tags) /*&& tagfilter.isAccepted(mapWay.getTags()* /) {
             if (isPath(tags)) {
                 return (new OsmClassifier(LOD_EXTENDED, (f, p, m)->new WayModule(f, p, m)));
             } else {
@@ -42,7 +42,7 @@ public class OsmClassifier {
             }
         }
         return null;
-    }
+    }*/
 
     public boolean lodMatches(int lod) {
         return lod >= this.lod;

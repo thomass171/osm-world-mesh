@@ -28,7 +28,7 @@ public class BuildingDefaults {
      * @param area
      */
     public BuildingDefaults(MapArea area) {
-        defaultLevels = Config.getCurrentConfiguration().getInt("buildingdefaultLevels", 1);
+        defaultLevels = 1;//Config.getCurrentConfiguration().getInt("buildingdefaultLevels", 1);
         String buildingValue = area.getTags().getValue("building");
 
         // erstmal sehen, was die expliziten Tags hergeben.

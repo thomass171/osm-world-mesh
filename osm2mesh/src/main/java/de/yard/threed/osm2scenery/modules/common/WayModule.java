@@ -50,7 +50,7 @@ import static java.util.Arrays.asList;
  * Arbeitet aber auf MapWay statt auf MapWaySegemt.
  */
 @Slf4j
-public class WayModule extends SceneryModule {
+public abstract class WayModule extends SceneryModule {
 
     /**
      * determines whether right-hand or left-hand traffic isType the default
@@ -75,17 +75,18 @@ public class WayModule extends SceneryModule {
     /**
      * DB mesh approach
      * Cloned from above applyTo().
-     * The returned list only contains real roads, but no connector. connector are attached to the return road
+     * The returned list only contains real roads, but no connector. connector are attached to the return road.
+     * Generic implementation for 'real ways'
      */
-    @Override
-    public SceneryObjectList applyTo(MapWaySegment2 mapwaySegment, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    //@Override
+    public void applyToWay(MapWaySegment2 mapwaySegment, SceneryContext sceneryContext) throws MeshInconsistencyException {
         // Also contains Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
 
         if (mapwaySegment.getMapNodes().size() == 0) {
             // might be some inconsistency in the OSM data. E.g. a way with only one node. Ignore it.
             log.warn("Ignoring mapwaySegment " + mapwaySegment.getOsmId() + " with only " + mapwaySegment.getMapNodes().size() + " nodes");
-            return roadsAndBridges;
+            return;// roadsAndBridges;
         }
 
         log.info("Adding segment " + mapwaySegment.segmentIndex + "(" + mapwaySegment.getStartNode().getOsmId() + "->" + mapwaySegment.getEndNode().getOsmId() + ") for way " + mapwaySegment.getOsmId());
@@ -167,7 +168,7 @@ public class WayModule extends SceneryModule {
 
 
         //Elevation and BridgeApproaches comes later
-        return roadsAndBridges;
+        return;// roadsAndBridges;
     }
 
 
@@ -377,9 +378,9 @@ public class WayModule extends SceneryModule {
         return false;
     }
 
-    public List<Highway> getRoads(SceneryContext sceneryContext) {
+    /*public List<Highway> getRoads(SceneryContext sceneryContext) {
         return new ArrayList(sceneryContext.highways.values());
-    }
+    }*/
 
     /**
      * Die Bridge einer Road gilt auch als Road

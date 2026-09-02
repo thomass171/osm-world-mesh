@@ -135,4 +135,10 @@ where p.id = np.meshpolygon_id
 and p.osmid=255563538
 ```
 
+```
+select p.osmid,p.type,pn.* from worldmesh_test.meshpolygon p,worldmesh_test.meshpolygonnode pn, worldmesh_test.meshnode n
+where p.id = pn.meshpolygon_id and pn.meshnode_id = n.id
+and p.osmid=255563538
+```
+
 
