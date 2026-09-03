@@ -330,8 +330,9 @@ function showMeshFromResponse(response) {
         response.failures.forEach(failure => {
             var secret_id = "inp_" + getUniqueId();
             var osmLink = createLink(failure.sourceRef);
+            var svgLink = createFailureSvgLink(failure.id);
 
-            var content     = "<p>" + failure.message  + " " + osmLink.html+ "</p>";//"<div id='" + secret_id + "' class='w3-bar w3-white'>xx</div>";
+            var content     = "<p>" + failure.message  + " " + osmLink.html + " " + svgLink + "</p>";//"<div id='" + secret_id + "' class='w3-bar w3-white'>xx</div>";
             addListItem("ul_failures", content, "w3-bar");
             console.log("Building link " + content);
 
@@ -341,6 +342,19 @@ function showMeshFromResponse(response) {
             };
         });
     }
+}
+
+/**
+ * Clickable icon that opens the failure's SVG (served by MeshController) in a new browser tab.
+ * Returns an empty string when the failure has no persistence id.
+ */
+function createFailureSvgLink(failureId) {
+    if (failureId == null) {
+        return "";
+    }
+    var href = serviceshost + "/worldmesh/mesh/failure/" + failureId + "/svg";
+    return '<a href="' + href + '" target="_blank" title="Show failure SVG">'
+        + '<i class="fa fa-picture-o" aria-hidden="true"></i></a>';
 }
 
 function buildLatLng(e) {

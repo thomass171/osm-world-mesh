@@ -15,4 +15,12 @@ public interface MeshFailure {
     String getSourceRef();
     // Should not need projection
     GeoPolygon getGeoPolygon();
+
+    /**
+     * Persistence identity, if the failure is backed by the DB. null for transient failures.
+     * Used to retrieve the (intentionally response-excluded) SVG via a dedicated endpoint.
+     */
+    default Long getId() {
+        return null;
+    }
 }

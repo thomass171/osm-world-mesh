@@ -135,6 +135,29 @@ public class MeshController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Retrieve the SVG attached to a mesh failure. The SVG is deliberately excluded from the mesh
+     * response (it can be large); the frontend links each failure list entry to this endpoint and
+     * opens the result in a new browser tab.
+     */
+    @CrossOrigin
+    @GetMapping(value = "/worldmesh/mesh/failure/{failureId}/svg", produces = "image/svg+xml")
+    public ResponseEntity<String> getFailureSvg(@PathVariable("failureId") Long failureId) {
+
+        try {
+            String svg = meshService.loadFailureSvg(failureId);
+            if (svg == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.valueOf("image/svg+xml"))
+                    .body(svg);
+        } catch (Exception e) {
+            log.error("getFailureSvg() failed", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @CrossOrigin
     @DeleteMapping(value = "/worldmesh/mesh")
     public ResponseEntity<MeshResponse> deleteMesh(@RequestParam(value = "meshName", required = true) String meshName) {

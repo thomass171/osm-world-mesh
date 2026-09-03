@@ -41,7 +41,7 @@ public class MeshResponse extends BaseResponse {
                 } else {
                     msg = failure.getMessage();
                 }
-                response.add(new FailureResponse(msg, failure.getSourceRef(), PolygonResponse.buildFromPolygon(failure.getGeoPolygon())));
+                response.add(new FailureResponse(failure.getId(), msg, failure.getSourceRef(), PolygonResponse.buildFromPolygon(failure.getGeoPolygon())));
             }
         }
         return response;

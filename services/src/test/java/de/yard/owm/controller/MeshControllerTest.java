@@ -79,6 +79,15 @@ public class MeshControllerTest {
         // currently we have 5 failures, but that might change over time. Now 3. Now 17.
         validateFailures(14, meshBuildResponse.getFailures());
 
+        // the SVG is not part of the response, but retrievable one at a time via a dedicated endpoint
+        Long failureId = meshBuildResponse.getFailures().get(0).getId();
+        result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "/failure/" + failureId + "/svg");
+        String svg = validateResponse(result, HttpStatus.OK);
+        assertTrue(svg.contains("<svg"), svg);
+
+        result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "/failure/99999999/svg");
+        validateResponse(result, HttpStatus.NOT_FOUND);
+
         result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf");
         response = validateResponse(result, HttpStatus.OK);
     }
@@ -150,6 +159,7 @@ public class MeshControllerTest {
     private void validateFailures(int expectedCount, List<FailureResponse> failures) {
         assertEquals(expectedCount, failures.size());
         for (FailureResponse r : failures) {
+            assertNotNull(r.getId(), "failure id");
             if (r.getPolygon() != null) {
                 //Hmm, anything to test? Just one random test for making sure it is a geo coordinate
                 WebLatLon webLatLon = r.getPolygon().getPoints().get(0);

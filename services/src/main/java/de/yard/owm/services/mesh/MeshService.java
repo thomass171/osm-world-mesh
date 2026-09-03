@@ -337,6 +337,16 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         meshFailureRepository.save(failure);
     }
 
+    /**
+     * Returns the SVG (a full standalone SVG document) attached to a failure, or null if the
+     * failure does not exist or has no SVG. The SVG is intentionally not part of the mesh response
+     * and only retrievable one at a time via this method.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public String loadFailureSvg(Long failureId) {
+        return meshFailureRepository.findById(failureId).map(PersistedMeshFailure::getSvg).orElse(null);
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MeshPolygon/*Connector*/ getConnector(long osmNodeId) {
         // TODO also find by type CONNECTOR
