@@ -71,10 +71,14 @@ public class MeshController {
      * Add OSM data to a mesh.
      * For now restricted to "well known meshes".
      * Returns the full mesh for now (not just newly created polygons and the failures of this build).
+     * The optional 'osmwayid' restricts processing to a single OSM way, which is used by the frontend
+     * to retry a single failed way.
      */
     @CrossOrigin
     @PutMapping(value = "/worldmesh/mesh"/*might be XML or a file name, consumes = MediaType.APPLICATION_XML_VALUE*/)
-    public ResponseEntity<MeshResponse> put(@RequestParam(value = "meshName", required = true) String meshName, @RequestBody String osmXmlOrFileName) {
+    public ResponseEntity<MeshResponse> put(@RequestParam(value = "meshName", required = true) String meshName,
+                                            @RequestParam(value = "osmwayid", required = false) Long osmwayid,
+                                            @RequestBody String osmXmlOrFileName) {
 
         try {
             WellKnownMesh wellKnownMesh = WellKnownMesh.valueOf(meshName);
@@ -99,7 +103,7 @@ public class MeshController {
 
             OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
             MapData mapData = converter.createMapData(osmData);
-            osmService.populateMesh(meshName, mapData);
+            osmService.populateMesh(meshName, mapData, osmwayid);
             // just return full mesh as response for now, not just what was populated
             TerrainMesh terrainMesh = meshService.loadMesh(meshName);
             MeshResponse response = new MeshResponse(meshName,

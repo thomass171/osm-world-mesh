@@ -331,8 +331,9 @@ function showMeshFromResponse(response) {
             var secret_id = "inp_" + getUniqueId();
             var osmLink = createLink(failure.sourceRef);
             var svgLink = createFailureSvgLink(failure.id);
+            var retryLink = createFailureRetryLink(failure.sourceRef);
 
-            var content     = "<p>" + failure.message  + " " + osmLink.html + " " + svgLink + "</p>";//"<div id='" + secret_id + "' class='w3-bar w3-white'>xx</div>";
+            var content     = "<p>" + failure.message  + " " + osmLink.html + " " + svgLink + " " + retryLink + "</p>";//"<div id='" + secret_id + "' class='w3-bar w3-white'>xx</div>";
             addListItem("ul_failures", content, "w3-bar");
             console.log("Building link " + content);
 
@@ -355,6 +356,31 @@ function createFailureSvgLink(failureId) {
     var href = serviceshost + "/worldmesh/mesh/failure/" + failureId + "/svg";
     return '<a href="' + href + '" target="_blank" title="Show failure SVG">'
         + '<i class="fa fa-picture-o" aria-hidden="true"></i></a>';
+}
+
+/**
+ * Clickable icon that re-runs mesh processing for the single OSM way that produced this failure.
+ * The osm way id is taken from the failure's sourceRef (.../way/<id>). Uses the currently selected
+ * OSM dataset, just like populateMesh().
+ */
+function createFailureRetryLink(sourceRef) {
+    var osmWayId = StringUtils.substringAfterLast(sourceRef, "/");
+    if (!osmWayId) {
+        return "";
+    }
+    return '<a href="#" title="Retry processing this way" onclick="retryFailure(\'' + osmWayId + '\'); return false;">'
+        + '<i class="fa fa-refresh" aria-hidden="true"></i></a>';
+}
+
+function retryFailure(osmWayId) {
+    var meshName = $("#inp_meshname").val();
+    var dataset = $("#sel_osmdataset").val();
+    console.log("Retrying way " + osmWayId + " of mesh " + meshName + " with " + dataset);
+    httpPut(serviceshost + "/worldmesh/mesh?meshName=" + meshName + "&osmwayid=" + osmWayId, json => {
+        console.log("got " + json);
+        showMeshFromResponse(json);
+        showMessage("Retried way " + osmWayId);
+    }, dataset);
 }
 
 function buildLatLng(e) {

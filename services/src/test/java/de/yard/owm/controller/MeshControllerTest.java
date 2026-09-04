@@ -88,6 +88,13 @@ public class MeshControllerTest {
         result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "/failure/99999999/svg");
         validateResponse(result, HttpStatus.NOT_FOUND);
 
+        // retry processing of a single failed way via the optional osmwayid parameter
+        String failedSourceRef = meshBuildResponse.getFailures().get(0).getSourceRef();
+        String osmwayid = failedSourceRef.substring(failedSourceRef.lastIndexOf('/') + 1);
+        result = TestUtils.doPutXml(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf&osmwayid=" + osmwayid,
+                TestUtil.loadFileFromClasspath("Desdorf.osm.xml"));
+        validateResponse(result, HttpStatus.OK);
+
         result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf");
         response = validateResponse(result, HttpStatus.OK);
     }

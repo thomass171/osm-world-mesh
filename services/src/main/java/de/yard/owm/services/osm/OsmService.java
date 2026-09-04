@@ -60,7 +60,8 @@ public class OsmService {
      * What happens if an element already exists?
      * 13.2.26 We separate the mesh building part and the visual representation (model, image, aso).
      * Renamed from createRepresentations() to populateMesh()
-     * Passing a single osmwayid is intended for test purposes only.
+     * Passing a single (optional) osmwayid restricts processing to that OSM way. Used by tests and
+     * by the frontend to retry a single failed way.
      *
      * @throws SceneryConversionFacade.BoundingBoxSizeException for oversized bounding boxes
      */
@@ -197,7 +198,7 @@ public class OsmService {
 
     /**
      * Apply defined modules to the map data and create scenery objects.
-     * Passing a single osmwayid is intended for test purposes only.
+     * A non-null osmwayid restricts processing to that single OSM way.
      */
     private void processMapData(List<SceneryModule> worldModules, MapData mapData, String meshName, Long osmwayid, MeshServiceFacade meshService) throws MeshInconsistencyException {
 
