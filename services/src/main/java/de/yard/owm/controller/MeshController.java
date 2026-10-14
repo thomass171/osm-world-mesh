@@ -26,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 
+/**
+ * Relies on {@link CommonControllerAdvice} for exception handling (at least most?)
+ */
 @AllArgsConstructor
 @RestController
 @Slf4j
@@ -38,14 +41,13 @@ public class MeshController {
     private final OsmDataService osmDataService;
 
     /**
+     * POST is intended to create a new mesh.
      * For now restricted to "well known meshes".
-     * Rely on ControllerAdvice for exception handling (at least most?)
      */
     @CrossOrigin
     @PostMapping(value = "/worldmesh/mesh")
     public ResponseEntity<MeshResponse> createMesh(@RequestParam(value = "meshName", required = true) String meshName) throws MeshInconsistencyException, GeneralOwmException {
 
-        //try {
         TerrainMesh terrainMesh = meshService.loadMesh(meshName);
         if (terrainMesh != null) {
             MeshResponse response = null;
@@ -60,15 +62,11 @@ public class MeshController {
         MeshResponse response = new MeshResponse(meshName,
                 MeshResponse.buildFromPolygonList(JtsUtil.buildGeoPolygonList(terrainMesh.polygons)),
                 MeshResponse.buildFromFailureList(terrainMesh.failures));
-       /* } catch (Exception e) {
-            log.error("populateMesh() failed", e);
-            return ResponseEntity.internalServerError().build();
-        }*/
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Add OSM data to a mesh.
+     * PUT is intended to add OSM data to an existing mesh.
      * For now restricted to "well known meshes".
      * Returns the full mesh for now (not just newly created polygons and the failures of this build).
      * The optional 'osmwayid' restricts processing to a single OSM way, which is used by the frontend
@@ -103,12 +101,13 @@ public class MeshController {
 
             OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
             MapData mapData = converter.createMapData(osmData);
-            osmService.populateMesh(meshName, mapData, osmwayid);
+            OsmService.Results r = osmService.populateMesh(meshName, mapData, osmwayid);
             // just return full mesh as response for now, not just what was populated
+            // 14.10.2026 failures now are only the recent ones.
             TerrainMesh terrainMesh = meshService.loadMesh(meshName);
             MeshResponse response = new MeshResponse(meshName,
                     MeshResponse.buildFromPolygonList(JtsUtil.buildGeoPolygonList(terrainMesh.polygons)),
-                    MeshResponse.buildFromFailureList(terrainMesh.failures));
+                    MeshResponse.buildFromFailureList(r.getFailures()/*terrainMesh.failures*/));
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("populateMesh() failed", e);

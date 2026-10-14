@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Response for a mesh request via MeshController.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

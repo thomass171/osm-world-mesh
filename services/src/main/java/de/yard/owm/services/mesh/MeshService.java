@@ -120,7 +120,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
                 }
             });
         }
-        log.debug("Loaded {} polygons of mesh. Took {} ms.", polygons.size(), System.currentTimeMillis() - startTime);
+        log.trace("Loaded {} polygons of mesh. Took {} ms.", polygons.size(), System.currentTimeMillis() - startTime);
 
         if (boundary == null) {
             throw new MeshInconsistencyException("no mesh boundary found");
@@ -342,10 +342,10 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void addFailure(String meshName, String message, String sourceRef, GeoPolygon geoPolygon, String svg) {
+    public MeshFailure addFailure(String meshName, String message, String sourceRef, GeoPolygon geoPolygon, String svg) {
         PersistedMesh mesh = meshRepository.findByName(meshName);
         if (mesh == null) {
-            return;
+            return null;
         }
         PersistedMeshFailure failure = new PersistedMeshFailure();
         failure.setMessage(message);
@@ -356,7 +356,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         }
         failure.setSvg(svg);
         failure.setPersistedMesh(mesh);
-        meshFailureRepository.save(failure);
+        return meshFailureRepository.save(failure);
     }
 
     /**
@@ -419,8 +419,8 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
 
             @Override
-            public void addFailure(String meshName, String message, String sourceref, GeoPolygon polygon, String svg) {
-                ms.addFailure(meshName, message, sourceref, polygon, svg);
+            public MeshFailure addFailure(String meshName, String message, String sourceref, GeoPolygon polygon, String svg) {
+                return ms.addFailure(meshName, message, sourceref, polygon, svg);
             }
 
             @Override

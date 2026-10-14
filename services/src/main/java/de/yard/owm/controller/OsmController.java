@@ -22,7 +22,7 @@ public class OsmController {
     private final OsmDataService osmDataService;
 
     /**
-     * Rely on ControllerAdvice for exception handling (at least most?)
+     * Rely on {@link CommonControllerAdvice} for exception handling (at least most?)
      */
     @CrossOrigin
     @GetMapping(value = "/worldmesh/osm")

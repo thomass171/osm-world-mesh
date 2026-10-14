@@ -23,6 +23,7 @@ public class OsmDataService {
 
     public String loadXml(WellKnownMesh wellKnownMesh, String fileName) throws IOException {
         Path path = getOsmDataPath().resolve(wellKnownMesh + "/" + fileName);
+        log.debug("Loading OSM XML from '{}'", path);
         return Files.readString(path, StandardCharsets.UTF_8);
     }
 

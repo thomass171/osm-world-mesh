@@ -64,7 +64,8 @@ public class MeshControllerTest {
     }
 
     /**
-     * Takes appx. 1min on my machine. The test is not really needed, but it is a good check that the whole process works.
+     * Takes appx. 1min on my machine. The test is not really needed, but it is a good check that the whole process works,
+     * eg. PUT for the retry of failed ways.
      */
     @Test
     public void testDesdorfFull() throws Exception {
@@ -154,6 +155,15 @@ public class MeshControllerTest {
         result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf");
         response = validateResponse(result, HttpStatus.BAD_REQUEST);
         assertTrue(response.contains("not found"));
+    }
+
+    @Test
+    public void testPutWithInvalidBody() throws Exception {
+
+        // Just empty body.
+        MvcResult result  = TestUtils.doPutXml(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf&osmwayid=55",    "");
+        validateResponse(result, HttpStatus.BAD_REQUEST);
+
     }
 
     public static String validateResponse(MvcResult result, HttpStatus expectedHttpStatus) throws UnsupportedEncodingException {

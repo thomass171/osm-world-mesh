@@ -4,10 +4,7 @@ import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.core.Pair;
-import de.yard.threed.osm2scenery.polygon20.GeoPolygon;
-import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
+import de.yard.threed.osm2scenery.polygon20.*;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MapWaySegmentAtConnector;
@@ -40,7 +37,7 @@ public interface MeshServiceFacade {
     /**
      * Instead of just saving a specific polygon it seems more flexible and helpful to also save a SVG
      */
-    void addFailure(String meshName, String message, String sourceref, GeoPolygon polygon, String svg);
+    MeshFailure addFailure(String meshName, String message, String sourceref, GeoPolygon polygon, String svg);
 
     /**
      * Returns null if not found

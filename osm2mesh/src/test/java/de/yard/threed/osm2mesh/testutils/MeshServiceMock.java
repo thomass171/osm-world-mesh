@@ -60,24 +60,24 @@ public class MeshServiceMock implements MeshServiceFacade {
         // ignore name for now
 
         TerrainMesh terrainMesh = TerrainMesh.init(gridCellBounds, points, polygons);
-       //20.8.26 terrainMesh.meshService = this;
+        //20.8.26 terrainMesh.meshService = this;
         terrainMesh.meshName = meshName;
         return terrainMesh;
     }
 
     @Override
-    public void addFailure(String meshName, String message, String sourceref, GeoPolygon polygon, String svg) {
-
+    public MeshFailure addFailure(String meshName, String message, String sourceref, GeoPolygon polygon, String svg) {
+        return null;
     }
 
     @Override
     public MeshPolygon getConnector(long osmNodeId) {
         for (MeshPolygon p : polygons) {
             //if (p instanceof MeshWayConnector meshWayConnector) {
-                if (p.getOsmId() == osmNodeId) {
-                    return p;
-                }
-           // }
+            if (p.getOsmId() == osmNodeId) {
+                return p;
+            }
+            // }
         }
         return null;
     }
@@ -86,7 +86,7 @@ public class MeshServiceMock implements MeshServiceFacade {
     public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates) throws MeshInconsistencyException {
         List<Pair<GeoCoordinate, Long>> polyList = new ArrayList<>();
 
-        for (GeoCoordinate geoCoordinate:geoCoordinates) {
+        for (GeoCoordinate geoCoordinate : geoCoordinates) {
             polyList.add(new Pair<>(geoCoordinate, 0L));
         }
         polyList.add(polyList.get(0)); // close polygon

@@ -7,6 +7,7 @@ import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.*;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.*;
+import de.yard.threed.osm2scenery.polygon20.MeshFailure;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.SvgWriter;
@@ -69,7 +70,7 @@ public class OsmService {
     public OsmService.Results populateMesh(String meshName, MapData mapData, Long osmwayid)
             throws IOException, SceneryConversionFacade.BoundingBoxSizeException, MeshInconsistencyException {
 
-        log.info("populateMesh() for mesh {} with {} OSM ways", meshName, mapData.getMapWays().size());
+        log.info("Populating {} mesh '{}' from {} OSM ways", osmwayid == null ? "full" : "only OSM way " + osmwayid, meshName, mapData.getMapWays().size());
         /* create map data from OSM data */
         Phase.updatePhase(Phase.MAP_DATA);
 
@@ -129,6 +130,7 @@ public class OsmService {
         /*sceneryMesh.sceneryObjects.objects.addAll*/
         //20.3.26 osmElementService.process(mapWay,                           SceneryModule.getRelevant(worldModules, mapWay), terrainMesh, sceneryContext, OsmClassifier.LOD_BASIC);
         OsmService.Results results = processMapData(worldModules, mapData, meshName, osmwayid, meshService);
+        log.debug("processMapData returned {} processes and {} failures", results.getProcessCounter(), results.getFailureCounter());
 
         /* 26.3.24 no longer here
         //4.8.18 mal vor der Elevation, weil scheinbar bei der Trianglation die z-Coordinaten durcheinander kommen können. Schon skuril!
@@ -209,7 +211,7 @@ public class OsmService {
         if (osmwayid != null) {
             effectiveWays = effectiveWays.stream().filter(w -> w.getOsmId() == osmwayid).collect(Collectors.toUnmodifiableList());
         }
-        OsmService.Results results = new OsmService.Results(0,0);
+        OsmService.Results results = new OsmService.Results(0,0, new ArrayList<>());
         for (MapWay mapWay : effectiveWays) {
             log.debug("Processing {}", mapWay.getOsmId());
             for (SceneryModule module : worldModules) {
@@ -227,8 +229,8 @@ public class OsmService {
                     //svgWriter.writeTmpFile("invalid-polygon-" + e.osmId);
                     log.error("MeshInconsistencyException for OSM way " + mapWay.getOsmId(), e);
                     String sourceRef = "https://www.openstreetmap.org/way/" + mapWay.getOsmId();
-                    meshService.addFailure(meshName, e.getMessage(), sourceRef,
-                            e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, mapData.projection), svgWriter.buildSvg());
+                    results.failures.add(meshService.addFailure(meshName, e.getMessage(), sourceRef,
+                            e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, mapData.projection), svgWriter.buildSvg()));
                     results.failureCounter++;
                     //throw new MeshInconsistencyException(terrainMeshNotNeededOnceButNowNeeded, e);
                 }
@@ -251,6 +253,7 @@ public class OsmService {
         // The number of processed OSM ways that were successfully processed by at least one module.
         int processCounter;
         int failureCounter;
+        public List<MeshFailure> failures = new ArrayList<>();
     }
 
 

@@ -1,4 +1,4 @@
-package de.yard.owm.services.configuration;
+package de.yard.owm.controller;
 
 import de.yard.owm.dto.BaseResponse;
 import de.yard.owm.misc.GeneralOwmException;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @ControllerAdvice
 @Slf4j
-public class CustomRestExceptionHandler {
+public class CommonControllerAdvice {
 
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseBody

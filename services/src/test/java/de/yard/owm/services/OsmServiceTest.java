@@ -124,12 +124,14 @@ public class OsmServiceTest extends AbstractSceneryTest {
         results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
         assertEquals(0, results.getProcessCounter());
         assertEquals(1, results.getFailureCounter());
+        assertEquals(1, results.getFailures().size());
 
         // delete and retry. Should work now.
         meshService.deletePolygon(107468171L);
         results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
         assertEquals(1, results.getProcessCounter());
         assertEquals(0, results.getFailureCounter());
+        assertEquals(0, results.getFailures().size());
 
     }
 

@@ -335,7 +335,7 @@ function showMeshFromResponse(response) {
 
             var content     = "<p>" + failure.message  + " " + osmLink.html + " " + svgLink + " " + retryLink + "</p>";//"<div id='" + secret_id + "' class='w3-bar w3-white'>xx</div>";
             addListItem("ul_failures", content, "w3-bar");
-            console.log("Building link " + content);
+            //console.log("Building link " + content);
 
             if (failure.polygon != null){
                 console.log("Showing failure polygon");
