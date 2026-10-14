@@ -483,8 +483,9 @@ public class SceneryMesh {
                 throw new RuntimeException("inconsistent background size " + background.background.size());
             }
             TerrainMesh tm = terrainMesh;
-                if (!tm.isValid()) {
-                    log.error("Terrain mesh not valid. Not building BG filler");
+                String msg = tm.isValid();
+                if (msg != null) {
+                    log.error("Terrain mesh not valid. Not building BG filler: "+msg);
                     tm.errorCounter++;
                     return;
                 }
@@ -555,10 +556,11 @@ public class SceneryMesh {
         }
         background.addFiller(bgfiller);
         //log.debug("resolved open mesh line to" + meshPolygon);
-            if (!tm.isValid()) {
-                log.error("not valid");
-                return false;
-            }
+        String msg = tm.isValid();
+        if (msg != null) {
+            log.error("not valid: " + msg);
+            return false;
+        }
         return true;
     }
 

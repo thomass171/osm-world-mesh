@@ -49,10 +49,11 @@ public abstract class SceneryModule {
      * Default implementation.
      * 1.5.24: By 2024 design SceneryContext is still used as a container for higl level terrainmesh wrapper.
      *
-     *
+     * 7.9.26: Returns true when way was processed, false when not.
      */
-    public void applyTo(MapWay mapWay, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public boolean applyTo(MapWay mapWay, SceneryContext sceneryContext) throws MeshInconsistencyException {
         //return new SceneryObjectList();
+        return false;
     }
 
     protected String getSubConfig(String subproperty) {

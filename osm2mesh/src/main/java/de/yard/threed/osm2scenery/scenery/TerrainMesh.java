@@ -402,8 +402,9 @@ public class TerrainMesh {
             }
         }
         step = 2;
-        if (!isValid()) {
-            log.error("invalid after adding ways and way connector");
+        String msg = isValid();
+        if (msg != null) {
+            log.error("invalid after adding ways and way connector: " + msg);
         }
 
     }
@@ -432,8 +433,9 @@ public class TerrainMesh {
             }
         }
         step = 3;
-        if (!isValid()) {
-            log.error("invalid after adding areas");
+        String msg = isValid();
+        if (msg != null) {
+            log.error("invalid after adding areas: " + msg);
         }
 
     }
@@ -596,15 +598,17 @@ public class TerrainMesh {
     }
 
     public void validate() throws MeshInconsistencyException {
-        if (!isValid()) {
-            throw new MeshInconsistencyException("not valid");
+        String msg = isValid();
+        if (msg != null) {
+            throw new MeshInconsistencyException(msg);
         }
     }
 
     /**
      * 25.4.24: Might also throw MeshInconsistencyException. 2.9.26 no longer.
+     * xx.xx.26: Returns error message now
      */
-    public boolean isValid() {
+    public String isValid() {
         boolean valid = true;
 
         // no olygons might overlap. But they might touch at a line or point.
@@ -612,8 +616,7 @@ public class TerrainMesh {
             for (MeshPolygon p1 : polygons) {
                 if (p0 != p1 && p0.getType() != MeshPolygonType.BOUNDARY && p1.getType() != MeshPolygonType.BOUNDARY) {
                     if (JtsUtil.overlaps(p0.getGeoPolygon(), p1.getGeoPolygon())) {
-                        log.error("polygon " + p0 + " overlaps " + p1);
-                        return false;
+                        return("polygon " + p0 + " overlaps " + p1);
                     }
                 }
             }
@@ -684,19 +687,17 @@ public class TerrainMesh {
         }*/
 
         if (hasDuplicates) {
-            log.error("not valid due to duplicates");
-            return false;
+            return("not valid due to duplicates");
         }
         if (errorCounter != 0) {
-            log.error("errorCounter=" + errorCounter);
-            return false;
+            return("errorCounter=" + errorCounter);
         }
         // No line might intersect any other line.
         if (!isPreDbStyle()) {
 
             /*TODO  */
         }
-        return valid;
+        return null;
     }
 
     /**

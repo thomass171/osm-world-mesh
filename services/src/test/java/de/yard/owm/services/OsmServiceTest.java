@@ -76,7 +76,8 @@ public class OsmServiceTest extends AbstractSceneryTest {
     public void testDesdorfK41Segment() throws Exception {
 
         OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 24927839L);
-        assertNotNull(results.sceneryMesh);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
 
         TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
 
@@ -87,7 +88,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
 
         terrainMesh.writeToSvg();
 
-        assertTrue(terrainMesh.isValid());
+        assertNull(terrainMesh.isValid());
     }
 
     /**
@@ -97,7 +98,8 @@ public class OsmServiceTest extends AbstractSceneryTest {
     public void testDesdorf107468171K43() throws Exception {
 
         OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
-        assertNotNull(results.sceneryMesh);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
 
         TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
 
@@ -117,6 +119,18 @@ public class OsmServiceTest extends AbstractSceneryTest {
                 expectedConnector255563538,
                 expectedK43[4]
         );
+
+        // try again with the same data. It should fail because the polygon already exists.
+        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
+        assertEquals(0, results.getProcessCounter());
+        assertEquals(1, results.getFailureCounter());
+
+        // delete and retry. Should work now.
+        meshService.deletePolygon(107468171L);
+        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
+
     }
 
     @Test
@@ -124,7 +138,8 @@ public class OsmServiceTest extends AbstractSceneryTest {
 
         // lower K41 (full map data is needed for connector, so no filterWay(24927839)
         OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 24927839L);
-        assertNotNull(results.sceneryMesh);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
 
         TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
 
@@ -137,7 +152,8 @@ public class OsmServiceTest extends AbstractSceneryTest {
 
         // upper K41
         results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 182152619L);
-        assertNotNull(results.sceneryMesh);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
 
         terrainMesh = meshService.loadMesh("Desdorf");
 
@@ -197,7 +213,6 @@ public class OsmServiceTest extends AbstractSceneryTest {
     public void testDesdorfFull() throws Exception {
 
         OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, null);
-        assertNotNull(results.sceneryMesh);
 
         TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
 

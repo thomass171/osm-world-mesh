@@ -87,7 +87,7 @@ public class BuildingModule extends SceneryModule {
     }
 
     @Override
-    public void applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public boolean applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
         buildingobjects = new SceneryObjectList();
 
         //boolean useBuildingColors = Config.getCurrentConfiguration().getBoolean("useBuildingColors", true);
@@ -96,6 +96,7 @@ public class BuildingModule extends SceneryModule {
 
         String buildingValue = mapway.getTags().getValue("building");
 
+        boolean applied = false;
         if (buildingValue != null && !buildingValue.equals("no")) {
             // 31.8.26 Building OSM buildings is tricky.
             // For now temp solution for keeping existing area implementation.
@@ -111,9 +112,10 @@ public class BuildingModule extends SceneryModule {
 
             TerrainMeshAdder terrainMeshAdder = new DefaultTerrainMeshAdder(meshName, meshServiceFacade, projection, buildingobject);
             buildingobject.cca(terrainMeshAdder);
+            applied = true;
         }
 
-        return;
+        return applied;
     }
 
     @Override

@@ -189,7 +189,7 @@ public class HighwayModule extends WayModule {
      * The returned list only contains real roads, but no connector. connector are attached to the return road
      */
     @Override
-    public void applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public boolean applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
         // Also contains Filler unter der Brücke
         roadsAndBridges = new SceneryObjectList();
 
@@ -198,12 +198,14 @@ public class HighwayModule extends WayModule {
         if (mapway.getOsmId() == 8610418) {
             int h = 6;
         }
+        boolean applied = false;
         if (isHighway(mapway.getTags())) {
             /*roadsAndBridges = */applyToWay(mapway, sceneryContext);
+            applied = true;
         }
 
         //Elevation and BridgeApproaches comes later
-        return ;//roadsAndBridges;
+        return applied;//roadsAndBridges;
     }
 
     @Override

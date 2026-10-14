@@ -86,7 +86,7 @@ public class SurfaceAreaModule extends SceneryModule {
     }
 
     @Override
-    public void applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public boolean applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
         SceneryObjectList l = new SceneryObjectList();
 
         // For now temp solution for keeping existing area implementation.
@@ -94,25 +94,29 @@ public class SurfaceAreaModule extends SceneryModule {
 
         //for (MapArea area : grid.getMapAreas()) {
 
-        if (!area.getRepresentations().isEmpty()) return;
+        if (!area.getRepresentations().isEmpty()) return false;
 
         TagGroup tags = area.getTags();
 
-            if (tags.containsKey("surface")) {
-                SurfaceArea surfaceArea = new SurfaceArea(area, tags.getValue("surface"));
-                cca(surfaceArea);
-            } else {
+        boolean applied = false;
+        if (tags.containsKey("surface")) {
+            SurfaceArea surfaceArea = new SurfaceArea(area, tags.getValue("surface"));
+            cca(surfaceArea);
+            applied = true;
+        } else {
 
-                for (Tag tagWithDefault : defaultSurfaceMap.keySet()) {
-                    if (tags.contains(tagWithDefault)) {
-                        SurfaceArea surfaceArea = new SurfaceArea(
-                                area, defaultSurfaceMap.get(tagWithDefault));
-                        cca(surfaceArea);
-                        // avoid creating more than one surface area for the same OSM area
-                        break;
-                    }
+            for (Tag tagWithDefault : defaultSurfaceMap.keySet()) {
+                if (tags.contains(tagWithDefault)) {
+                    SurfaceArea surfaceArea = new SurfaceArea(
+                            area, defaultSurfaceMap.get(tagWithDefault));
+                    cca(surfaceArea);
+                    applied = true;
+                    // avoid creating more than one surface area for the same OSM area
+                    break;
                 }
             }
+        }
+        return applied;
 
     }
 

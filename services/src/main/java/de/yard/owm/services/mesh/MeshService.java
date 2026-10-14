@@ -319,6 +319,28 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         return true;
     }
 
+    /**
+     * Removes all mesh polygons (way/area, possibly split into several segments) that were derived
+     * from the given OSM element. Used to retry building a single OSM way/area: the previous result
+     * (or partial result) needs to be dropped before it can be built again.
+     * Connectors are kept, as they may be shared with other ways and are reused on rebuild.
+     * Returns the number of deleted polygons.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public int deletePolygon(long osmId) {
+
+        List<PersistedMeshPolygon> polygons = meshPolygonRepository.findByOsmId(osmId);
+        polygons.removeIf(p -> p.getType() == MeshPolygonType.CONNECTOR || p.getType() == MeshPolygonType.BOUNDARY);
+
+        log.debug("Deleting {} polygon(s) for osmId {}", polygons.size(), osmId);
+        for (PersistedMeshPolygon p : polygons) {
+            // keep the mesh relation in sync so a reload within the same TX doesn't see the stale polygon
+            p.getMesh().getPolygons().remove(p);
+            meshPolygonRepository.delete(p);
+        }
+        return polygons.size();
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void addFailure(String meshName, String message, String sourceRef, GeoPolygon geoPolygon, String svg) {
         PersistedMesh mesh = meshRepository.findByName(meshName);

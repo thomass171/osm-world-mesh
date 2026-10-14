@@ -4,7 +4,6 @@ import com.vividsolutions.jts.triangulate.ConstraintEnforcementException;
 import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.*;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.*;
@@ -13,6 +12,8 @@ import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2world.*;
 import de.yard.threed.trafficcore.ElevationProvider;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang.time.StopWatch;
@@ -68,7 +69,7 @@ public class OsmService {
     public OsmService.Results populateMesh(String meshName, MapData mapData, Long osmwayid)
             throws IOException, SceneryConversionFacade.BoundingBoxSizeException, MeshInconsistencyException {
 
-
+        log.info("populateMesh() for mesh {} with {} OSM ways", meshName, mapData.getMapWays().size());
         /* create map data from OSM data */
         Phase.updatePhase(Phase.MAP_DATA);
 
@@ -127,7 +128,7 @@ public class OsmService {
         //try {
         /*sceneryMesh.sceneryObjects.objects.addAll*/
         //20.3.26 osmElementService.process(mapWay,                           SceneryModule.getRelevant(worldModules, mapWay), terrainMesh, sceneryContext, OsmClassifier.LOD_BASIC);
-        processMapData(worldModules, mapData, meshName, osmwayid, meshService);
+        OsmService.Results results = processMapData(worldModules, mapData, meshName, osmwayid, meshService);
 
         /* 26.3.24 no longer here
         //4.8.18 mal vor der Elevation, weil scheinbar bei der Trianglation die z-Coordinaten durcheinander kommen können. Schon skuril!
@@ -188,7 +189,7 @@ public class OsmService {
         //updatePhase(Phase.FINISHED);
 
 
-        return new OsmService.Results(null/*mapProjection*/, mapData, null/*eleData*/, sceneryMesh);
+        return results;
 
     }
 
@@ -199,19 +200,22 @@ public class OsmService {
     /**
      * Apply defined modules to the map data and create scenery objects.
      * A non-null osmwayid restricts processing to that single OSM way.
+     *
+     * @return
      */
-    private void processMapData(List<SceneryModule> worldModules, MapData mapData, String meshName, Long osmwayid, MeshServiceFacade meshService) throws MeshInconsistencyException {
+    private Results processMapData(List<SceneryModule> worldModules, MapData mapData, String meshName, Long osmwayid, MeshServiceFacade meshService) throws MeshInconsistencyException {
 
         List<MapWay> effectiveWays = mapData.getMapWays();
         if (osmwayid != null) {
             effectiveWays = effectiveWays.stream().filter(w -> w.getOsmId() == osmwayid).collect(Collectors.toUnmodifiableList());
         }
+        OsmService.Results results = new OsmService.Results(0,0);
         for (MapWay mapWay : effectiveWays) {
             log.debug("Processing {}", mapWay.getOsmId());
             for (SceneryModule module : worldModules) {
                 // main exception handling. If one way fails, just add it as failure and continue with the next way.
                 try {
-                    module.applyTo(mapWay, SceneryContext.getInstance());
+                    results.processCounter += module.applyTo(mapWay, SceneryContext.getInstance()) ? 1:0;
                 } catch (MeshInconsistencyException e) {
                     SvgWriter svgWriter = new SvgWriter();
                     // loading full mesh here might be too much load for big meshes. But we want the full mesh to see the context of the invalid polygon.
@@ -221,14 +225,16 @@ public class OsmService {
                     }
                     // writing to a file isn't helpful (docker)
                     //svgWriter.writeTmpFile("invalid-polygon-" + e.osmId);
-                    log.error("MeshInconsistencyException", e);
+                    log.error("MeshInconsistencyException for OSM way " + mapWay.getOsmId(), e);
                     String sourceRef = "https://www.openstreetmap.org/way/" + mapWay.getOsmId();
                     meshService.addFailure(meshName, e.getMessage(), sourceRef,
                             e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, mapData.projection), svgWriter.buildSvg());
+                    results.failureCounter++;
                     //throw new MeshInconsistencyException(terrainMeshNotNeededOnceButNowNeeded, e);
                 }
             }
         }
+        return results;
     }
 
     private void handleMeshInconsistencyException(MeshInconsistencyException e, Long osmId, MeshServiceFacade meshService) throws MeshInconsistencyException {
@@ -236,59 +242,15 @@ public class OsmService {
     }
 
     /**
-     * all results of a conversion run
+     *
      */
+    @Data
+    @AllArgsConstructor
     public static final class Results {
 
-        private final SceneryProjection mapProjection;
-        private final MapData mapData;
-        private final TerrainElevationData eleData;
-        public SceneryMesh sceneryMesh;
-
-        private Results(SceneryProjection mapProjection, MapData mapData, TerrainElevationData eleData, SceneryMesh sceneryMesh) {
-            this.mapProjection = mapProjection;
-            this.mapData = mapData;
-            this.eleData = eleData;
-            this.sceneryMesh = sceneryMesh;
-        }
-
-        public MapData getMapData() {
-            return mapData;
-        }
-
-        public TerrainElevationData getEleData() {
-            return eleData;
-        }
-
-        /**
-         * collects and returns all representations that implement a
-         * renderableType, including terrain.
-         * Convenience method.
-         */
-        public <R extends Renderable> Collection<R> getRenderables(Class<R> renderableType) {
-            return getRenderables(renderableType, true, true);
-        }
-
-        /**
-         * @see #getRenderables(Class)
-         */
-        public <R extends Renderable> Collection<R> getRenderables(
-                Class<R> renderableType, boolean includeGrid, boolean includeTerrain) {
-
-            //TODO make use of or drop includeTerrain
-
-            Collection<R> representations = new ArrayList<R>();
-
-            if (includeGrid) {
-                for (R r : mapData.getWorldObjects(renderableType)) {
-                    representations.add(r);
-                }
-            }
-
-            return representations;
-
-        }
-
+        // The number of processed OSM ways that were successfully processed by at least one module.
+        int processCounter;
+        int failureCounter;
     }
 
 

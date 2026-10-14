@@ -41,29 +41,31 @@ There is no longer a mapnode location inside/outside grid (outside (sub)mesh wil
 
 09.02.26 Again, new approach. Still DB based, but more simple:
 
+* Now single tiles that need to fit each other but just a global mesh.
 * With polygons in DB instead of lines (its hard to derive 
 polygons just from points/lines)
 * No triangulation before model creation.
-* Again try a tile with background to initially avoid
-holes in polygons. Gaps might be filled later by supplements.
+* Again try a mesh with background to initially avoid
+holes in polygons. Gaps might be filled later by supplements. That means a mesh is just one background polygon initially. 
 * Simple configuration just by Spring
-* No textures but FG land classes (what about wayland?)
+* No textures but (FG?) land classes (what about wayland?). Maybe better independent land classes with mapping to FG.
 * Viewer2d (benefit file io) or browser client (benefit leaflet)
 * Avoid cloned OSM data and projected coordinates in DB
 * Even though needed in principle on boundaries for a FG prototype we still refrain from using traditional 'cut's because of it's possible complexity. We'll later use a 'smart cut' on polygon lines during tile export from DB.
 * What is the difference between 'cut' and 'clip'? cut' only related to boundaries and 'clip' related to any polygon to make it fit. 
 
- * Populating a blank tile in steps (order by elevation predictability desc):
- * Add water (river, lake). Maybe channel bridges. Water has fix or constant/predictable elevation
- * Add railways (incl. bridges). Railways have similar predictable elevation like water.
- * Add highways 
- * For all ways create all required connector before creating the way instead of modifying the way later.
- * smaller roads
- * buildings
- * Enhancements (if enabled)
- * Decorations (if enabled)
+* Populating a blank tile in steps (order by elevation predictability desc):
+  * Add water (river, lake). Maybe channel bridges. Water has fix or constant/predictable elevation
+  * Add railways (incl. bridges). Railways have similar predictable elevation like water.
+  * Add highways 
+  * For all ways create all required connector before creating the way instead of modifying the way later.
+  * smaller roads
+  * buildings
+  * Enhancements (if enabled)
+  * Decorations (if enabled)
 
-phrases:
+
+# Phrases:
 
 way:  everything from path to highway. A 'road' ...
 river: everything from ... to. Rhine
@@ -80,6 +82,8 @@ tcp dependencies for a while.
 The base item is a mesh for a tile. It has a clearly
 defined outline, eg. a coastline or just some outline.
 Important is that the outline defines elevation absolutly?
+The outline also defines the background of a mesh. So an initial mesh
+is just a background polygon.
 
 osmNode is unique and unambiguous always. The location (LatLon) is
 that of OSM and thus a fix reference.

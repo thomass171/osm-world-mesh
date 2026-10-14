@@ -1,6 +1,7 @@
 package de.yard.threed.osm2scenery.polygon20;
 
 public enum MeshPolygonType {
+    // Boundary also defines the background of the mesh.
     BOUNDARY(22),
     WAY(100),
     AREA(101),
