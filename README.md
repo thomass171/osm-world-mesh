@@ -46,7 +46,9 @@ There is no longer a mapnode location inside/outside grid (outside (sub)mesh wil
 polygons just from points/lines)
 * No triangulation before model creation.
 * Again try a mesh with background to initially avoid
-holes in polygons. Gaps might be filled later by supplements. That means a mesh is just one background polygon initially. 
+holes in polygons. Gaps might be filled later by supplements. 
+That means a mesh is just one background polygon initially. But even in 2026 maintaining background is really complex.
+For now postponed to tile generation
 * Simple configuration just by Spring
 * No textures but (FG?) land classes (what about wayland?). Maybe better independent land classes with mapping to FG.
 * Viewer2d (benefit file io) or browser client (benefit leaflet)

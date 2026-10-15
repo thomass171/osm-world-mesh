@@ -175,30 +175,18 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         return terrainMesh;
     }
 
+    /**
+     * If we decide to maintin background, adding a polygon also requires a cut of background.
+     */
     private TerrainMesh addPolygon(String meshName, long osmId, MeshPolygonType type, Iterator<GeoCoordinate> nodeProvider) throws MeshInconsistencyException {
-        TerrainMesh terrainMesh = loadMesh(meshName);
         PersistedMesh mesh = meshRepository.findByName(meshName);
         if (mesh == null) {
             throw new RuntimeException("mesh not found:" + meshName);
         }
         /*TODO Polygon polygon = JtsUtil.createPolygonFromWayOutlines(new CoordinateList(rightLine), new CoordinateList(leftLine));
 
-        List<MeshLine> linesToDelete = new ArrayList<>();
-        for (MeshPolygon p : terrainMesh.polygons) {
-            if (crosses(p., polygon)) {
-                // intersection found. If it is not a BG line, this is a failure. Either the way overlaps some existing area or the (sub)mesh is too small.
-                //if (!MeshLine.isBackgroundTriangulation(line.getType())) {
-                    throw new OsmProcessException("polygon crosses other polygon " + line);
-                //}
-                //linesToDelete.add(line);
-            }
-        }*/
-       /* linesToDelete.forEach(l -> deleteLineFromMesh(l));
+      */
 
-        AbstractArea/*SceneryFlatObject* / leftArea = null;
-        AbstractArea/*SceneryFlatObject* / rightArea = null;
-*/
-        //MeshArea meshArea = addArea();
         PersistedMeshPolygon meshPolygon = new PersistedMeshPolygon();
         meshPolygon.setType(type);
         meshPolygon.setOsmId(osmId);
@@ -234,8 +222,15 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         }
         meshPolygonRepository.save(meshPolygon);
 
-        // No validate and rollback in case of failure (exception)
-        terrainMesh = loadMesh(meshName);
+        TerrainMesh terrainMesh = loadMesh(meshName);
+
+        boolean useBackground = false;
+        if (useBackground){
+            // Cut background. Even in 2026 maintaining background is really complex.
+            // For now postponed to tile generation. See README.md.
+        }
+
+        // Now validate and rollback in case of failure (exception)
         terrainMesh.validate();
         // no longer connect ot background mesh
         return terrainMesh;
