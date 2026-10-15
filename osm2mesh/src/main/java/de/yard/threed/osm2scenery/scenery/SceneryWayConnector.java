@@ -632,7 +632,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
         // be sure the polygon is consistent
         Polygon geo = JtsUtil.createPolygon(polygonLine, projection);
         if (geo == null || !geo.isValid()) {
-            throw MeshInconsistencyException.forInvalidPolygon("invalid connector polygon", node.getOsmId(), geo);
+            throw MeshInconsistencyException.forInvalidPolygon("invalid connector polygon", node.getOsmId(), JtsUtil.unproject(geo, projection));
         }
         return polygonLine;
     }

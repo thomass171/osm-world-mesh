@@ -8,7 +8,6 @@ import de.yard.threed.core.*;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.ElevationCalculator;
 import de.yard.threed.osm2scenery.modules.AerowayModule;
@@ -17,9 +16,9 @@ import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2scenery.util.SvgWriter;
-import de.yard.threed.osm2world.MapWaySegmentAtConnector;
 import de.yard.threed.trafficcore.ElevationProvider;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A mesh of {@link MeshNode}s and {@link MeshLine}s. Usually its just a submesh of the full world mesh.
@@ -598,17 +596,21 @@ public class TerrainMesh {
     }
 
     public void validate() throws MeshInconsistencyException {
-        String msg = isValid();
-        if (msg != null) {
-            throw new MeshInconsistencyException(msg);
+        ValidnessFailure validnessFailure = getValidness();
+        if (validnessFailure.getMsg() != null) {
+            throw MeshInconsistencyException.forInvalidGeoPolygons(validnessFailure.msg, 0L, validnessFailure.getInvalidGeoPolygons());
         }
     }
 
-    /**
-     * 25.4.24: Might also throw MeshInconsistencyException. 2.9.26 no longer.
-     * xx.xx.26: Returns error message now
-     */
     public String isValid() {
+        return getValidness().getMsg();
+    }
+
+    /**
+     * 25.04.24: Might also throw MeshInconsistencyException. 2.9.26 no longer.
+     * 14.10.26: Rename Returns error message now
+     */
+    public ValidnessFailure getValidness() {
         boolean valid = true;
 
         // no olygons might overlap. But they might touch at a line or point.
@@ -616,7 +618,7 @@ public class TerrainMesh {
             for (MeshPolygon p1 : polygons) {
                 if (p0 != p1 && p0.getType() != MeshPolygonType.BOUNDARY && p1.getType() != MeshPolygonType.BOUNDARY) {
                     if (JtsUtil.overlaps(p0.getGeoPolygon(), p1.getGeoPolygon())) {
-                        return("polygon " + p0 + " overlaps " + p1);
+                        return new ValidnessFailure("polygon " + p0 + " overlaps " + p1, List.of(p0.getGeoPolygon(), p1.getGeoPolygon()));
                     }
                 }
             }
@@ -687,17 +689,36 @@ public class TerrainMesh {
         }*/
 
         if (hasDuplicates) {
-            return("not valid due to duplicates");
+            return new ValidnessFailure("not valid due to duplicates");
         }
         if (errorCounter != 0) {
-            return("errorCounter=" + errorCounter);
+            return new ValidnessFailure("errorCounter=" + errorCounter);
         }
         // No line might intersect any other line.
         if (!isPreDbStyle()) {
 
             /*TODO  */
         }
-        return null;
+        return new ValidnessFailure(null, new ArrayList<>());
+    }
+
+    @Getter
+    public static class ValidnessFailure {
+        String msg = null;
+        public List<GeoPolygon> invalidGeoPolygons = new ArrayList<>();
+
+        public <E> ValidnessFailure(String msg, List<GeoPolygon> invalidGeoPolygons) {
+            this.msg = msg;
+            this.invalidGeoPolygons = invalidGeoPolygons;
+        }
+
+        public ValidnessFailure(String msg) {
+            this.msg = msg;
+        }
+
+        public boolean isValid() {
+            return msg == null && invalidGeoPolygons.size() == 0;
+        }
     }
 
     /**

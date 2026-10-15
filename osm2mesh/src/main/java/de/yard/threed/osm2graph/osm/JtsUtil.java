@@ -1918,6 +1918,17 @@ public class JtsUtil {
         return new GeoPolygon(geoCoordinates);
     }
 
+    public static Polygon project(GeoPolygon geopolygon, SceneryProjection projection) throws MeshInconsistencyException {
+        List<Coordinate> coordinates = new ArrayList<>();
+
+        // skip closing point? what about closing? Yes, needs to be closed
+        for (Coordinate c : geopolygon.getCoordinates()) {
+            coordinates.add(projection.project(coordinateToGeoCoordinate(c)));
+        }
+
+        return createPolygon(coordinates);
+    }
+
     /**
      * OneToOne model conversion, no projection!
      * 4.4.26 Elevation will be z like JTS does

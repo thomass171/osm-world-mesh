@@ -1,5 +1,6 @@
 package de.yard.owm.services.osm;
 
+import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.triangulate.ConstraintEnforcementException;
 import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.persistence.TerrainMeshManager;
@@ -221,16 +222,20 @@ public class OsmService {
                 } catch (MeshInconsistencyException e) {
                     SvgWriter svgWriter = new SvgWriter();
                     // loading full mesh here might be too much load for big meshes. But we want the full mesh to see the context of the invalid polygon.
+                    // Mesh polygons are projected for the SVG image.
                     svgWriter = svgWriter.addMeshPolygons(meshService.loadMesh(meshName).polygons, mapData.projection);
-                    if (e.invalidPolygon != null) {
-                        svgWriter = svgWriter.addPolygon(e.invalidPolygon, "red");
+                    List<Polygon> invalidPolygons =  e.getInvalidPolygons(mapData.projection);
+                    for (Polygon p : invalidPolygons) {
+                        svgWriter = svgWriter.addPolygon(p, "red");
                     }
                     // writing to a file isn't helpful (docker)
                     //svgWriter.writeTmpFile("invalid-polygon-" + e.osmId);
-                    log.error("MeshInconsistencyException for OSM way " + mapWay.getOsmId(), e);
+                    log.error("MeshInconsistencyException for OSM way {} with {} invalid polygons", mapWay.getOsmId(), invalidPolygons.size(), e);
                     String sourceRef = "https://www.openstreetmap.org/way/" + mapWay.getOsmId();
                     results.failures.add(meshService.addFailure(meshName, e.getMessage(), sourceRef,
-                            e.invalidPolygon == null ? null : JtsUtil.unproject(e.invalidPolygon, mapData.projection), svgWriter.buildSvg()));
+                            // unproject might fail again because the polygon is invalid. So better rely on the SVG for now. We might however project
+                            // independent of JtsUtil.
+                            null /*invalidPolygons.size() == 0 ? null : JtsUtil.unproject(invalidPolygons.get(0), mapData.projection)*/, svgWriter.buildSvg()));
                     results.failureCounter++;
                     //throw new MeshInconsistencyException(terrainMeshNotNeededOnceButNowNeeded, e);
                 }

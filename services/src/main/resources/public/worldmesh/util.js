@@ -160,6 +160,27 @@ function addListItem(listid, content, optclass) {
     return item_id;
 }
 
+function clearTable(tableid) {
+    //$("#" + tableid).innerHTML = "";
+    var listElements = document.querySelectorAll("#" + tableid + " tr");
+    for (var i = 0; (li = listElements[i]); i++) {
+      li.parentNode.removeChild(li);
+    }
+}
+
+/**
+ * Appends a table row. 'listid' is expected to be a <tbody> (or <table>) id and
+ * 'content' the row's cells (e.g. "<td>...</td><td>...</td>").
+ */
+function addTableItem(listid, content, optclass) {
+    var item_id = "list_item_" + getUniqueId();
+    var item = "<tr id='" + item_id + "' class=' " + optclass + " '>"
+    item += content;
+    item += "</tr>";
+    $("#" + listid).append(item);
+    return item_id;
+}
+
 var StringUtils = {
     substringAfterLast : function(str, sub) {
         var n = str.lastIndexOf(sub);

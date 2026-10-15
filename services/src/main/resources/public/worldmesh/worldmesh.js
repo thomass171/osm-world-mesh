@@ -311,7 +311,7 @@ function deleteMesh() {
 function loadMesh(meshName, selectValue) {
     console.log("Loading mesh " + meshName);
     // Initially clear everything
-    clearList("ul_failures");
+    clearTable("tb_failures");
 
     doGet(serviceshost+"/worldmesh/mesh?meshName="+meshName, json => {
         console.log("got " + json);
@@ -324,7 +324,7 @@ function loadMesh(meshName, selectValue) {
 }
 
 function showMeshFromResponse(response) {
-    clearList("ul_failures");
+    clearTable("tb_failures");
     showPolygons(response.polygons);
     if (response.failures != null) {
         response.failures.forEach(failure => {
@@ -333,8 +333,12 @@ function showMeshFromResponse(response) {
             var svgLink = createFailureSvgLink(failure.id);
             var retryLink = createFailureRetryLink(failure.sourceRef);
 
-            var content     = "<p>" + failure.message  + " " + osmLink.html + " " + svgLink + " " + retryLink + "</p>";//"<div id='" + secret_id + "' class='w3-bar w3-white'>xx</div>";
-            addListItem("ul_failures", content, "w3-bar");
+            var content     = "<td>" + failure.message + "</td>"
+                + "<td style='text-align:center'>" + osmLink.html + "</td>"
+                + "<td style='text-align:center'>" + svgLink + "</td>"
+                + "<td style='text-align:center'>" + retryLink + "</td>";
+            // "w3-bar" breaks table row layout
+            addTableItem("tb_failures", content, "");
             //console.log("Building link " + content);
 
             if (failure.polygon != null){

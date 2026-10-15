@@ -98,12 +98,6 @@ w3-khaki is color for use cases 'maze', w3-blue(?) for use case traffic.
                 <button id="btn_populatemesh" class=" w3-button w3-round w3-blue " onclick="populateMesh()">Add To Mesh</button>
             </div>
 
-            <div class="w3-panel">
-                <h2>Failures</h2>
-                <ul id="ul_failures">
-                </ul>
-        </div>
-
         </div>
         <div class="w3-container w3-twothird">
             <div class="w3-panel">
@@ -117,6 +111,27 @@ w3-khaki is color for use cases 'maze', w3-blue(?) for use case traffic.
                     <input id="cb_scenerytiles" class="w3-check" type="checkbox" oninput="showSceneryTilesChanged()">
                     <label> Show scenery tiles</label>
                 </p>-->
+            </div>
+        </div>
+    </div>
+
+    <!-- failures panel, below the map so there is enough width for all details -->
+    <div class="w3-row">
+        <div class="w3-container">
+            <div class="w3-panel">
+                <h2>Failures</h2>
+                <table class="w3-table-all w3-small">
+                    <thead>
+                    <tr class="w3-light-grey">
+                        <th style="text-align:left">Message</th>
+                        <th style="width:1%;white-space:nowrap;text-align:center">OSM</th>
+                        <th style="width:1%;white-space:nowrap;text-align:center">SVG</th>
+                        <th style="width:1%;white-space:nowrap;text-align:center">Retry</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tb_failures">
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
