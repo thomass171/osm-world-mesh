@@ -39,11 +39,11 @@ public interface MeshPolygonRepository extends PagingAndSortingRepository<Persis
      * Follow up with exact geometry (JTS) checks on the candidates.
      */
     @Query("""
-        SELECT mp
+        SELECT mp.id
         FROM PersistedMeshPolygon mp
         JOIN mp.meshPolygonNodes mpn
         JOIN mpn.meshNode n
-        WHERE mp.mesh = :mesh 
+        WHERE mp.mesh = :mesh
         GROUP BY mp.id
         HAVING MIN(n.lat) <= :lat AND MAX(n.lat) >= :lat
            AND MIN(n.lon) <= :lon AND MAX(n.lon) >= :lon

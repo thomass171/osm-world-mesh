@@ -31,6 +31,9 @@ var selectionStart = null;
 var selectionRectangle = null;
 var selectionImageOverlay = null;
 
+// polygons found at the last map click
+var clickedPolygonsGroup = null;
+
 /**
  *
  */
@@ -52,7 +55,7 @@ function initMap() {
     map.on('click', function(e) {
         //var marker = L.marker(e.latlng).addTo(mymap)
         console.log("map click at " + e.latlng);
-        // TODO? retrieve polygon etc from server
+        loadPolygonsAt(e.latlng);
     });
 
     map.on('mousedown', onMapMouseDownForSelection);
@@ -72,6 +75,28 @@ function toggleSelectArea() {
     } else {
         map.dragging.enable();
     }
+}
+
+/**
+ * Retrieves the polygons of the current mesh covering the clicked location and highlights them.
+ */
+function loadPolygonsAt(latlng) {
+    if (selectAreaMode || currentMesh == null) {
+        return;
+    }
+    if (clickedPolygonsGroup != null) {
+        map.removeLayer(clickedPolygonsGroup);
+    }
+    clickedPolygonsGroup = L.layerGroup().addTo(map);
+    var url = serviceshost + "/worldmesh/mesh/polygon?meshName=" + currentMesh + "&lat=" + latlng.lat + "&lon=" + latlng.lng;
+    doGet(url, json => {
+        var descriptions = [];
+        json.polygons.forEach(polygon => {
+            buildPolygon(polygon, "blue").addTo(clickedPolygonsGroup);
+            descriptions.push(polygon.type + (polygon.osmId != null ? " " + polygon.osmId : ""));
+        });
+        showMessage(json.polygons.length + " polygon(s) at click: " + descriptions.join(", "));
+    });
 }
 
 function onMapMouseDownForSelection(e) {

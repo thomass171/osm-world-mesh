@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum WellKnownMesh {
     //String[] wellKnownMes
+    K41(MainGrid.buildDesdorf()),
     Desdorf(MainGrid.buildDesdorf()),
     Zieverich(null/*TODO*/);
 
@@ -19,6 +20,9 @@ public enum WellKnownMesh {
     public static WellKnownMesh of(String meshName) throws GeneralOwmException {
         if (meshName.equals(Desdorf.name())) {
             return Desdorf;
+        }
+        if (meshName.equals(K41.name())) {
+            return K41;
         }
         throw new GeneralOwmException("No well known mesh: " + meshName);
     }

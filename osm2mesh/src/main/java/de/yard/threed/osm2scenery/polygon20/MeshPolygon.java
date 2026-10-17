@@ -47,6 +47,9 @@ public interface MeshPolygon {
      */
     GeoPolygon getGeoPolygon();//11.7.26  throws MeshInconsistencyException;
 
+    /**
+     * Might be null if polygon is not a MeshPolygon (e.g. for a bounding box)
+     */
     Long getOsmId();
 
     MeshPolygonType getType();

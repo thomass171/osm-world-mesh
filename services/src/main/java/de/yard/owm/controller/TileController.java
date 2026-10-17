@@ -34,8 +34,8 @@ public class TileController {
     @ResponseBody
     public ResponseEntity<byte[]> getImage(@ModelAttribute WebBoundingBox request) {
         try {
-            LatLon min = new LatLon(request.getMin().getLat(), request.getMin().getLon());
-            LatLon max = new LatLon(request.getMax().getLat(), request.getMax().getLon());
+            LatLon min = LatLon.fromDegrees(request.getMin().getLat(), request.getMin().getLon());
+            LatLon max = LatLon.fromDegrees(request.getMax().getLat(), request.getMax().getLon());
             byte[] image = tileService.buildExampleImage(min, max);
             return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(image);
         } catch (IOException e) {

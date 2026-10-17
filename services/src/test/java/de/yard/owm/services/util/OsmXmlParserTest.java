@@ -13,7 +13,7 @@ public class OsmXmlParserTest {
     @Test
     public void testK41Segment() throws Exception {
 
-        String xml = loadFileFromClasspath("Desdorf/K41-segment.osm.xml");
+        String xml = loadFileFromClasspath("K41/K41-segment.osm.xml");
         OsmXmlParser parser = new OsmXmlParser(xml);
         OSMData osmData = parser.getData();
         assertNotNull(osmData);

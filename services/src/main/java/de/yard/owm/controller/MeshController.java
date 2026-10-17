@@ -3,6 +3,7 @@ package de.yard.owm.controller;
 import de.yard.owm.dto.MeshBuildResponse;
 import de.yard.owm.dto.MeshResponse;
 import de.yard.owm.dto.PolygonResponse;
+import de.yard.owm.dto.WebLatLon;
 import de.yard.owm.misc.GeneralOwmException;
 import de.yard.owm.services.OsmDataService;
 import de.yard.owm.services.mesh.MeshService;
@@ -12,7 +13,9 @@ import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.MainGrid;
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
+import de.yard.threed.core.LatLon;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.util.OsmXmlParser;
 import de.yard.threed.osm2world.MapData;
@@ -25,6 +28,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Relies on {@link CommonControllerAdvice} for exception handling (at least most?)
@@ -133,6 +139,36 @@ public class MeshController {
                     MeshResponse.buildFromFailureList(terrainMesh.failures));
         } catch (Exception e) {
             log.error("getMesh() failed", e);
+            return ResponseEntity.internalServerError().build();
+        }
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Returns the polygons of a mesh covering the given location (query params 'lat' and 'lon' in degrees),
+     * eg. for a click on the map. The mesh boundary polygon is not included. Failures are not included.
+     */
+    @CrossOrigin
+    @GetMapping(value = "/worldmesh/mesh/polygon")
+    public ResponseEntity<MeshResponse> getPolygonsAt(@RequestParam(value = "meshName", required = true) String meshName,
+                                                      @ModelAttribute WebLatLon location) {
+
+        MeshResponse response = null;
+        try {
+            List<MeshPolygon> polygons = meshService.findPolygonsAt(meshName, LatLon.fromDegrees(location.getLat(), location.getLon()));
+            if (polygons == null) {
+                //Hmm, should not return 200 or 404, so use 400
+                response = new MeshResponse();
+                response.setError("Mesh not found: " + meshName);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            response = new MeshResponse(meshName,
+                    polygons.stream().map(p ->
+                            PolygonResponse.buildFromPolygon(p.getGeoPolygon(), p.getOsmId(), p.getType())).collect(Collectors.toList()),
+                    // no failures for this endpoint
+                    Collections.emptyList());
+        } catch (Exception e) {
+            log.error("getPolygonsAt() failed", e);
             return ResponseEntity.internalServerError().build();
         }
         return ResponseEntity.ok(response);

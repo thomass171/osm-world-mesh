@@ -4,11 +4,15 @@ import de.yard.owm.configuration.LoggingFilter;
 import de.yard.owm.dto.FailureResponse;
 import de.yard.owm.dto.MeshBuildResponse;
 import de.yard.owm.dto.MeshResponse;
+import de.yard.owm.dto.PolygonResponse;
 import de.yard.owm.dto.WebLatLon;
 import de.yard.owm.services.JsonService;
 import de.yard.owm.testutils.TestServices;
 import de.yard.owm.testutils.TestUtils;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Point;
 import de.yard.threed.TestUtil;
+import de.yard.threed.osm2world.JTSConversionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -117,6 +121,43 @@ public class MeshControllerTest {
 
         result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf");
         response = validateResponse(result, HttpStatus.OK);
+    }
+
+    @Test
+    public void testPolygonsAt() throws Exception {
+
+        // create mesh ...
+        MvcResult result = TestUtils.doPost(mockMvc, ENDPOINT_MESH + "?meshName=K41", "");
+        validateResponse(result, HttpStatus.OK);
+        // ... and populate it
+        result = TestUtils.doPutXml(mockMvc, ENDPOINT_MESH + "?meshName=K41", "K41-segment.osm.xml");
+        String response = validateResponse(result, HttpStatus.OK);
+        MeshResponse meshResponse = jsonService.jsonToModel(response, MeshResponse.class);
+
+        // An interior point of each polygon must return that polygon. Only the boundary polygon is never returned.
+        int found = 0;
+        for (PolygonResponse polygon : meshResponse.getPolygons()) {
+            Coordinate[] coordinates = polygon.getPoints().stream().map(p -> new Coordinate(p.getLon(), p.getLat())).toArray(Coordinate[]::new);
+            Point interiorPoint = JTSConversionUtil.GF.createPolygon(coordinates).getInteriorPoint();
+            result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "/polygon?meshName=K41&lat=" + interiorPoint.getY() + "&lon=" + interiorPoint.getX());
+            response = validateResponse(result, HttpStatus.OK);
+            MeshResponse polygonsAt = jsonService.jsonToModel(response, MeshResponse.class);
+            polygonsAt.getPolygons().forEach(p -> assertNotEquals("BOUNDARY", p.getType()));
+            if (polygonsAt.getPolygons().stream().anyMatch(p -> p.getPoints().equals(polygon.getPoints()))) {
+                found++;
+            }
+        }
+        assertEquals(meshResponse.getPolygons().size() - 1, found);
+
+        // far away from the mesh
+        result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "/polygon?meshName=K41&lat=10.0&lon=10.0");
+        response = validateResponse(result, HttpStatus.OK);
+        assertEquals(0, jsonService.jsonToModel(response, MeshResponse.class).getPolygons().size());
+
+        // unknown mesh
+        result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "/polygon?meshName=xyz&lat=10.0&lon=10.0");
+        response = validateResponse(result, HttpStatus.BAD_REQUEST);
+        assertTrue(response.contains("not found"));
     }
 
     @Test

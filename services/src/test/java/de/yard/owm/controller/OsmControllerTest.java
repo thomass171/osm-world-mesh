@@ -64,6 +64,10 @@ public class OsmControllerTest {
         assertTrue(response.contains("K41-segment.osm.xml"));
         assertTrue(response.contains("Desdorf.osm.xml"));
 
+        result = TestUtils.doGet(mockMvc, ENDPOINT_OSM + "?meshName=K41");
+        response = validateResponse(result,HttpStatus.OK);
+        assertTrue(response.contains("K41-segment.osm.xml"));
+
     }
 
     @Test

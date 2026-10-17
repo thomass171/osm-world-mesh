@@ -1,15 +1,19 @@
 package de.yard.owm.services.mesh;
 
 import de.yard.owm.configuration.ApplicationContextHolder;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Point;
 import de.yard.owm.services.persistence.*;
 import de.yard.threed.core.Degree;
 import de.yard.threed.core.GeoCoordinate;
+import de.yard.threed.core.LatLon;
 import de.yard.threed.core.Pair;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.*;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2world.JTSConversionUtil;
 import de.yard.threed.osm2world.MapWaySegmentAtConnector;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -362,6 +366,41 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public String loadFailureSvg(Long failureId) {
         return meshFailureRepository.findById(failureId).map(PersistedMeshFailure::getSvg).orElse(null);
+    }
+
+    /**
+     * Returns the polygons of a mesh that cover the given geo location (including polygons having the location
+     * on their boundary, so a location on a shared edge returns both neighbours).
+     * The mesh BOUNDARY polygon is not included, because it trivially covers everything inside the mesh.
+     * Returns null if the mesh does not exist.
+     * Uses a DB bounding box pre-filter followed by an exact JTS test on the (unprojected) GeoPolygon.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public List<MeshPolygon> findPolygonsAt(String meshName, LatLon latLon) {
+        PersistedMesh mesh = meshRepository.findByName(meshName);
+        if (mesh == null) {
+            return null;
+        }
+        double lat = latLon.getLatDeg().getDegree();
+        double lon = latLon.getLonDeg().getDegree();
+        // GeoPolygon coordinates are x=lon, y=lat
+        Point point = JTSConversionUtil.GF.createPoint(new Coordinate(lon, lat));
+
+        List<Long> candidateIds = meshPolygonRepository.findCandidatePolygonIds(mesh, lat, lon);
+        List<MeshPolygon> result = new ArrayList<>();
+        for (PersistedMeshPolygon p : meshPolygonRepository.findAllById(candidateIds)) {
+            if (p.getType() == MeshPolygonType.BOUNDARY) {
+                continue;
+            }
+            GeoPolygon geoPolygon = p.getGeoPolygon();
+            // null when inconsistent, which is already logged
+            if (geoPolygon != null && geoPolygon.covers(point)) {
+                result.add(p);
+            }
+        }
+        result.sort(Comparator.comparing(p -> ((PersistedMeshPolygon) p).getId()));
+        log.debug("Found {} polygon(s) of {} candidate(s) at {},{} in mesh {}", result.size(), candidateIds.size(), lat, lon, meshName);
+        return result;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
