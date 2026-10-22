@@ -21,8 +21,10 @@ public class PolygonResponse {
     // osmId and type might be null if the polygon is not a MeshPolygon (e.g. for a bounding box)
     private Long osmId;
     private String type;
+    // might be null
+    private String landClass;
 
-    public static PolygonResponse buildFromPolygon(GeoPolygon polygon, Long osmId, MeshPolygonType type) {
+    public static PolygonResponse buildFromPolygon(GeoPolygon polygon, Long osmId, MeshPolygonType type, String landClass) {
         if (polygon == null) {
             return null;
         }
@@ -35,6 +37,7 @@ public class PolygonResponse {
         if (type != null) {
             response.setType(type.name());
         }
+        response.setLandClass(landClass);
         response.setClosed(true);
         return response;
     }

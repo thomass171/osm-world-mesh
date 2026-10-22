@@ -8,6 +8,7 @@ import de.yard.threed.core.Degree;
 import de.yard.threed.core.Pair;
 import de.yard.threed.osm2graph.osm.CoordinateList;
 import de.yard.threed.osm2scenery.polygon20.*;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.osm.JtsUtil;
@@ -46,6 +47,11 @@ public class PersistedMeshPolygon extends AuditedEntity implements MeshPolygon/*
 
     @Column(name = "osmid")
     private Long osmId;
+
+    // Optional, eg. not for boundary and connector
+    @Convert(converter = LandClassConverter.class)
+    @Column(name = "landclass")
+    private LandClass landClass;
 
     /*@ManyToMany
     @JoinColumn(name = "from_node", nullable = false)
@@ -293,6 +299,20 @@ public class PersistedMeshPolygon extends AuditedEntity implements MeshPolygon/*
         @Override
         public MeshPolygonType convertToEntityAttribute(Integer dbValue) {
             return MeshPolygonType.fromDbValue(dbValue);
+        }
+    }
+
+    @Converter
+    public static class LandClassConverter implements AttributeConverter<LandClass, String> {
+
+        @Override
+        public String convertToDatabaseColumn(LandClass landClass) {
+            return landClass == null ? null : landClass.getCode();
+        }
+
+        @Override
+        public LandClass convertToEntityAttribute(String dbValue) {
+            return dbValue == null ? null : LandClass.fromDbValue(dbValue);
         }
     }
 }

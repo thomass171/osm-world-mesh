@@ -4,6 +4,7 @@ import de.yard.threed.core.Degree;
 import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.Pair;
 import de.yard.threed.osm2scenery.polygon20.*;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2world.MapWaySegmentAtConnector;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 public class MeshPolygonMock implements MeshPolygon {
     long osmId;
     MeshPolygonType meshPolygonType;
+    LandClass landClass;
     List<Pair<GeoCoordinate, Long>> polygon;
 
     public MeshPolygonMock(long osmId, MeshPolygonType meshPolygonType, List<Pair<GeoCoordinate, Long>> polygon) {
@@ -51,6 +53,11 @@ public class MeshPolygonMock implements MeshPolygon {
     @Override
     public MeshPolygonType getType() {
         return meshPolygonType;
+    }
+
+    @Override
+    public LandClass getLandClass() {
+        return landClass;
     }
 
     //private Map<Long, Pair<MeshNodeMock, MeshNodeMock>> wayAttachPoints = new HashMap<>();

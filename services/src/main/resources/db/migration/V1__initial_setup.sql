@@ -107,6 +107,8 @@ create table meshpolygon (
     type int not null,
     -- for now no reference. And not unique, who knows what happens
     osmid bigint,
+    -- optional LandClass code
+    landclass varchar(8),
     mesh_id bigint not null,
     created_at timestamp with time zone not null,
     modified_at timestamp with time zone not null,

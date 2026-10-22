@@ -4,6 +4,7 @@ import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.Degree;
 import de.yard.threed.core.Pair;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -53,6 +54,11 @@ public interface MeshPolygon {
     Long getOsmId();
 
     MeshPolygonType getType();
+
+    /**
+     * Might be null, e.g. for boundary or connector or when not (yet) known.
+     */
+    LandClass getLandClass();
 
     /// 10.8.26 Following moved here from MeshWayConnector
     /**

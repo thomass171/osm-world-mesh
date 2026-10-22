@@ -164,7 +164,7 @@ public class MeshController {
             }
             response = new MeshResponse(meshName,
                     polygons.stream().map(p ->
-                            PolygonResponse.buildFromPolygon(p.getGeoPolygon(), p.getOsmId(), p.getType())).collect(Collectors.toList()),
+                            PolygonResponse.buildFromPolygon(p.getGeoPolygon(), p.getOsmId(), p.getType(), p.getLandClass() == null ? null : p.getLandClass().getCode())).collect(Collectors.toList()),
                     // no failures for this endpoint
                     Collections.emptyList());
         } catch (Exception e) {
@@ -210,7 +210,7 @@ public class MeshController {
                 response.setError("Mesh not found: " + meshName);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
-            response = new MeshResponse(meshName, Collections.emptyList(),Collections.EMPTY_LIST);
+            response = new MeshResponse(meshName, Collections.emptyList(), Collections.EMPTY_LIST);
         } catch (Exception e) {
             log.error("deleteMesh() failed", e);
             return ResponseEntity.internalServerError().build();
