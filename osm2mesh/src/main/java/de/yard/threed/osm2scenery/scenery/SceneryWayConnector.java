@@ -1040,7 +1040,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
         }
 
         //10.3.26 now in cca() createPolygon(tm.getGridCellBounds(), tm, SceneryContext.getInstance());
-        /*24.8.26 meshWayConnector =*/ ((WayTerrainMeshAdder)terrainMeshAdder).registerConnector(node.getOsmId(), polygonLine, attachpair);
+        /*24.8.26 meshWayConnector =*/ ((WayTerrainMeshAdder)terrainMeshAdder).registerConnector(node.getOsmId(), polygonLine, attachpair, null);
 
         // 27.2.26: We are back at storing polygons, so don't go this way any more.
        /*

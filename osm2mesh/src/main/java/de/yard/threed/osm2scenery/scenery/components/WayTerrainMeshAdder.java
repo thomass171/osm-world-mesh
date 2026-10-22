@@ -108,7 +108,7 @@ public /*static*/ void persistWay(SceneryWayObject sceneryWayObject) throws Mesh
                     }* /
                 } else*/ {
                     //11.2.26 now via service(contained in tm)
-                   /* tm.*/registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2);
+                   /* tm.*/registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2, null);
 
                 }
             }
@@ -128,7 +128,7 @@ public /*static*/ void persistWay(SceneryWayObject sceneryWayObject) throws Mesh
                 rightline.add(pair.right());
             }
 
-            /*tm.*/registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2);
+            /*tm.*/registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2, null);
 
         }
 

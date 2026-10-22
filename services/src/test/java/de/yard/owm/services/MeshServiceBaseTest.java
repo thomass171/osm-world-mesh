@@ -20,6 +20,7 @@ import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
 import de.yard.threed.osm2scenery.AbstractSceneryWayConnectorTest;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MetricMapProjection;
@@ -201,7 +202,7 @@ public class MeshServiceBaseTest {
         List<GeoCoordinate> rightLine = new ArrayList<>();
         rightLine.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00025, 7.0001)));
         rightLine.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00025, 7.0003)));
-        TerrainMesh terrainMesh = meshService.addWay("small2024", -1/*200, List.of(100L, 101L)*/, null, leftLine, rightLine, null, 1);
+        TerrainMesh terrainMesh = meshService.addWay("small2024", -1/*200, List.of(100L, 101L)*/, null, leftLine, rightLine, null, 1, LandClass.Asphalt);
 
         terrainMesh.writeToSvg();
 

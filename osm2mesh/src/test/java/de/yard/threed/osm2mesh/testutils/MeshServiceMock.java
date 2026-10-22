@@ -8,6 +8,7 @@ import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.*;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MapWaySegmentAtConnector;
@@ -35,7 +36,7 @@ public class MeshServiceMock implements MeshServiceFacade {
     }
 
     @Override
-    public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes) throws MeshInconsistencyException {
+    public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes, LandClass landClass) throws MeshInconsistencyException {
 
         List<Pair<GeoCoordinate, Long>> polyList = new ArrayList<>();
 
@@ -44,14 +45,14 @@ public class MeshServiceMock implements MeshServiceFacade {
         });
         polyList.add(polyList.get(0)); // close polygon
 
-        polygons.add(new MeshPolygonMock(osmWayId, MeshPolygonType.WAY, polyList));
+        polygons.add(new MeshPolygonMock(osmWayId, MeshPolygonType.WAY, landClass, polyList));
         return TerrainMesh.init(gridCellBounds, points, polygons);
     }
 
     @Override
-    public TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) throws MeshInconsistencyException {
+    public TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass) throws MeshInconsistencyException {
 
-        polygons.add(new MeshPolygonMock(osmNodeId, MeshPolygonType.CONNECTOR, polygon, wayAttachPoints));
+        polygons.add(new MeshPolygonMock(osmNodeId, MeshPolygonType.CONNECTOR, landClass, polygon, wayAttachPoints));
         return TerrainMesh.init(gridCellBounds, points, polygons);
     }
 
@@ -83,7 +84,7 @@ public class MeshServiceMock implements MeshServiceFacade {
     }
 
     @Override
-    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates) throws MeshInconsistencyException {
+    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass) throws MeshInconsistencyException {
         List<Pair<GeoCoordinate, Long>> polyList = new ArrayList<>();
 
         for (GeoCoordinate geoCoordinate : geoCoordinates) {
@@ -91,7 +92,7 @@ public class MeshServiceMock implements MeshServiceFacade {
         }
         polyList.add(polyList.get(0)); // close polygon
 
-        polygons.add(new MeshPolygonMock(osmId, type, polyList));
+        polygons.add(new MeshPolygonMock(osmId, type, landClass, polyList));
         return TerrainMesh.init(gridCellBounds, points, polygons);
     }
 }

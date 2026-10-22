@@ -9,6 +9,7 @@ public enum LandClass {
     RIVER("Rv"),
     LAKE("Lk"),
     Sea("Sea"),
+    Asphalt("As"),
     ;
     //asphalt, kies,pflaster,sand,beton,parkplatz
     //forest,gras,busch,rasen,golf,acker

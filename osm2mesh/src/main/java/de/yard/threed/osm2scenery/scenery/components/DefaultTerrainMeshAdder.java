@@ -49,6 +49,6 @@ public class DefaultTerrainMeshAdder extends TerrainMeshAdder {
         // for now only the first area is used. TODO: add all areas to the mesh.
         AbstractArea area = sceneryAreaObject.flatComponent[0];
         //area.getPolygon()
-        registerArea(sceneryAreaObject.getOsmIds().get(0), MeshPolygonType.AREA, Arrays.asList(area.poly.polygon.getCoordinates()));
+        registerArea(sceneryAreaObject.getOsmIds().get(0), MeshPolygonType.AREA, Arrays.asList(area.poly.polygon.getCoordinates()), null);
     }
 }

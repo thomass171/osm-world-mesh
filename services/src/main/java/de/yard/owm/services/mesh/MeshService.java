@@ -12,6 +12,7 @@ import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.*;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.JTSConversionUtil;
 import de.yard.threed.osm2world.MapWaySegmentAtConnector;
@@ -158,7 +159,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
      * @return
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes) throws MeshInconsistencyException {
+    public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes, LandClass landClass) throws MeshInconsistencyException {
 
         long startTime = System.currentTimeMillis();
 
@@ -166,15 +167,15 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         JtsUtil.processWayOutlines(leftLine, rightLine, (geoCoordinate) -> {
             l.add(geoCoordinate);
         });
-        TerrainMesh terrainMesh = addPolygon(meshName, osmWayId, MeshPolygonType.WAY, l.iterator());
+        TerrainMesh terrainMesh = addPolygon(meshName, osmWayId, MeshPolygonType.WAY, landClass, l.iterator());
         log.debug("Added way {} to mesh. Took {} ms.", osmWayId, System.currentTimeMillis() - startTime);
         return terrainMesh;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates) throws MeshInconsistencyException {
+    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass) throws MeshInconsistencyException {
         long startTime = System.currentTimeMillis();
-        TerrainMesh terrainMesh = addPolygon(meshName, osmId, type, geoCoordinates.iterator());
+        TerrainMesh terrainMesh = addPolygon(meshName, osmId, type, landClass, geoCoordinates.iterator());
         log.debug("Added area {} of type {} to mesh. Took {} ms.", osmId, type, System.currentTimeMillis() - startTime);
         return terrainMesh;
     }
@@ -182,7 +183,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     /**
      * If we decide to maintin background, adding a polygon also requires a cut of background.
      */
-    private TerrainMesh addPolygon(String meshName, long osmId, MeshPolygonType type, Iterator<GeoCoordinate> nodeProvider) throws MeshInconsistencyException {
+    private TerrainMesh addPolygon(String meshName, long osmId, MeshPolygonType type, LandClass landClass, Iterator<GeoCoordinate> nodeProvider) throws MeshInconsistencyException {
         PersistedMesh mesh = meshRepository.findByName(meshName);
         if (mesh == null) {
             throw new RuntimeException("mesh not found:" + meshName);
@@ -193,6 +194,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
 
         PersistedMeshPolygon meshPolygon = new PersistedMeshPolygon();
         meshPolygon.setType(type);
+        meshPolygon.setLandClass(landClass);
         meshPolygon.setOsmId(osmId);
         meshPolygon.setMesh(mesh);
         //TODO meshArea.setOsmWay(osmWay);
@@ -241,7 +243,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) throws MeshInconsistencyException {
+    public TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass) throws MeshInconsistencyException {
 
         log.debug("Adding connector {} with {} nodes and {} attach pairs to mesh", osmNodeId, polygon.size() - 1, wayAttachPoints.size());
 
@@ -257,6 +259,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
 
         PersistedMeshPolygon meshPolygon = new PersistedMeshPolygon();
         meshPolygon.setType(MeshPolygonType.CONNECTOR);
+        meshPolygon.setLandClass(landClass);
         meshPolygon.setOsmId(osmNodeId);
         meshPolygon.setMesh(mesh);
 
@@ -438,13 +441,13 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
 
             @Override
-            public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes) throws MeshInconsistencyException {
-                return ms.addWay(meshName, osmWayId, fromConnector, leftLine, rightLine, toConnector, lanes);
+            public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes, LandClass landClass) throws MeshInconsistencyException {
+                return ms.addWay(meshName, osmWayId, fromConnector, leftLine, rightLine, toConnector, lanes, landClass);
             }
 
             @Override
-            public TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) throws MeshInconsistencyException {
-                return ms.addConnector(meshName, osmNodeId, polygon, wayAttachPoints);
+            public TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass) throws MeshInconsistencyException {
+                return ms.addConnector(meshName, osmNodeId, polygon, wayAttachPoints, landClass);
             }
 
             @Override
@@ -463,8 +466,8 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
 
             @Override
-            public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates) throws MeshInconsistencyException {
-                return ms.addArea(meshName, osmId, type, geoCoordinates);
+            public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass) throws MeshInconsistencyException {
+                return ms.addArea(meshName, osmId, type, geoCoordinates, landClass);
             }
         };
     }

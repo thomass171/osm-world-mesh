@@ -9,6 +9,7 @@ import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MapWaySegmentAtConnector;
@@ -39,9 +40,9 @@ public abstract class TerrainMeshAdder implements SceneryObjectComponent {
      * 24.8.26: No longer returns a value to avoid confusion.
      * @return
      */
-    public void registerWay(long osmWayId, Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes) throws MeshInconsistencyException {
+    public void registerWay(long osmWayId, Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes, LandClass landClass) throws MeshInconsistencyException {
 
-        meshService.addWay(meshName, osmWayId, JtsUtil.unproject(fromConnector, projection), JtsUtil.unproject(leftLine, projection), JtsUtil.unproject(rightLine, projection), JtsUtil.unproject(toConnector, projection), lanes);
+        meshService.addWay(meshName, osmWayId, JtsUtil.unproject(fromConnector, projection), JtsUtil.unproject(leftLine, projection), JtsUtil.unproject(rightLine, projection), JtsUtil.unproject(toConnector, projection), lanes, landClass);
         //return null;
         /*12.2.26 moved to service Polygon polygon = JtsUtil.createPolygonFromWayOutlines(new CoordinateList(rightLine), new CoordinateList(leftLine));
 
@@ -123,8 +124,8 @@ public abstract class TerrainMeshAdder implements SceneryObjectComponent {
      * 24.8.26: No longer returns a value to avoid confusion.
      * 1.9.26 TODO should expect Coordinate like registerWay and registerArea, not GeoCoordinate. But for now it is easier to keep it like this.
      */
-    public void/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) throws MeshInconsistencyException {
-        TerrainMesh tm = meshService.addConnector(meshName, osmNodeId, line, wayAttachPoints);
+    public void/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass) throws MeshInconsistencyException {
+        TerrainMesh tm = meshService.addConnector(meshName, osmNodeId, line, wayAttachPoints, landClass);
         //24.8.26 return tm.getConnector(osmNodeId);
 
     }
@@ -133,8 +134,8 @@ public abstract class TerrainMeshAdder implements SceneryObjectComponent {
      * Analog to registerWay.
      *
      */
-    public void/*MeshWayConnector*/ registerArea(long osmNodeId, MeshPolygonType type, List<Coordinate> coordinates) throws MeshInconsistencyException {
-        TerrainMesh tm = meshService.addArea(meshName, osmNodeId, type, JtsUtil.unproject(coordinates, projection));
+    public void/*MeshWayConnector*/ registerArea(long osmNodeId, MeshPolygonType type, List<Coordinate> coordinates, LandClass landClass) throws MeshInconsistencyException {
+        TerrainMesh tm = meshService.addArea(meshName, osmNodeId, type, JtsUtil.unproject(coordinates, projection), landClass);
 
     }
 }

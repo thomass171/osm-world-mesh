@@ -20,9 +20,10 @@ public class MeshPolygonMock implements MeshPolygon {
     LandClass landClass;
     List<Pair<GeoCoordinate, Long>> polygon;
 
-    public MeshPolygonMock(long osmId, MeshPolygonType meshPolygonType, List<Pair<GeoCoordinate, Long>> polygon) {
+    public MeshPolygonMock(long osmId, MeshPolygonType meshPolygonType, LandClass landClass, List<Pair<GeoCoordinate, Long>> polygon) {
         this.osmId = osmId;
         this.meshPolygonType = meshPolygonType;
+        this.landClass = landClass;
         if (polygon == null) {
             throw new IllegalArgumentException("polygon must not be null");
         }
@@ -64,8 +65,8 @@ public class MeshPolygonMock implements MeshPolygon {
     public Map<String, Pair<Integer, Integer>> rawWayAttachPoints = new HashMap<>();
 
     // from MeshWayConnectorMock
-    public MeshPolygonMock(long osmId, MeshPolygonType meshPolygonType, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) {
-        this(osmId, meshPolygonType, polygon);
+    public MeshPolygonMock(long osmId, MeshPolygonType meshPolygonType, LandClass landClass, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) {
+        this(osmId, meshPolygonType, landClass, polygon);
 /*        for (Pair<Long, Pair<Integer, Integer>> wap : wayAttachPoints) {
             this.wayAttachPoints.put(wap.getFirst(), wap.getSecond());
         }*/
