@@ -31,9 +31,6 @@ var selectionStart = null;
 var selectionRectangle = null;
 var selectionImageOverlay = null;
 
-// polygons found at the last map click
-var clickedPolygonsGroup = null;
-
 /**
  *
  */
@@ -78,24 +75,32 @@ function toggleSelectArea() {
 }
 
 /**
- * Retrieves the polygons of the current mesh covering the clicked location and highlights them.
+ * Retrieves the polygons of the current mesh covering the clicked location and shows their
+ * osm id, land class and OSM source link in a single line below the map.
+ * - Multiple polygons at the click location all go into that same line, separated by "; ".
+ * - A missing osm id or land class is shown as "-". The link icon is omitted when there is no osmRef.
+ * - A click where there is no polygon shows "No polygon at click".
  */
 function loadPolygonsAt(latlng) {
     if (selectAreaMode || currentMesh == null) {
         return;
     }
-    if (clickedPolygonsGroup != null) {
-        map.removeLayer(clickedPolygonsGroup);
-    }
-    clickedPolygonsGroup = L.layerGroup().addTo(map);
     var url = serviceshost + "/worldmesh/mesh/polygon?meshName=" + currentMesh + "&lat=" + latlng.lat + "&lon=" + latlng.lng;
     doGet(url, json => {
+        if (json.polygons.length == 0) {
+            $("#p_clickedpolygon").html("No polygon at click");
+            return;
+        }
         var descriptions = [];
         json.polygons.forEach(polygon => {
-            buildPolygon(polygon, "blue").addTo(clickedPolygonsGroup);
-            descriptions.push(polygon.type + (polygon.osmId != null ? " " + polygon.osmId : ""));
+            var description = "OSM id: " + (polygon.osmId != null ? polygon.osmId : "-")
+                + ", land class: " + (polygon.landClass != null ? polygon.landClass : "-");
+            if (polygon.osmRef != null) {
+                description += " " + createLink(polygon.osmRef).html;
+            }
+            descriptions.push(description);
         });
-        showMessage(json.polygons.length + " polygon(s) at click: " + descriptions.join(", "));
+        $("#p_clickedpolygon").html(descriptions.join("; "));
     });
 }
 
