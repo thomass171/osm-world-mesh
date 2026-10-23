@@ -2,6 +2,7 @@ package de.yard.owm.dto;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.core.geometry.Polygon;
+import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2scenery.polygon20.GeoPolygon;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
@@ -23,6 +24,7 @@ public class PolygonResponse {
     private String type;
     // might be null
     private String landClass;
+    private String osmRef;
 
     public static PolygonResponse buildFromPolygon(GeoPolygon polygon, Long osmId, MeshPolygonType type, String landClass) {
         if (polygon == null) {
@@ -32,6 +34,10 @@ public class PolygonResponse {
         // skip closing point
         for (Coordinate c : polygon.getCoordinates()) {
             response.points.add(new WebLatLon(c.y, c.x));
+        }
+        if (osmId != null) {
+            response.setOsmId(osmId);
+            response.setOsmRef(OsmUtil.buildHRef(osmId));
         }
         response.setOsmId(osmId);
         if (type != null) {

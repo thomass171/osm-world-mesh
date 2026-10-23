@@ -330,4 +330,8 @@ public class OsmUtil {
         }
         return -1;
     }
+
+    public static String buildHRef(long osmwayId) {
+        return "https://www.openstreetmap.org/way/" + osmwayId;
+    }
 }

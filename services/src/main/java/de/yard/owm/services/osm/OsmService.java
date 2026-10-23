@@ -5,6 +5,7 @@ import com.vividsolutions.jts.triangulate.ConstraintEnforcementException;
 import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.persistence.TerrainMeshManager;
 import de.yard.threed.osm2graph.osm.JtsUtil;
+import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2scenery.*;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.*;
@@ -231,8 +232,7 @@ public class OsmService {
                     // writing to a file isn't helpful (docker)
                     //svgWriter.writeTmpFile("invalid-polygon-" + e.osmId);
                     log.error("MeshInconsistencyException for OSM way {} with {} invalid polygons", mapWay.getOsmId(), invalidPolygons.size(), e);
-                    String sourceRef = "https://www.openstreetmap.org/way/" + mapWay.getOsmId();
-                    results.failures.add(meshService.addFailure(meshName, e.getMessage(), sourceRef,
+                    results.failures.add(meshService.addFailure(meshName, e.getMessage(), OsmUtil.buildHRef(mapWay.getOsmId()),
                             // unproject might fail again because the polygon is invalid. So better rely on the SVG for now. We might however project
                             // independent of JtsUtil.
                             null /*invalidPolygons.size() == 0 ? null : JtsUtil.unproject(invalidPolygons.get(0), mapData.projection)*/, svgWriter.buildSvg()));
