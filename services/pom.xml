@@ -236,12 +236,19 @@
             <scope>test</scope>
             <version>${springboot.version}</version>
         </dependency>
-        <!--<dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
+        <!-- Throwaway Postgres in Docker for tests, used via the 'jdbc:tc:' URL in test application.properties.
+             Requires a running Docker. -->
+        <!-- H2 is no option for testing. The Flyway migrations are plain Postgres SQL (timestamp with time zone,
+             sequences, check constraints, column name 'index') and would need an H2 specific copy. Also the custom
+             @Query in MeshPolygonRepository and much of the mesh logic depend on real DB behaviour, so tests might pass
+             on H2 but fail on Postgres. A future use of PostGIS would not be possible at all.
+             Better use a real throwaway Postgres (Testcontainers or zonky embedded-postgres) instead. -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>1.21.4</version>
             <scope>test</scope>
-            <version>2.1.210</version>
-        </dependency>-->
+        </dependency>
         <!--<dependency>
             <groupId>org.flywaydb.flyway-test-extensions</groupId>
             <artifactId>flyway-spring-test</artifactId>

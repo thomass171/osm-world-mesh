@@ -50,9 +50,10 @@ bin/launchServer.sh
 ```
 
 `bin/launchServer.sh` points at a specific dev Postgres instance (`192.168.98.151:5432/worldmesh`, schema
-`worldmesh`, user/db `worldmesh`) — a Postgres instance reachable at that address/credentials is required both to
-run the service and to run `services` module tests (`services/src/test/resources/application.properties` connects
-to the same host, schema `worldmesh_test`). Flyway manages the schema (`services/src/main/resources/db/migration`);
+`worldmesh`, user/db `worldmesh`) — a Postgres instance reachable at that address/credentials is required to run
+the service. The `services` module tests instead use a throwaway Postgres 14 started by Testcontainers (`jdbc:tc:`
+URL in `services/src/test/resources/application.properties`, schema `worldmesh_test`), so they need a running
+Docker. That file also documents the `-Dspring.datasource.*` overrides for running tests against the dev DB instead. Flyway manages the schema (`services/src/main/resources/db/migration`);
 there's currently a single migration, `V1__initial_setup.sql`.
 
 ## Architecture
