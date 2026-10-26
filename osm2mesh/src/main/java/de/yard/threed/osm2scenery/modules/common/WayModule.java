@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.ROAD;
 import static de.yard.threed.osm2world.EmptyTagGroup.EMPTY_TAG_GROUP;
@@ -573,16 +574,21 @@ public abstract class WayModule extends SceneryModule {
 
     /**
      * 19.2.26 a new approach
+     * 26.10.26: Only ways of this module's category. MapData also contains areas (eg. landuse) as ways, which
+     * would otherwise lead to invalid connectors.
      */
-    public static List<MapWaySegment2> getConnectedWays(MapNode node,
-                                                        MapData mapData) {
-
-
-        List<MapWay> connectedRoadsWithLanes = new ArrayList<>();
-
-        return mapData.findMapWaySegmentsAtNode(node.getOsmId());
-
+    public List<MapWaySegment2> getConnectedWays(MapNode node,
+                                                 MapData mapData) {
+        return mapData.findMapWaySegmentsAtNode(node.getOsmId()).stream()
+                .filter(s -> isModulesCategory(s.getTags()))
+                .collect(Collectors.toList());
     }
+
+    /**
+     * Decides by its tags whether an OSM element belongs to this module (eg. a highway for HighwayModule).
+     * Used for deciding whether the module applies to a way and which ways are considered at a connector.
+     */
+    public abstract boolean isModulesCategory(TagGroup tags);
 
     /**
      * find matching lane pairs

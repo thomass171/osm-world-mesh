@@ -114,18 +114,29 @@ public class WaterModule extends WayModule {
             int h = 6;
         }
         boolean applied = false;
-        for (String value : WATERWAY_WIDTHS.keySet()) {
-            if (mapway.getTags().contains("waterway", value) /*&& tagfilter.isAccepted(line.getTags()*/) {
-                //Waterway waterway = new Waterway(line, SceneryContext.getInstance());
-                /*rivers.objects.addAll(*/applyToWay(mapway, sceneryContext);
-                applied = true;
-                //line.addRepresentation(waterway);
-            }
+        if (isModulesCategory(mapway.getTags()) /*&& tagfilter.isAccepted(line.getTags()*/) {
+            //Waterway waterway = new Waterway(line, SceneryContext.getInstance());
+            /*rivers.objects.addAll(*/applyToWay(mapway, sceneryContext);
+            applied = true;
+            //line.addRepresentation(waterway);
         }
 
         //Elevation and BridgeApproaches comes later
         //return rivers;
         return applied;
+    }
+
+    /**
+     * Only waterways with a known width.
+     */
+    @Override
+    public boolean isModulesCategory(TagGroup tags) {
+        for (String value : WATERWAY_WIDTHS.keySet()) {
+            if (tags.contains("waterway", value)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static class Waterway extends SceneryWayObject {

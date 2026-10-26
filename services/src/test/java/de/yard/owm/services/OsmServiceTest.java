@@ -240,6 +240,46 @@ public class OsmServiceTest extends AbstractSceneryTest {
         terrainMesh.writeToSvg();
     }
 
+    @Test
+    public void testDesdorfAreaSplit() throws Exception {
+
+        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
+
+        TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
+
+        testServices.validateMesh(terrainMesh,
+                desdorfTestData.expectedBoundary,
+                DesdorfExpectations.expectedConnector255563538,
+                expectedK43[0],
+                expectedConnector445409643,
+                expectedK43[1],
+                expectedConnector387409890,
+                expectedK43[2],
+                expectedConnector255563537,
+                expectedK43[3],
+                expectedK43[4]
+        );
+
+        // farmland 'below' K43. It needs to be split into 2 areas.
+        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 87822834L);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
+
+        terrainMesh = meshService.loadMesh("Desdorf");
+        testServices.validateMesh(terrainMesh,
+                desdorfTestData.expectedBoundary,
+                ExpectedMeshPolygon.expectedArea(87822834L, MeshPolygonType.AREA, 38/*appears to be correct)*/));
+
+        // farmland 87822834L 'below' K43 needs to be split into 2 areas by way 37935545.
+        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 37935545L);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
+
+        terrainMesh.writeToSvg();
+    }
+
     /*17.5.26 public static DesdorfTestData setupForDesdorf(MeshService meshService, TestServices testServices, TerrainMeshManager terrainMeshManager) throws Exception {
         // The 'lower' segment. Full data will provide one connector
         //OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("K41-segment.osm.xml");

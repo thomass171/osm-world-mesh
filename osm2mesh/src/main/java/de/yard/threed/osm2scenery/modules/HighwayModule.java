@@ -199,13 +199,18 @@ public class HighwayModule extends WayModule {
             int h = 6;
         }
         boolean applied = false;
-        if (isHighway(mapway.getTags())) {
+        if (isModulesCategory(mapway.getTags())) {
             /*roadsAndBridges = */applyToWay(mapway, sceneryContext);
             applied = true;
         }
 
         //Elevation and BridgeApproaches comes later
         return applied;//roadsAndBridges;
+    }
+
+    @Override
+    public boolean isModulesCategory(TagGroup tags) {
+        return isHighway(tags);
     }
 
     @Override
