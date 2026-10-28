@@ -2,21 +2,18 @@ package de.yard.threed.osm2scenery.modules;
 
 import com.google.common.base.Function;
 import de.yard.threed.core.Util;
-import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
-import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObjectFactory;
 import de.yard.threed.osm2scenery.scenery.components.BuildingComponent;
-import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
-import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
-import de.yard.threed.osm2scenery.scenery.components.WayTerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.DefaultMeshServiceBridge;
+import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
 import de.yard.threed.osm2world.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
@@ -110,8 +107,8 @@ public class BuildingModule extends SceneryModule {
             buildingobjects.add(buildingobject);
             //area2building.put(area, building);
 
-            TerrainMeshAdder terrainMeshAdder = new DefaultTerrainMeshAdder(meshName, meshServiceFacade, projection, buildingobject);
-            buildingobject.cca(terrainMeshAdder);
+            MeshServiceBridge meshServiceBridge = new DefaultMeshServiceBridge(meshName, meshServiceFacade, projection, buildingobject);
+            buildingobject.cca(meshServiceBridge);
             applied = true;
         }
 

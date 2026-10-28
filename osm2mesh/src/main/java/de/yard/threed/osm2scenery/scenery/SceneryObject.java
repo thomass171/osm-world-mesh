@@ -6,13 +6,12 @@ import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.RenderedObject;
-import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryRenderer;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
 import de.yard.threed.osm2scenery.scenery.components.VolumeProvider;
 import de.yard.threed.osm2world.MapNode;
 import de.yard.threed.osm2world.TagGroup;
@@ -277,7 +276,7 @@ public abstract class SceneryObject {
     // Now for 2026 DB persist. Should replace TerrainMeshAdder?
     // Temporarily we need TerrainMesh as parameter for meshservice and the mesh name
     // 10.3.26: Should have createpolygon() before.
-    public abstract void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException;
+    public abstract void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException;
 
     //22.8.18: Ist Category ein Ersatz fuer creatoretag? Erstmal nicht. Es kann immer nur eine Category pro Object geben, oder?
     //auf jeden Fall darf sie null sein.

@@ -7,7 +7,6 @@ import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
-import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
@@ -19,7 +18,6 @@ import de.yard.threed.osm2world.JTSConversionUtil;
 import de.yard.threed.osm2world.MapArea;
 import de.yard.threed.osm2world.MapNode;
 import de.yard.threed.osm2world.Material;
-import de.yard.threed.osm2world.SimplePolygonXZ;
 import de.yard.threed.osm2world.VectorXZ;
 import lombok.extern.slf4j.Slf4j;
 
@@ -157,8 +155,8 @@ public class SceneryAreaObject extends SceneryFlatObject {
     }
 
     @Override
-    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
-        ((DefaultTerrainMeshAdder)terrainMeshAdder).persistArea(this);
+    public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
+        ((DefaultMeshServiceBridge) meshServiceBridge).persistArea(this);
 
         return ;
     }

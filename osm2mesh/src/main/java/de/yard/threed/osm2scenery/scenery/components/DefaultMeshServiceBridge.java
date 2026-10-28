@@ -13,10 +13,10 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
-public class DefaultTerrainMeshAdder extends TerrainMeshAdder {
+public class DefaultMeshServiceBridge extends MeshServiceBridge {
     SceneryFlatObject sceneryFlatObject;
 
-    public DefaultTerrainMeshAdder(String meshName, MeshServiceFacade meshService, SceneryProjection projection, SceneryFlatObject sceneryFlatObject) {
+    public DefaultMeshServiceBridge(String meshName, MeshServiceFacade meshService, SceneryProjection projection, SceneryFlatObject sceneryFlatObject) {
         super(meshName,meshService,projection);
         this.sceneryFlatObject = sceneryFlatObject;
     }

@@ -1,17 +1,15 @@
 package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.Polygon;
-import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
-import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.DecoratorComponent;
 import de.yard.threed.osm2scenery.scenery.components.RoadDecorator;
-import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
 import de.yard.threed.osm2scenery.util.PolygonMetadata;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
 import de.yard.threed.osm2world.Material;
@@ -57,7 +55,7 @@ public class SceneryDecoration extends SceneryFlatObject {
     }
 
     @Override
-    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
+    public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
 
         return ;
     }

@@ -5,10 +5,9 @@ import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
-import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
-import de.yard.threed.osm2scenery.scenery.components.DefaultTerrainMeshAdder;
-import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.DefaultMeshServiceBridge;
+import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
 import de.yard.threed.osm2world.*;
 
 
@@ -122,8 +121,8 @@ public class SurfaceAreaModule extends SceneryModule {
 
     private void cca(SurfaceArea surfaceArea) throws MeshInconsistencyException {
         // TODO Auto-generated method stub
-        TerrainMeshAdder terrainMeshAdder = new DefaultTerrainMeshAdder(meshName, meshServiceFacade, projection, surfaceArea);
-        surfaceArea.cca(terrainMeshAdder);
+        MeshServiceBridge meshServiceBridge = new DefaultMeshServiceBridge(meshName, meshServiceFacade, projection, surfaceArea);
+        surfaceArea.cca(meshServiceBridge);
     }
 
     public static class SurfaceArea extends SceneryAreaObject {

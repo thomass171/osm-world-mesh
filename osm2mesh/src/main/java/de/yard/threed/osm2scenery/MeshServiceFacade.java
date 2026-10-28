@@ -15,6 +15,7 @@ import java.util.Map;
 
 /**
  * Only temporary until we resolve package dependency issues
+ * No projected coordinates here, only unprojected geocoordinates.
  */
 public interface MeshServiceFacade {
 

@@ -4,7 +4,6 @@ package de.yard.threed.osm2scenery.modules.common;
 import de.yard.threed.core.Pair;
 import de.yard.threed.core.Util;
 import de.yard.threed.core.Vector2;
-import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.OsmUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
@@ -16,11 +15,8 @@ import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.scenery.components.*;
-import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.*;
-import lombok.AllArgsConstructor;
-import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -65,7 +61,7 @@ public abstract class WayModule extends SceneryModule {
     }
 
     //static  private Map<Long, List<Road>> roadmap = new HashMap<>();
-    WayTerrainMeshAdder wayTerrainMeshAdder;
+    MeshServiceBridge wayMeshServiceBridge;
 
     @Override
     @Deprecated
@@ -129,7 +125,7 @@ public abstract class WayModule extends SceneryModule {
                 //road.addToWayMap(ROAD, sceneryContext);
             }
 
-            wayTerrainMeshAdder = new WayTerrainMeshAdder(meshName, meshServiceFacade, projection);
+            wayMeshServiceBridge = new MeshServiceBridge(meshName, meshServiceFacade, projection);
 
             // 14.2.26: Main change. No longer collect elements but persist way to DB.
             // 18.3.26: The simple incoming way might have been split into segments, so iteration is needed
@@ -146,7 +142,7 @@ public abstract class WayModule extends SceneryModule {
                 if (connectors.getSecond() != null) {
                     sfo.setEndConnector(connectors.getSecond());
                 }
-                sfo.cca(wayTerrainMeshAdder);
+                sfo.cca(wayMeshServiceBridge);
 
             }
 
@@ -297,7 +293,7 @@ public abstract class WayModule extends SceneryModule {
         connector.classify();
         // done in persist connector.createPolygon(null, null,  SceneryContext.getInstance());
         // DB persist
-        connector.cca(wayTerrainMeshAdder);//addToTerrainMesh(tm);
+        connector.cca(wayMeshServiceBridge);//addToTerrainMesh(tm);
         return meshServiceFacade.getConnector(connector.getOsmId());
         //return connector;
         // }
@@ -883,7 +879,7 @@ public abstract class WayModule extends SceneryModule {
         }
 
         @Override
-        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
+        public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
 
             return;
         }

@@ -14,7 +14,7 @@ import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.RoadDecorator;
-import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
 import de.yard.threed.osm2scenery.util.TagFilter;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.*;
@@ -882,7 +882,7 @@ public class HighwayModule extends WayModule {
         }
 
         @Override
-        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
+        public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
 
             return;
         }

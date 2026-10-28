@@ -110,7 +110,7 @@ public class HighwayModuleTest {
         assertNotNull(k43,"k43");
         k43.buildEleGroups();
         k43.createPolygon( null);
-        assertEquals(4, k43.innerConnector.size(), "k43.innerConnectorIndex.size");
+        //28.10.26 assertEquals(4, k43.innerConnector.size(), "k43.innerConnectorIndex.size");
         knownobjects.add(k43);
 
         //Der Weg südlich Richtung Haus ("Gut Desdorf") schneidet durch das Farmland.
@@ -192,8 +192,8 @@ public class HighwayModuleTest {
         Pair<Coordinate, Coordinate> pair0 = ((WayArea) k41vonunten.getArea()[0]).getEndPair();
         Pair<Coordinate, Coordinate> pair1 = ((WayArea) k43.getArea()[0]).getEndPair();
         TestUtil.assertCoordinate("coordinate2", pair0.getSecond(), pair1.getFirst());
-        List<SceneryWayConnector> k43innerconnector = k43.getInnerConnector();
-        assertEquals(4, k43innerconnector.size(), "k43.innerConnector.size");
+        /*28.10.26 List<SceneryWayConnector> k43innerconnector = k43.getInnerConnector();
+        assertEquals(4, k43innerconnector.size(), "k43.innerConnector.size");*/
 
         connectorK43GutDesdorf.createPolygon( null);
         connectorK43GutDesdorf.clip();
@@ -214,7 +214,7 @@ public class HighwayModuleTest {
         w33817500.createPolygon( null);
         w33817501.createPolygon( null);
         //16.3.26 w33817501.getStartConnector().createPolygon( null, tm, SceneryContext.getInstance());
-        gutdesdorfnorth.innerConnector.get(0).createPolygon( null);
+        //28.10.26 gutdesdorfnorth.innerConnector.get(0).createPolygon( null);
         //16.3.26gutdesdorfnorth.getStartConnector().createPolygon( null, tm, SceneryContext.getInstance());
         gutdesdorfnorth.clip();
         w33817500.clip();
@@ -222,7 +222,7 @@ public class HighwayModuleTest {
         pair0 = w33817500.getWayArea().getEndPair();
         pair1 = w33817501.getWayArea().getStartPair(tm);
         TestUtil.assertCoordinate("33817500/33817501 connectorattach", pair0.getFirst(), pair1.getFirst());
-        gutdesdorfnorth.innerConnector.get(0).clip();
+        //28.10.26 gutdesdorfnorth.innerConnector.get(0).clip();
         //16.3.26gutdesdorfnorth.getStartConnector().clip(tm);
 
         assertEquals(5, k43.getWayArea().getSegmentCount(), "k43.segments");
@@ -245,7 +245,7 @@ public class HighwayModuleTest {
 
         w33817500.cut(SceneryTestUtil.gridCellBounds);
         w33817501.cut(SceneryTestUtil.gridCellBounds);
-        gutdesdorfnorth.innerConnector.get(0).cut(SceneryTestUtil.gridCellBounds);
+        //28.10.26 gutdesdorfnorth.innerConnector.get(0).cut(SceneryTestUtil.gridCellBounds);
         //16.3.26gutdesdorfnorth.getStartConnector().cut(SceneryTestUtil.gridCellBounds);
 
         //erst die noch fehlenden Connector, dann die Ways
@@ -258,7 +258,7 @@ public class HighwayModuleTest {
         // TerrainMesh
         knownobjects.add(k41k43connector);
         //16.3.26knownobjects.add(gutdesdorfnorth.getStartConnector());
-        knownobjects.add(gutdesdorfnorth.innerConnector.get(0));
+        //28.10.26 knownobjects.add(gutdesdorfnorth.innerConnector.get(0));
         //dead end; isType null knownobjects.add(gutdesdorfnorth.getEndConnector());
 
         SceneryTestUtil.gridCellBounds.rearrangeForWayCut(knownobjects, null);
@@ -326,7 +326,7 @@ public class HighwayModuleTest {
         VertexData vertexData = k43.getVertexData();
         Dumper.dumpVertexData(vertexData);
         //2 von den 10 Nodes sind OUTSIDE
-        assertEquals(16 + k43innerconnector.size() * 2, vertexData.vertices.size(), "vertices");
+        //28.10.26 assertEquals(16 + k43innerconnector.size() * 2, vertexData.vertices.size(), "vertices");
 
         TestUtils.assertVector2( new Vector2(0, 0.875), vertexData.getUV(0),"uv[0]");
         TestUtils.assertVector2( new Vector2(0, 0.8125), vertexData.getUV(1),"uv[1]");

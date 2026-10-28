@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 @Slf4j
-public class BridgeTerrainMeshAdder extends TerrainMeshAdder {
+public class BridgeMeshServiceBridge extends MeshServiceBridge {
     BridgeGap bridgeGap;
 
     /**
@@ -30,7 +30,7 @@ public class BridgeTerrainMeshAdder extends TerrainMeshAdder {
      *
      * @param bridgeGap
      */
-    public BridgeTerrainMeshAdder(String meshName, MeshServiceFacade meshService, SceneryProjection projection,BridgeGap bridgeGap) {
+    public BridgeMeshServiceBridge(String meshName, MeshServiceFacade meshService, SceneryProjection projection, BridgeGap bridgeGap) {
         super(meshName,meshService,projection);
         this.bridgeGap = bridgeGap;
     }

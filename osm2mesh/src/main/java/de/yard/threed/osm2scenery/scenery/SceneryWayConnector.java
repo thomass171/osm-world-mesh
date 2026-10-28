@@ -5,14 +5,11 @@ import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.*;
 import de.yard.threed.osm2graph.osm.*;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
-import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
-import de.yard.threed.osm2scenery.scenery.components.WayTerrainMeshAdder;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2world.*;
@@ -1019,7 +1016,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
+    public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
 
         /**
          * TerrainMesh vorbereiten.
@@ -1040,7 +1037,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
         }
 
         //10.3.26 now in cca() createPolygon(tm.getGridCellBounds(), tm, SceneryContext.getInstance());
-        /*24.8.26 meshWayConnector =*/ ((WayTerrainMeshAdder)terrainMeshAdder).registerConnector(node.getOsmId(), polygonLine, attachpair, null);
+        /*24.8.26 meshWayConnector =*/ ((MeshServiceBridge) meshServiceBridge).registerConnector(node.getOsmId(), polygonLine, attachpair, null);
 
         // 27.2.26: We are back at storing polygons, so don't go this way any more.
        /*

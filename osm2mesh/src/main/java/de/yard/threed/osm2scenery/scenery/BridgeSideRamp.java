@@ -2,17 +2,15 @@ package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.osm2graph.osm.CoordinateList;
-import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.MapDataHelper;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
-import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.modules.BridgeModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
 import de.yard.threed.osm2world.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -120,8 +118,8 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
-        super.addToTerrainMesh(terrainMeshAdder);
+    public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
+        super.addToTerrainMesh(meshServiceBridge);
         return ;
     }
 

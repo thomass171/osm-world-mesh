@@ -9,8 +9,7 @@ import de.yard.threed.osm2mesh.testutils.DefaultMockingSceneryTest;
 import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
-import de.yard.threed.osm2scenery.scenery.components.TerrainMeshAdder;
-import de.yard.threed.osm2scenery.scenery.components.WayTerrainMeshAdder;
+import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
 import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2world.MapWay;
 import org.junit.jupiter.api.Test;
@@ -69,8 +68,8 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
                 .writeTmpFile();
     }
 
-    private TerrainMeshAdder buildWayTerrainMeshAdder(DesdorfTestData desdorfTestData) {
-        return new WayTerrainMeshAdder(desdorfTestData.terrainMesh.meshName,desdorfTestData.meshService,desdorfTestData.terrainMesh.getGridCellBounds().getProjection());
+    private MeshServiceBridge buildWayTerrainMeshAdder(DesdorfTestData desdorfTestData) {
+        return new MeshServiceBridge(desdorfTestData.terrainMesh.meshName,desdorfTestData.meshService,desdorfTestData.terrainMesh.getGridCellBounds().getProjection());
     }
 
     /**

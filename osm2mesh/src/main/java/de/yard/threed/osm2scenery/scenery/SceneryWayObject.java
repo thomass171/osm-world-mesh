@@ -5,7 +5,6 @@ import de.yard.threed.core.Pair;
 import de.yard.threed.core.Vector2;
 import de.yard.threed.core.Vector3;
 import de.yard.threed.graph.GraphNode;
-import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
@@ -21,7 +20,6 @@ import de.yard.threed.osm2world.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +57,7 @@ public class SceneryWayObject extends SceneryFlatObject {
     public WayOuterMode startMode = WayOuterMode.DEADEND, endMode = WayOuterMode.DEADEND;
     //start/end bezogen aufs grid
     //17.3.2 all nodes are effective meanwhile public int startNode, endNode;
-    public List<SceneryWayConnector> innerConnector;
+    //28.10.26 public List<SceneryWayConnector> innerConnector;
     //index of node ->connector
     // 18.3.26 no longer mid connector private Map<Integer, MeshWayConnector/*7.3.26SceneryWayConnector*/> innerConnectorMap=new HashMap<>();
     //17.3.2 all nodes are effective meanwhile public List<MapNode> effectiveNodes;
@@ -384,10 +382,10 @@ public class SceneryWayObject extends SceneryFlatObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
+    public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
 
         // TODO 10.3.26 save 'meshWay' like meshconnector
-        ((WayTerrainMeshAdder)terrainMeshAdder).persistWay(this);
+        (meshServiceBridge).persistWay(this);
         return ;
     }
 
@@ -681,7 +679,7 @@ public class SceneryWayObject extends SceneryFlatObject {
         return l;
     }
 
-    public List<SceneryWayConnector> getInnerConnector() {
+    /*28.10.26 public List<SceneryWayConnector> getInnerConnector() {
         return innerConnector;
         /*4.9.19 List<SceneryWayConnector> l = new ArrayList<>();
         for (int i = 1; i < effectiveNodes/*mapWay.getMapNodes()* /.size() - 1; i++) {
@@ -692,8 +690,8 @@ public class SceneryWayObject extends SceneryFlatObject {
 
             }
         }
-        return l;*/
-    }
+        return l;* /
+    }*/
 
     public void setStartConnector(MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ startConnector) {
         if (mapWay.getOsmId() == 107468171 || mapWay.getOsmId() == 23696494) {

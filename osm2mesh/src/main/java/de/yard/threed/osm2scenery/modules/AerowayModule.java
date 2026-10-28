@@ -5,7 +5,6 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.Util;
 import de.yard.threed.engine.XmlDocument;
-import de.yard.threed.graph.GraphEdge;
 import de.yard.threed.graph.GraphNode;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
@@ -24,7 +23,6 @@ import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.scenery.components.*;
 import de.yard.threed.osm2scenery.util.TagFilter;
-import de.yard.threed.osm2scenery.util.TagHelper;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.ConfMaterial;
 import de.yard.threed.osm2world.Config;
@@ -35,12 +33,10 @@ import de.yard.threed.osm2world.Material;
 import de.yard.threed.osm2world.Materials;
 import de.yard.threed.osm2world.NamedTexCoordFunction;
 import de.yard.threed.osm2world.OSMNode;
-import de.yard.threed.osm2world.OSMWay;
 import de.yard.threed.osm2world.TagGroup;
 import de.yard.threed.osm2world.TextureData;
 import de.yard.threed.osm2world.ValueStringParser;
 import de.yard.threed.osm2world.VectorXZ;
-import de.yard.threed.traffic.NodeCoord;
 import de.yard.threed.core.GeoCoordinate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -49,10 +45,7 @@ import org.apache.commons.io.FileUtils;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 
 
 /**
@@ -466,7 +459,7 @@ public class AerowayModule extends SceneryModule {
         }
 
         @Override
-        public void addToTerrainMesh(TerrainMeshAdder terrainMeshAdder) throws MeshInconsistencyException {
+        public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
 
             return ;
         }
