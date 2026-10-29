@@ -4,6 +4,8 @@ public enum MeshPolygonType {
     // Boundary also defines the background of the mesh.
     BOUNDARY(22),
     WAY(100),
+    // AREA is used for areas that are not ways, e.g. buildings?, water?, landuse, farmland, forest, etc.
+    // main property of an area is that it can be resized/split/cut for making play for a way.
     AREA(101),
     CONNECTOR(200);
 

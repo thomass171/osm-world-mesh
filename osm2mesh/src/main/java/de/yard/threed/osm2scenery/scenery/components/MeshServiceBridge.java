@@ -7,6 +7,7 @@ import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
 import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
@@ -43,22 +44,40 @@ public class MeshServiceBridge implements SceneryObjectComponent {
      * connector might be null, otherwise the connecting part must have been created before.
      * 6.4.24: Well, maybe it's easier to keep existing registerLine for a while?
      * 24.8.26: No longer returns a value to avoid confusion.
+     * 28.10.26: areasToAdjust are the areas the way overlaps (see findAreaIntersections()). They need to be adjusted
+     * for avoiding overlaps.
      *
      * @return
      */
-    public void registerWay(long osmWayId, Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes, LandClass landClass) throws MeshInconsistencyException {
+    public void registerWay(long osmWayId, Pair<Coordinate, Coordinate> fromConnector, List<Coordinate> leftLine, List<Coordinate> rightLine, Pair<Coordinate, Coordinate> toConnector, int lanes, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
 
-        meshService.addWay(meshName, osmWayId, JtsUtil.unproject(fromConnector, projection), JtsUtil.unproject(leftLine, projection), JtsUtil.unproject(rightLine, projection), JtsUtil.unproject(toConnector, projection), lanes, landClass);
+        meshService.addWay(meshName, osmWayId, JtsUtil.unproject(fromConnector, projection), JtsUtil.unproject(leftLine, projection), JtsUtil.unproject(rightLine, projection), JtsUtil.unproject(toConnector, projection), lanes, landClass, areasToAdjust);
 
+    }
+
+    /**
+     * Analog to registerWay. Returns the AREA polygons a way with these outlines would overlap.
+     */
+    public List<MeshPolygon> findAreaIntersections(List<Coordinate> leftLine, List<Coordinate> rightLine) throws MeshInconsistencyException {
+        return meshService.findAreaIntersectionsOfWay(meshName, JtsUtil.unproject(leftLine, projection), JtsUtil.unproject(rightLine, projection));
+    }
+
+    /**
+     * Analog to registerConnector (so GeoCoordinate instead of Coordinate). Returns the AREA polygons a connector
+     * with this polygon would overlap.
+     */
+    public List<MeshPolygon> findAreaIntersections(List<Pair<GeoCoordinate, Long>> line) throws MeshInconsistencyException {
+        return meshService.findAreaIntersectionsOfArea(meshName, line);
     }
 
     /**
      * Analog to registerWay. "pair.second" is attached way id
      * 24.8.26: No longer returns a value to avoid confusion.
      * 1.9.26 TODO should expect Coordinate like registerWay and registerArea, not GeoCoordinate. But for now it is easier to keep it like this.
+     * 28.10.26: areasToAdjust like in registerWay().
      */
-    public void/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass) throws MeshInconsistencyException {
-        TerrainMesh tm = meshService.addConnector(meshName, osmNodeId, line, wayAttachPoints, landClass);
+    public void/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+        TerrainMesh tm = meshService.addConnector(meshName, osmNodeId, line, wayAttachPoints, landClass, areasToAdjust);
         //24.8.26 return tm.getConnector(osmNodeId);
 
     }
@@ -73,42 +92,13 @@ public class MeshServiceBridge implements SceneryObjectComponent {
 
     /**
      * 28.10.26: Moved here from WayTerrainMeshAdder.
+     * areasToAdjust: see registerWay().
      */
-    public void persistWay(SceneryWayObject sceneryWayObject) throws MeshInconsistencyException {
+    public void persistWay(long osmWayId, Pair<List<Coordinate>, List<Coordinate>> outlines, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
 
-        if (sceneryWayObject.mapWay.getOsmId() == 23696494 || sceneryWayObject.mapWay.getOsmId() == 363500734 || sceneryWayObject.mapWay.getOsmId() == 7093390) {
-            int h = 9;
-        }
 
-        WayArea wayArea = sceneryWayObject.getWayArea();
-        if (wayArea == null) {
-            // No area. Check for buildOutlinePolygonFromGraph() warnings
-            return;
-        }
 
-        //wayArea.leftlines = new ArrayList<>();
-        //wayArea.rightlines = new ArrayList<>();
-        //16.4.26 wayArea.initLeftRightLines();
-
-        List<Coordinate> leftline = new ArrayList<>();
-        List<Coordinate> rightline = new ArrayList<>();
-
-        // 18.3.26: Needed now here due to no mid connector? Strange. What are these wayarea segments?
-        CoordinatePair[] pairs = wayArea.getPairsOfSegment(/*19.3.26 0*/);
-        if (pairs == null) {
-            log.error("unexpected");
-            return;
-        }
-        for (CoordinatePair pair : pairs) {
-            if (pair == null) {
-                log.error("unexpected");
-                return;
-            }
-            leftline.add(pair.left());
-            rightline.add(pair.right());
-        }
-
-        registerWay(sceneryWayObject.osmWayId, null, leftline, rightline, null, 2, null);
+        registerWay(osmWayId, null, outlines.getFirst(), outlines.getSecond(), null, 2, null, areasToAdjust);
 
 
         // Also consider dead end. Connect left and right lines from above.
@@ -133,4 +123,6 @@ public class MeshServiceBridge implements SceneryObjectComponent {
             log.error("invalid after adding way");
         }*/
     }
+
+
 }

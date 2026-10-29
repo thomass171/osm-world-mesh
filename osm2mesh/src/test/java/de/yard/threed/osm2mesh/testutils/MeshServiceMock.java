@@ -1,20 +1,16 @@
 package de.yard.threed.osm2mesh.testutils;
 
-import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.Pair;
-import de.yard.threed.osm2graph.osm.CoordinateList;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.*;
 import de.yard.threed.osm2scenery.scenery.LandClass;
-import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MapWaySegmentAtConnector;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +32,7 @@ public class MeshServiceMock implements MeshServiceFacade {
     }
 
     @Override
-    public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes, LandClass landClass) throws MeshInconsistencyException {
+    public TerrainMesh addWay(String meshName, long osmWayId, Pair<GeoCoordinate, GeoCoordinate> fromConnector, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine, Pair<GeoCoordinate, GeoCoordinate> toConnector, int lanes, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
 
         List<Pair<GeoCoordinate, Long>> polyList = new ArrayList<>();
 
@@ -50,7 +46,30 @@ public class MeshServiceMock implements MeshServiceFacade {
     }
 
     @Override
-    public TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass) throws MeshInconsistencyException {
+    public List<MeshPolygon> findAreaIntersectionsOfWay(String meshName, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine) throws MeshInconsistencyException {
+        List<GeoCoordinate> outline = new ArrayList<>();
+        JtsUtil.processWayOutlines(leftLine, rightLine, outline::add);
+        outline.add(outline.get(0)); // close polygon
+        return findAreaIntersectionsOfArea(new GeoPolygon(outline));
+    }
+
+    @Override
+    public List<MeshPolygon> findAreaIntersectionsOfArea(String meshName, List<Pair<GeoCoordinate, Long>> polygon) throws MeshInconsistencyException {
+        return findAreaIntersectionsOfArea(new GeoPolygon(polygon.stream().map(Pair::getFirst).toList()));
+    }
+
+    private List<MeshPolygon> findAreaIntersectionsOfArea(GeoPolygon wayPolygon) {
+        List<MeshPolygon> result = new ArrayList<>();
+        for (MeshPolygon p : polygons) {
+            if (p.getType() == MeshPolygonType.AREA && Boolean.TRUE.equals(JtsUtil.overlaps(wayPolygon, p.getGeoPolygon()))) {
+                result.add(p);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
 
         polygons.add(new MeshPolygonMock(osmNodeId, MeshPolygonType.CONNECTOR, landClass, polygon, wayAttachPoints));
         return TerrainMesh.init(gridCellBounds, points, polygons);

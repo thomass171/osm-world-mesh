@@ -52,4 +52,24 @@ public interface MeshPolygonRepository extends PagingAndSortingRepository<Persis
                                        @Param("lat") double lat,
                                        @Param("lon") double lon);
 
+    /**
+     * Bounding-box pre-filter like findCandidatePolygonIds(), but for a box instead of a point: returns ids of
+     * polygons whose node bounding box intersects the given box.
+     */
+    @Query("""
+        SELECT mp.id
+        FROM PersistedMeshPolygon mp
+        JOIN mp.meshPolygonNodes mpn
+        JOIN mpn.meshNode n
+        WHERE mp.mesh = :mesh
+        GROUP BY mp.id
+        HAVING MIN(n.lat) <= :maxLat AND MAX(n.lat) >= :minLat
+           AND MIN(n.lon) <= :maxLon AND MAX(n.lon) >= :minLon
+        """)
+    List<Long> findCandidatePolygonIdsInBox(@Param("mesh") PersistedMesh mesh,
+                                            @Param("minLat") double minLat,
+                                            @Param("maxLat") double maxLat,
+                                            @Param("minLon") double minLon,
+                                            @Param("maxLon") double maxLon);
+
 }

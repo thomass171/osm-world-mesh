@@ -7,6 +7,7 @@ import de.yard.threed.osm2graph.osm.*;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
@@ -1037,7 +1038,9 @@ public class SceneryWayConnector extends SceneryNodeObject {
         }
 
         //10.3.26 now in cca() createPolygon(tm.getGridCellBounds(), tm, SceneryContext.getInstance());
-        /*24.8.26 meshWayConnector =*/ ((MeshServiceBridge) meshServiceBridge).registerConnector(node.getOsmId(), polygonLine, attachpair, null);
+        // 28.10.26: Find the areas the connector overlaps, which need to be adjusted when adding the connector.
+        List<MeshPolygon> areasToAdjust = meshServiceBridge.findAreaIntersections(polygonLine);
+        /*24.8.26 meshWayConnector =*/ ((MeshServiceBridge) meshServiceBridge).registerConnector(node.getOsmId(), polygonLine, attachpair, null, areasToAdjust);
 
         // 27.2.26: We are back at storing polygons, so don't go this way any more.
        /*

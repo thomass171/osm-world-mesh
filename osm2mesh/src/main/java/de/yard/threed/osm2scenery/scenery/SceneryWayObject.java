@@ -385,7 +385,14 @@ public class SceneryWayObject extends SceneryFlatObject {
     public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
 
         // TODO 10.3.26 save 'meshWay' like meshconnector
-        (meshServiceBridge).persistWay(this);
+        // 28.10.26: Find the areas the way overlaps, which need to be adjusted when adding the way.
+        Pair<List<Coordinate>, List<Coordinate>> outlines = buildWayOutlines(this);
+        if (outlines == null) {
+            // no area, so nothing to persist. Already logged.
+            return;
+        }
+        List<MeshPolygon> areasToAdjust = meshServiceBridge.findAreaIntersections(outlines.getFirst(), outlines.getSecond());
+        (meshServiceBridge).persistWay(this.osmWayId, outlines, areasToAdjust);
         return ;
     }
 
@@ -939,4 +946,39 @@ public class SceneryWayObject extends SceneryFlatObject {
         }
         return getWayArea().getLeftLines(tm) != null && getWayArea().getRightLines(tm) != null;
     }*/
+
+    /**
+     * The left and right (projected) outline of a way. Returns null if the way has no (usable) area.
+     * 28.10.26: Extracted from persistWay() for also being usable for findAreaIntersections().
+     */
+    public Pair<List<Coordinate>, List<Coordinate>> buildWayOutlines(SceneryWayObject sceneryWayObject) {
+        WayArea wayArea = sceneryWayObject.getWayArea();
+        if (wayArea == null) {
+            // No area. Check for buildOutlinePolygonFromGraph() warnings
+            return null;
+        }
+
+        //wayArea.leftlines = new ArrayList<>();
+        //wayArea.rightlines = new ArrayList<>();
+        //16.4.26 wayArea.initLeftRightLines();
+
+        List<Coordinate> leftline = new ArrayList<>();
+        List<Coordinate> rightline = new ArrayList<>();
+
+        // 18.3.26: Needed now here due to no mid connector? Strange. What are these wayarea segments?
+        CoordinatePair[] pairs = wayArea.getPairsOfSegment(/*19.3.26 0*/);
+        if (pairs == null) {
+            log.error("unexpected");
+            return null;
+        }
+        for (CoordinatePair pair : pairs) {
+            if (pair == null) {
+                log.error("unexpected");
+                return null;
+            }
+            leftline.add(pair.left());
+            rightline.add(pair.right());
+        }
+        return new Pair<>(leftline, rightline);
+    }
 }

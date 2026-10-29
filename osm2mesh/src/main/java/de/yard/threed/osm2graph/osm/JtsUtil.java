@@ -1234,13 +1234,22 @@ public class JtsUtil {
      * @return
      */
     public static List<PolygonSubtractResult> subtractPolygons(Polygon p0, Polygon p1) {
+        return subtractPolygons(p0, p1, 0.0001);
+    }
+
+    /**
+     * 28.10.26: With configurable minimum area change for detecting 'no overlap'. The default of 0.0001 is
+     * fine for projected coordinates (meter) but far too large for GeoCoordinates (degree), where it would
+     * always return null.
+     */
+    public static List<PolygonSubtractResult> subtractPolygons(Polygon p0, Polygon p1, double minAreaChange) {
         List<PolygonSubtractResult> result = new ArrayList<>();
         Geometry diff = JtsUtil.difference(p0, p1);
         if (diff != null) {
             if (diff instanceof Polygon) {
                 //4.9.19:Die Ermittlung der
                 List<Coordinate> seam = getSeam((Polygon) diff, p1);
-                if (Math.abs(diff.getArea() - p0.getArea()) < 0.0001) {
+                if (Math.abs(diff.getArea() - p0.getArea()) < minAreaChange) {
                     return null;
                 }
                 result.add(new PolygonSubtractResult((Polygon) diff, seam));

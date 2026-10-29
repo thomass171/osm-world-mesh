@@ -15,11 +15,14 @@ import de.yard.threed.MeshServiceFactory;
 import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.LatLon;
+import de.yard.threed.core.Pair;
 import de.yard.threed.modules.AbstractWayModuleTest;
 import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
 import de.yard.threed.osm2scenery.AbstractSceneryWayConnectorTest;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
 import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.OsmProcessException;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
@@ -37,6 +40,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Also for MeshNode, MeshLine, MeshArea, OsmNode, OsmWay and repositories
@@ -202,7 +206,7 @@ public class MeshServiceBaseTest {
         List<GeoCoordinate> rightLine = new ArrayList<>();
         rightLine.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00025, 7.0001)));
         rightLine.add(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00025, 7.0003)));
-        TerrainMesh terrainMesh = meshService.addWay("small2024", -1/*200, List.of(100L, 101L)*/, null, leftLine, rightLine, null, 1, LandClass.Asphalt);
+        TerrainMesh terrainMesh = meshService.addWay("small2024", -1/*200, List.of(100L, 101L)*/, null, leftLine, rightLine, null, 1, LandClass.Asphalt, List.of());
 
         terrainMesh.writeToSvg();
 
@@ -219,6 +223,104 @@ public class MeshServiceBaseTest {
         terrainMesh = meshService.loadMesh("small2024"/*, terrainMesh.getGridCellBounds()*/);
         assertEquals(4 + 4, terrainMesh.points.size(), "points");
         assertNull(terrainMesh.isValid());
+    }
+
+    @Test
+    public void testFindAreaIntersections() throws MeshInconsistencyException {
+
+        buildSmall2024();
+
+        // an area and a way south of it, not touching each other
+        meshService.addArea("small2024", 300, MeshPolygonType.AREA, List.of(
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0001)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0004)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0004)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001))), null);
+        meshService.addWay("small2024", 301, null,
+                buildLine(51.00005, 7.0001, 51.00005, 7.0004),
+                buildLine(51.0, 7.0001, 51.0, 7.0004), null, 1, LandClass.Asphalt, List.of());
+
+        // north/south way crossing the area and the existing way. Only the area is found.
+        List<MeshPolygon> result = meshService.findAreaIntersectionsOfWay("small2024",
+                buildLine(50.9998, 7.0002, 51.0003, 7.0002),
+                buildLine(50.9998, 7.00025, 51.0003, 7.00025));
+        assertEquals(1, result.size());
+        assertEquals(300, result.get(0).getOsmId());
+
+        // way only touching the area at its north edge
+        result = meshService.findAreaIntersectionsOfWay("small2024",
+                buildLine(51.00045, 7.0001, 51.00045, 7.0004),
+                buildLine(51.0004, 7.0001, 51.0004, 7.0004));
+        assertEquals(0, result.size());
+
+        // way far away from the area
+        result = meshService.findAreaIntersectionsOfWay("small2024",
+                buildLine(51.00048, 7.0001, 51.00048, 7.0004),
+                buildLine(51.00046, 7.0001, 51.00046, 7.0004));
+        assertEquals(0, result.size());
+
+        // connector polygon (closed) inside the area
+        result = meshService.findAreaIntersectionsOfArea("small2024", List.of(
+                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0002, 7.0002)), 0L),
+                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0002, 7.0003)), 0L),
+                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0003, 7.0003)), 0L),
+                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0003, 7.0002)), 0L),
+                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0002, 7.0002)), 0L)));
+        assertEquals(1, result.size());
+        assertEquals(300, result.get(0).getOsmId());
+    }
+
+    @Test
+    public void testAdjustAreas() throws MeshInconsistencyException {
+
+        buildSmall2024();
+
+        meshService.addArea("small2024", 300, MeshPolygonType.AREA, List.of(
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0001)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0004)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0004)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001))), null);
+
+        // north/south way crossing the area splits it into a west and an east part
+        List<GeoCoordinate> leftLine = buildLine(51.00005, 7.0002, 51.00045, 7.0002);
+        List<GeoCoordinate> rightLine = buildLine(51.00005, 7.00025, 51.00045, 7.00025);
+        List<MeshPolygon> areasToAdjust = meshService.findAreaIntersectionsOfWay("small2024", leftLine, rightLine);
+        assertEquals(1, areasToAdjust.size());
+        meshService.addWay("small2024", 301, null, leftLine, rightLine, null, 1, LandClass.Asphalt, areasToAdjust);
+
+        List<PersistedMeshPolygon> areas = meshPolygonRepository.findByOsmId(300);
+        assertEquals(2, areas.size());
+        for (PersistedMeshPolygon area : areas) {
+            assertEquals(MeshPolygonType.AREA, area.getType());
+            assertEquals(4, area.getGeoCoordinates().size());
+        }
+
+        // connector cutting the north east corner of the east part. Closing node must be the same instance
+        // because GeoCoordinate has no equals().
+        Pair<GeoCoordinate, Long> start = new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.00035)), 0L);
+        List<Pair<GeoCoordinate, Long>> connector = List.of(
+                start,
+                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.00045)), 0L),
+                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00045, 7.00045)), 0L),
+                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00045, 7.00035)), 0L),
+                start);
+        areasToAdjust = meshService.findAreaIntersectionsOfArea("small2024", connector);
+        assertEquals(1, areasToAdjust.size());
+        meshService.addConnector("small2024", 302, connector, Map.of(), null, areasToAdjust);
+
+        areas = meshPolygonRepository.findByOsmId(300);
+        assertEquals(2, areas.size());
+        // the east part is L-shaped now
+        assertEquals(List.of(4, 6), areas.stream().map(a -> a.getGeoCoordinates().size()).sorted().toList());
+
+        // no overlaps and no area intersections left
+        meshService.loadMesh("small2024").validate();
+        assertEquals(0, meshService.findAreaIntersectionsOfWay("small2024", leftLine, rightLine).size());
+        assertEquals(0, meshService.findAreaIntersectionsOfArea("small2024", connector).size());
+    }
+
+    private List<GeoCoordinate> buildLine(double lat0, double lon0, double lat1, double lon1) {
+        return List.of(GeoCoordinate.fromLatLon(LatLon.fromDegrees(lat0, lon0)), GeoCoordinate.fromLatLon(LatLon.fromDegrees(lat1, lon1)));
     }
 
     @Test
