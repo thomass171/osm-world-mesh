@@ -1223,17 +1223,17 @@ public class JtsUtil {
 
     /**
      * Liefert p0 ohne die Bereiche von p1, also p0-p1.
-     * Wenn nichts von p1 ausserhalb von p0 liegt, passiert das evtl. "einfach" durch einfügen eines Hole.
      * <p>
      * Konvertiert die möglichen verschiedenen Resultate einheitlich in eine Polygon List.
      * <p>
      * Wenn p1 komplett ausserhalb liegt (kein Overlap) wird entgegen mathematischen Regeln null returned.
      * <p>
      * 25.04.19
-     *
-     * @return
+     * 29.10.26: Never returns polygons with holes. A hole (eg. when p1 is completely inside p0) is removed
+     * by splitting the polygon through the hole (see splitAtHoles()).
+     * Returns an empty list when nothing of p0 remains or difference failed (already logged).
      */
-    public static List<PolygonSubtractResult> subtractPolygons(Polygon p0, Polygon p1) {
+    public static List<Polygon> subtractPolygons(Polygon p0, Polygon p1) {
         return subtractPolygons(p0, p1, 0.0001);
     }
 
@@ -1242,39 +1242,83 @@ public class JtsUtil {
      * fine for projected coordinates (meter) but far too large for GeoCoordinates (degree), where it would
      * always return null.
      */
-    public static List<PolygonSubtractResult> subtractPolygons(Polygon p0, Polygon p1, double minAreaChange) {
-        List<PolygonSubtractResult> result = new ArrayList<>();
+    public static List<Polygon> subtractPolygons(Polygon p0, Polygon p1, double minAreaChange) {
+        List<Polygon> result = new ArrayList<>();
         Geometry diff = JtsUtil.difference(p0, p1);
-        if (diff != null) {
-            if (diff instanceof Polygon) {
-                //4.9.19:Die Ermittlung der
-                List<Coordinate> seam = getSeam((Polygon) diff, p1);
-                if (Math.abs(diff.getArea() - p0.getArea()) < minAreaChange) {
-                    return null;
-                }
-                result.add(new PolygonSubtractResult((Polygon) diff, seam));
-            } else if (diff instanceof MultiPolygon) {
-                MultiPolygon mp = (MultiPolygon) diff;
-                for (int i = 0; i < mp.getNumGeometries(); i++) {
-                    Polygon diffpart = (Polygon) mp.getGeometryN(i);
-                    List<Coordinate> seam = getSeam((Polygon) diffpart, p1);
+        if (diff == null) {
+            return result;
+        }
+        // 29.10.26 Not sure what purpose the check for 'minAreaChange' could/should have. At least some tests rely on it.
+        if (Math.abs(diff.getArea() - p0.getArea()) < minAreaChange) {
+            return null;
+        }
+        for (Polygon part : extractPolygons(diff)) {
+            result.addAll(splitAtHoles(part));
+        }
+        return result;
+    }
 
-                    result.add(new PolygonSubtractResult(diffpart, seam));
-                }
-            } else if (diff instanceof GeometryCollection) {
-                //18.4.19: sowas gibts auch. Dann kann da ein LineString drinsein.
-                //Bestimmt weil etwas exakt uebreinander liegt. Reichlich doof. Was heisst das wohl?
-                GeometryCollection gc = (GeometryCollection) diff;
-                for (int i = 0; i < gc.getNumGeometries(); i++) {
-                    Geometry sg = gc.getGeometryN(i);
-                    if (sg instanceof Polygon) {
-                        result.add(new PolygonSubtractResult((Polygon) sg));
-                    } else {
-                        log.warn("Ignoring difference polygon " + sg);
-                    }
+    /**
+     * The non empty polygons of a geometry (Polygon, MultiPolygon or GeometryCollection).
+     * 18.4.19: A GeometryCollection might also contain a LineString, eg. when something is exactly on top
+     * of each other. These are ignored.
+     */
+    private static List<Polygon> extractPolygons(Geometry geometry) {
+        List<Polygon> result = new ArrayList<>();
+        for (int i = 0; i < geometry.getNumGeometries(); i++) {
+            Geometry g = geometry.getGeometryN(i);
+            if (g instanceof Polygon) {
+                if (!g.isEmpty()) {
+                    result.add((Polygon) g);
                 }
             } else {
-                log.error("unknown background difference type. skipped.: " + diff.getClass().getName());
+                log.warn("Ignoring non polygon geometry " + g);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Splits a polygon with holes into polygons without holes. The polygon is cut by a straight line through the
+     * middle of the first hole (so the line really crosses the hole), across the shorter side of the polygon
+     * envelope for a short seam. The parts are split recursively until no hole is left.
+     * Holes that can't be removed (should never happen) are logged and kept.
+     * 29.10.26
+     */
+    public static List<Polygon> splitAtHoles(Polygon polygon) {
+        List<Polygon> result = new ArrayList<>();
+        if (polygon.getNumInteriorRing() == 0) {
+            result.add(polygon);
+            return result;
+        }
+        Envelope env = polygon.getEnvelopeInternal();
+        Coordinate holeCenter = polygon.getInteriorRingN(0).getEnvelopeInternal().centre();
+        Envelope[] halves;
+        if (env.getWidth() >= env.getHeight()) {
+            // vertical cut
+            halves = new Envelope[]{
+                    new Envelope(env.getMinX(), holeCenter.x, env.getMinY(), env.getMaxY()),
+                    new Envelope(holeCenter.x, env.getMaxX(), env.getMinY(), env.getMaxY())};
+        } else {
+            // horizontal cut
+            halves = new Envelope[]{
+                    new Envelope(env.getMinX(), env.getMaxX(), env.getMinY(), holeCenter.y),
+                    new Envelope(env.getMinX(), env.getMaxX(), holeCenter.y, env.getMaxY())};
+        }
+        for (Envelope half : halves) {
+            Geometry part = intersection(polygon, GF.toGeometry(half));
+            if (part == null) {
+                // already logged
+                continue;
+            }
+            for (Polygon p : extractPolygons(part)) {
+                if (p.getNumInteriorRing() >= polygon.getNumInteriorRing()) {
+                    // no progress, avoid endless recursion
+                    log.error("hole not removed by split: " + p);
+                    result.add(p);
+                } else {
+                    result.addAll(splitAtHoles(p));
+                }
             }
         }
         return result;

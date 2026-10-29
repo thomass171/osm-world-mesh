@@ -6,7 +6,6 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.TopologyException;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2graph.osm.PolygonSubtractResult;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.Area;
@@ -114,22 +113,14 @@ public class Background {
         for (BackgroundElement be : background) {
             Polygon pePolygon = be.polygon;
             if (pePolygon.intersects(uncutarea)) {
-                List<PolygonSubtractResult> diff = JtsUtil.subtractPolygons(pePolygon, uncutarea);
+                List<Polygon> diff = JtsUtil.subtractPolygons(pePolygon, uncutarea);
                 if (diff == null || diff.size() == 0) {
                     //4.9.19:nicht loggenmswert
                     //log.error("no diff found");
                 } else {
-                    for (PolygonSubtractResult p0 : diff) {
-                        Polygon bep = p0.polygon;
-                        if (bep.getNumInteriorRing() == 1 && alreadycut) {
-                            Polygon bepwithouthole = JtsUtil.removeHoleOnEdge(bep);
-                            if (bepwithouthole != null) {
-                                log.debug("hole removed from polygon");
-                                bep = bepwithouthole;
-                            }
-                        }
+                    // 29.10.26: subtractPolygons() no longer returns holes, so removeHoleOnEdge() is no longer needed.
+                    for (Polygon bep : diff) {
                         addToList(bep, newbackground);
-
                     }
                 }
             } else {

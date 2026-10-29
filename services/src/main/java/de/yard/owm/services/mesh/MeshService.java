@@ -4,13 +4,13 @@ import de.yard.owm.configuration.ApplicationContextHolder;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 import de.yard.owm.services.persistence.*;
 import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.core.Pair;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2graph.osm.PolygonSubtractResult;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.*;
 import de.yard.threed.osm2scenery.scenery.LandClass;
@@ -171,7 +171,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             closedOutline.add(outline.get(0));
             GeoPolygon wayPolygon = new GeoPolygon(closedOutline);
             for (MeshPolygon area : areasToAdjust) {
-                adjustPolygon(area, wayPolygon);
+                adjustPolygon(((PersistedMeshPolygon) area).getId(), wayPolygon);
             }
         }
 
@@ -227,7 +227,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             log.debug("Connector {} overlaps {} area(s) that need to be adjusted", osmNodeId, areasToAdjust.size());
             GeoPolygon connectorPolygon = new GeoPolygon(polygon.stream().map(Pair::getFirst).toList());
             for (MeshPolygon area : areasToAdjust) {
-                adjustPolygon(area, connectorPolygon);
+                adjustPolygon(((PersistedMeshPolygon) area).getId(), connectorPolygon);
             }
         }
 
@@ -489,18 +489,17 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
      * the subtraction fails.
      * 28.10.26
      */
-    private void adjustPolygon(MeshPolygon polygonToAdjust, GeoPolygon newPolygon) throws MeshInconsistencyException {
-        // polygonToAdjust is detached (from another TX), so reload it.
-        Long id = ((PersistedMeshPolygon) polygonToAdjust).getId();
-        PersistedMeshPolygon existing = meshPolygonRepository.findById(id)
-                .orElseThrow(() -> new MeshInconsistencyException("polygon to adjust not found: " + id));
+    private void adjustPolygon(long polygonToAdjustId, GeoPolygon newPolygon) throws MeshInconsistencyException {
+        // Avoid problems with detached entities and reload polygon (the entity instances might have been created before the new TX started).
+        PersistedMeshPolygon existing = meshPolygonRepository.findById(polygonToAdjustId)
+                .orElseThrow(() -> new MeshInconsistencyException("polygon to adjust not found: " + polygonToAdjustId));
         GeoPolygon existingPolygon = existing.getGeoPolygon();
         if (existingPolygon == null) {
             // already logged
             throw new MeshInconsistencyException("polygon to adjust is inconsistent: " + existing);
         }
         // Use the same overlap limit as JtsUtil.overlaps() for GeoCoordinates
-        List<PolygonSubtractResult> parts = JtsUtil.subtractPolygons(existingPolygon, newPolygon, 0.000000001);
+        List<Polygon> parts = JtsUtil.subtractPolygons(existingPolygon, newPolygon, 0.000000001);
         if (parts == null) {
             log.debug("No overlap of {}, so nothing to adjust", existing);
             return;
@@ -511,12 +510,12 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         }
         PersistedMesh mesh = existing.getMesh();
         List<PersistedMeshPolygon> newPolygons = new ArrayList<>();
-        for (PolygonSubtractResult part : parts) {
-            if (part.polygon.getNumInteriorRing() > 0) {
-                // happens when newPolygon is completely inside
+        for (Polygon part : parts) {
+            if (part.getNumInteriorRing() > 0) {
+                // subtractPolygons() should have split it, so already logged there
                 throw new MeshInconsistencyException("adjusting " + existing + " leads to a hole, which isn't supported");
             }
-            List<GeoCoordinate> coordinates = JtsUtil.coordinatesToGeoCoordinates(Arrays.asList(part.polygon.getExteriorRing().getCoordinates()));
+            List<GeoCoordinate> coordinates = JtsUtil.coordinatesToGeoCoordinates(Arrays.asList(part.getExteriorRing().getCoordinates()));
             // skip closing coordinate, buildPolygon() closes itself
             coordinates.remove(coordinates.size() - 1);
             newPolygons.add(buildPersistedMeshPolygon(mesh, existing.getOsmId(), existing.getType(), existing.getLandClass(), coordinates.iterator()));

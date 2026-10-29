@@ -185,9 +185,9 @@ public class OsmGridTest {
 
         SceneryAreaObject splitfarmland = (SceneryAreaObject) sceneryMesh.sceneryObjects.findObjectByOsmId(87822834);
         assertEquals(2, splitfarmland.getArea().length, "splitfarmland.polygone.size");
-        assertEquals(2, splitfarmland.polydiffs.size(), "splitfarmland.polydiffs");
+        /*29.10.26assertEquals(2, splitfarmland.polydiffs.size(), "splitfarmland.polydiffs");
         assertEquals(4, splitfarmland.polydiffs.get(0).seam.size(), "splitfarmland.polydiff[0].seam.size");
-        assertEquals((SceneryBuilder.FTR_SMARTGRID) ? 5 : 6, splitfarmland.polydiffs.get(1).seam.size(), "splitfarmland.polydiff[1].seam.size");
+        assertEquals((SceneryBuilder.FTR_SMARTGRID) ? 5 : 6, splitfarmland.polydiffs.get(1).seam.size(), "splitfarmland.polydiff[1].seam.size");*/
         assertEquals(1, splitfarmland.getAdjacent().size(), "splitfarmland.adjacent.size");
         MeshPolygonOld splitfarmlandEast = splitfarmland.getArea()[1].getMeshPolygon(sceneryMesh.terrainMesh);
 

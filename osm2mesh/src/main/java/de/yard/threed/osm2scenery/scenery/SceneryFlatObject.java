@@ -61,8 +61,6 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
     // Es kann auch mehrere Material pro SceneryObject geben, z.B. Runway. Anders abbilden? Ja, Runway wird anders,
     Material material;
     public List<Coordinate> newcoordinates;
-    //just for analysis and testing. Eigentlich nur fuer "Area"
-    public List<PolygonSubtractResult> polydiffs = new ArrayList<>();
    //20.8.26  protected TerrainMeshAdder terrainMeshAdder=null;
     //enthaelt die gemeinsamen Coordinates mit anderen Areas. Das ist aber nur noch optional, evtl. deprecated
     //zugunsten der adHoc Ermittlung.

@@ -5,7 +5,6 @@ import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.Util;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2graph.osm.PolygonSubtractResult;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -147,7 +146,7 @@ public class OverlapResolver {
             resolved = false;
             List<AbstractArea> totalresult = new ArrayList<>();
             for (AbstractArea area : sceneryAreaObject.getArea()) {
-                List<AbstractArea> result = resolveSingleTerrainOverlap((Area) area, overlaps, osmid, sceneryAreaObject.material, sceneryAreaObject.polydiffs, tm);
+                List<AbstractArea> result = resolveSingleTerrainOverlap((Area) area, overlaps, osmid, sceneryAreaObject.material, tm);
                 if (result == null) {
                     //no resolve, keep area.
                     totalresult.add(area);
@@ -167,7 +166,7 @@ public class OverlapResolver {
      * Resolve nur fuer einen einzigen Overlap.
      */
     static private List<AbstractArea> resolveSingleTerrainOverlap(Area area, List<SceneryFlatObject> overlaps,
-                                                                  long osmid, Material material, List<PolygonSubtractResult> polydiffs,
+                                                                  long osmid, Material material,
                                                                   TerrainMesh tm) {
 
         //Ob das handling mehrerer Overlaps in einer Schleife wirklich geht, muss sich noch zeigen.
@@ -177,7 +176,7 @@ public class OverlapResolver {
             // die Area wurde durch einen Way(?) in zwei Areas geteilt oder overlaps nur leicht.
             // Weil ja noch areas dazukommen, muss der Overlap nicht unbedingt mit einem Way sein.
             for (AbstractArea overlaparea : overlapobject.getArea()) {
-                List<PolygonSubtractResult> poliesWithoutOverlap = JtsUtil.subtractPolygons(area.poly.polygon, overlaparea.getPolygon(tm));
+                /*29.10.26 List<PolygonSubtractResult> poliesWithoutOverlap = JtsUtil.subtractPolygons(area.poly.polygon, overlaparea.getPolygon(tm));
                 if (poliesWithoutOverlap == null) {
                     //log.debug("no overlap for current area to resolve");
                 } else {
@@ -245,7 +244,7 @@ public class OverlapResolver {
                         default:
                             log.warn("unexpected diff result size " + poliesWithoutOverlap.size());
                     }
-                }
+                }*/
             }
         }
         return null;

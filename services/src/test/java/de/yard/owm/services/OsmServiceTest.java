@@ -274,8 +274,8 @@ public class OsmServiceTest extends AbstractSceneryTest {
 
         // farmland 87822834L 'below' K43 needs to be split into 2 areas by way 37935545.
         results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 37935545L);
-        /*TODO assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());*/
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
 
         terrainMesh.writeToSvg();
     }
