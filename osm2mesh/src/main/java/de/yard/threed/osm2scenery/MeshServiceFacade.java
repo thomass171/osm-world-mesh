@@ -34,7 +34,7 @@ public interface MeshServiceFacade {
      * @return
      * @throws MeshInconsistencyException
      */
-    TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException;
+    TerrainMesh addConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException;
 
     TerrainMesh loadMesh(String meshName) throws MeshInconsistencyException;
 
@@ -51,7 +51,7 @@ public interface MeshServiceFacade {
     /**
      * The most generic use case
      */
-    TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass) throws MeshInconsistencyException;
+    TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException;
 
     /**
      * Returns the polygons of type AREA that overlap the polygon a way with these outlines would get in addWay().
@@ -60,8 +60,8 @@ public interface MeshServiceFacade {
     List<MeshPolygon> findAreaIntersectionsOfWay(String meshName, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine) throws MeshInconsistencyException;
 
     /**
-     * Like findAreaIntersections() for a way, but for a connector polygon (closed, like in addConnector()).
+     * Like findAreaIntersections() for a way, but for an area (closed, like in addConnector()).
      */
-    List<MeshPolygon> findAreaIntersectionsOfArea(String meshName, List<Pair<GeoCoordinate, Long>> polygon) throws MeshInconsistencyException;
+    List<MeshPolygon> findAreaIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException;
 
 }

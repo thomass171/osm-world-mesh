@@ -3,6 +3,8 @@ package de.yard.threed.osm2graph.osm;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
+import de.yard.threed.core.GeoCoordinate;
+import de.yard.threed.core.LatLon;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -15,6 +17,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class JtsUtilTest {
 
     Polygon square = polygon("POLYGON((0 0, 10 0, 10 10, 0 10, 0 0))");
+
+    @Test
+    public void testIsSameLocation() {
+        LatLon location = LatLon.fromDegrees(51.0, 7.0);
+        assertTrue(JtsUtil.isSameLocation(location, LatLon.fromDegrees(51.0, 7.0)));
+        // elevation is ignored
+        assertTrue(JtsUtil.isSameLocation(GeoCoordinate.fromLatLon(location, 10), GeoCoordinate.fromLatLon(location, 20)));
+
+        // rounding noise
+        LatLon noise = LatLon.fromDegrees(51.0, 7.0);
+        noise.setLongitudeRad(noise.getLonRad() + 1e-15);
+        assertTrue(JtsUtil.isSameLocation(location, noise));
+
+        // about 0.1 m away
+        assertFalse(JtsUtil.isSameLocation(location, LatLon.fromDegrees(51.000001, 7.0)));
+        assertFalse(JtsUtil.isSameLocation(location, LatLon.fromDegrees(51.0, 7.000001)));
+    }
 
     @Test
     public void testSubtractPolygonsCrossing() {

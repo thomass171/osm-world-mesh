@@ -181,8 +181,17 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass) throws MeshInconsistencyException {
+    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
         long startTime = System.currentTimeMillis();
+
+        if (!areasToAdjust.isEmpty()) {
+            log.debug("Area {} overlaps {} area(s) that need to be adjusted", osmId, areasToAdjust.size());
+            GeoPolygon newArea = new GeoPolygon(geoCoordinates);
+            for (MeshPolygon area : areasToAdjust) {
+                adjustPolygon(((PersistedMeshPolygon) area).getId(), newArea);
+            }
+        }
+
         TerrainMesh terrainMesh = addPolygon(meshName, osmId, type, landClass, geoCoordinates.iterator());
         log.debug("Added area {} of type {} to mesh. Took {} ms.", osmId, type, System.currentTimeMillis() - startTime);
         return terrainMesh;
@@ -214,18 +223,17 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+    public TerrainMesh addConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
 
         log.debug("Adding connector {} with {} nodes and {} attach pairs to mesh", osmNodeId, polygon.size() - 1, wayAttachPoints.size());
 
-        // equals is not yet implemented in GeoCoordinate, so this is ...???
-        if (!polygon.get(0).getFirst().equals(polygon.get(polygon.size() - 1).getFirst())) {
+        if (!JtsUtil.isSameLocation(polygon.get(0), polygon.get(polygon.size() - 1))) {
             throw new MeshInconsistencyException("polygon not closed");
         }
 
         if (!areasToAdjust.isEmpty()) {
             log.debug("Connector {} overlaps {} area(s) that need to be adjusted", osmNodeId, areasToAdjust.size());
-            GeoPolygon connectorPolygon = new GeoPolygon(polygon.stream().map(Pair::getFirst).toList());
+            GeoPolygon connectorPolygon = new GeoPolygon(polygon);
             for (MeshPolygon area : areasToAdjust) {
                 adjustPolygon(((PersistedMeshPolygon) area).getId(), connectorPolygon);
             }
@@ -247,7 +255,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         MeshLine l;
         // Skip closing node but use close() afterwards
         for (int i = 0; i < polygon.size() - 1; i++) {
-            n = buildMeshNode(polygon.get(i).getFirst(), mesh);
+            n = buildMeshNode(polygon.get(i), mesh);
             meshPolygon.addNode(n);
         }
         //incoming already is closed. But we need to be sure to reuse the same start node at end
@@ -412,8 +420,8 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
      * Like findAreaIntersections() for a way, but for a connector polygon (closed, like in addConnector()).
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    public List<MeshPolygon> findAreaIntersectionsOfArea(String meshName, List<Pair<GeoCoordinate, Long>> polygon) throws MeshInconsistencyException {
-        return findAreaIntersections(meshName, new GeoPolygon(polygon.stream().map(Pair::getFirst).toList()));
+    public List<MeshPolygon> findAreaIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException {
+        return findAreaIntersections(meshName, new GeoPolygon(polygon));
     }
 
     public PersistedMeshNode buildMeshNode(GeoCoordinate coordinate, PersistedMesh mesh) {
@@ -449,12 +457,12 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
 
             @Override
-            public List<MeshPolygon> findAreaIntersectionsOfArea(String meshName, List<Pair<GeoCoordinate, Long>> polygon) throws MeshInconsistencyException {
+            public List<MeshPolygon> findAreaIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException {
                 return ms.findAreaIntersectionsOfArea(meshName, polygon);
             }
 
             @Override
-            public TerrainMesh addConnector(String meshName, long osmNodeId, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+            public TerrainMesh addConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
                 return ms.addConnector(meshName, osmNodeId, polygon, wayAttachPoints, landClass, areasToAdjust);
             }
 
@@ -474,8 +482,8 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
 
             @Override
-            public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass) throws MeshInconsistencyException {
-                return ms.addArea(meshName, osmId, type, geoCoordinates, landClass);
+            public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+                return ms.addArea(meshName, osmId, type, geoCoordinates, landClass, areasToAdjust);
             }
         };
     }

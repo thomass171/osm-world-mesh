@@ -12,8 +12,7 @@ import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryObjectFactory;
 import de.yard.threed.osm2scenery.scenery.components.BuildingComponent;
-import de.yard.threed.osm2scenery.scenery.components.DefaultMeshServiceBridge;
-import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
+import de.yard.threed.osm2scenery.scenery.components.ProjectedMeshAdapter;
 import de.yard.threed.osm2world.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration2.Configuration;
@@ -55,10 +54,11 @@ public class BuildingModule extends SceneryModule {
     }
 
     @Override
+    @Deprecated
     public SceneryObjectList applyTo(MapData mapData) {
         buildingobjects = new SceneryObjectList();
 
-        boolean useBuildingColors = Config.getCurrentConfiguration().getBoolean("useBuildingColors", true);
+        /*2.11.26 deprecated boolean useBuildingColors = Config.getCurrentConfiguration().getBoolean("useBuildingColors", true);
         boolean drawBuildingWindows = Config.getCurrentConfiguration().getBoolean("drawBuildingWindows", true);
 
         for (MapArea area : mapData.getMapAreas()) {
@@ -77,7 +77,7 @@ public class BuildingModule extends SceneryModule {
                 area2building.put(area, building);
             }
 
-        }
+        }*/
 
 
         return buildingobjects;
@@ -107,8 +107,8 @@ public class BuildingModule extends SceneryModule {
             buildingobjects.add(buildingobject);
             //area2building.put(area, building);
 
-            MeshServiceBridge meshServiceBridge = new DefaultMeshServiceBridge(meshName, meshServiceFacade, projection, buildingobject);
-            buildingobject.cca(meshServiceBridge);
+            ProjectedMeshAdapter projectedMeshAdapter = new ProjectedMeshAdapter(meshName, meshServiceFacade, projection);
+            buildingobject.cca(projectedMeshAdapter);
             applied = true;
         }
 

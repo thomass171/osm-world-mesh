@@ -10,7 +10,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.modules.BridgeModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
+import de.yard.threed.osm2scenery.scenery.components.ProjectedMeshAdapter;
 import de.yard.threed.osm2world.*;
 import lombok.extern.slf4j.Slf4j;
 
@@ -118,8 +118,8 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
-        super.addToTerrainMesh(meshServiceBridge);
+    public void addToTerrainMesh(ProjectedMeshAdapter projectedMeshAdapter) throws MeshInconsistencyException {
+        super.addToTerrainMesh(projectedMeshAdapter);
         return ;
     }
 

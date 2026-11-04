@@ -235,7 +235,7 @@ public class MeshServiceBaseTest {
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0001)),
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0004)),
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0004)),
-                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001))), null);
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001))), null, List.of());
         meshService.addWay("small2024", 301, null,
                 buildLine(51.00005, 7.0001, 51.00005, 7.0004),
                 buildLine(51.0, 7.0001, 51.0, 7.0004), null, 1, LandClass.Asphalt, List.of());
@@ -261,11 +261,11 @@ public class MeshServiceBaseTest {
 
         // connector polygon (closed) inside the area
         result = meshService.findAreaIntersectionsOfArea("small2024", List.of(
-                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0002, 7.0002)), 0L),
-                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0002, 7.0003)), 0L),
-                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0003, 7.0003)), 0L),
-                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0003, 7.0002)), 0L),
-                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0002, 7.0002)), 0L)));
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0002, 7.0002)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0002, 7.0003)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0003, 7.0003)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0003, 7.0002)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0002, 7.0002))));
         assertEquals(1, result.size());
         assertEquals(300, result.get(0).getOsmId());
     }
@@ -279,7 +279,7 @@ public class MeshServiceBaseTest {
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0001)),
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0004)),
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0004)),
-                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001))), null);
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001))), null, List.of());
 
         // north/south way crossing the area splits it into a west and an east part
         List<GeoCoordinate> leftLine = buildLine(51.00005, 7.0002, 51.00045, 7.0002);
@@ -295,15 +295,13 @@ public class MeshServiceBaseTest {
             assertEquals(4, area.getGeoCoordinates().size());
         }
 
-        // connector cutting the north east corner of the east part. Closing node must be the same instance
-        // because GeoCoordinate has no equals().
-        Pair<GeoCoordinate, Long> start = new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.00035)), 0L);
-        List<Pair<GeoCoordinate, Long>> connector = List.of(
-                start,
-                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.00045)), 0L),
-                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00045, 7.00045)), 0L),
-                new Pair<>(GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00045, 7.00035)), 0L),
-                start);
+        // connector cutting the north east corner of the east part. Closing node intentionally is a different instance.
+        List<GeoCoordinate> connector = List.of(
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.00035)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.00045)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00045, 7.00045)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00045, 7.00035)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.00035)));
         areasToAdjust = meshService.findAreaIntersectionsOfArea("small2024", connector);
         assertEquals(1, areasToAdjust.size());
         meshService.addConnector("small2024", 302, connector, Map.of(), null, areasToAdjust);

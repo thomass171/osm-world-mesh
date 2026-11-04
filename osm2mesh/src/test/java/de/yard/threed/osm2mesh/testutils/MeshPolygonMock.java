@@ -18,9 +18,9 @@ public class MeshPolygonMock implements MeshPolygon {
     long osmId;
     MeshPolygonType meshPolygonType;
     LandClass landClass;
-    List<Pair<GeoCoordinate, Long>> polygon;
+    List<GeoCoordinate> polygon;
 
-    public MeshPolygonMock(long osmId, MeshPolygonType meshPolygonType, LandClass landClass, List<Pair<GeoCoordinate, Long>> polygon) {
+    public MeshPolygonMock(long osmId, MeshPolygonType meshPolygonType, LandClass landClass, List<GeoCoordinate> polygon) {
         this.osmId = osmId;
         this.meshPolygonType = meshPolygonType;
         this.landClass = landClass;
@@ -34,8 +34,8 @@ public class MeshPolygonMock implements MeshPolygon {
     public List<? extends MeshPolygonNode> getPolygonNodes() {
         List<MeshPolygonNode> result = new ArrayList<>();
         int index = 0;
-        for (Pair<GeoCoordinate, Long> p : polygon) {
-            MeshPolygonNode pn = new MeshPolygonNodeMock(index++, new MeshNodeMock(p.getFirst()));
+        for (GeoCoordinate p : polygon) {
+            MeshPolygonNode pn = new MeshPolygonNodeMock(index++, new MeshNodeMock(p));
             result.add(pn);
         }
         return result;
@@ -65,7 +65,7 @@ public class MeshPolygonMock implements MeshPolygon {
     public Map<String, Pair<Integer, Integer>> rawWayAttachPoints = new HashMap<>();
 
     // from MeshWayConnectorMock
-    public MeshPolygonMock(long osmId, MeshPolygonType meshPolygonType, LandClass landClass, List<Pair<GeoCoordinate, Long>> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) {
+    public MeshPolygonMock(long osmId, MeshPolygonType meshPolygonType, LandClass landClass, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints) {
         this(osmId, meshPolygonType, landClass, polygon);
 /*        for (Pair<Long, Pair<Integer, Integer>> wap : wayAttachPoints) {
             this.wayAttachPoints.put(wap.getFirst(), wap.getSecond());

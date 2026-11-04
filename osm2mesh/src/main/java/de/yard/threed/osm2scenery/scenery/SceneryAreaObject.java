@@ -2,6 +2,7 @@ package de.yard.threed.osm2scenery.scenery;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Polygon;
+import de.yard.threed.core.Pair;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GridCellBounds;
 import de.yard.threed.osm2graph.osm.JtsUtil;
@@ -11,6 +12,8 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
 import de.yard.threed.osm2scenery.scenery.components.*;
 import de.yard.threed.osm2scenery.util.PolygonMetadata;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
@@ -22,6 +25,7 @@ import de.yard.threed.osm2world.VectorXZ;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -155,8 +159,17 @@ public class SceneryAreaObject extends SceneryFlatObject {
     }
 
     @Override
-    public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
-        ((DefaultMeshServiceBridge) meshServiceBridge).persistArea(this);
+    public void addToTerrainMesh(ProjectedMeshAdapter projectedMeshAdapter) throws MeshInconsistencyException {
+        // 2.11.26: Find the areas the new area overlaps, which need to be adjusted when adding the new area.
+        // TODO solve prio issue. What should be the area to be split? For now we split existing, but that is only correct
+        // for current use case building-on-farmland.
+
+        // for now only the first area is used. TODO: add all areas to the mesh.
+        AbstractArea area = flatComponent[0];
+        List<Coordinate> coordinates = Arrays.asList(area.poly.polygon.getCoordinates());
+        List<MeshPolygon> areasToAdjust = projectedMeshAdapter.findAreaIntersections(coordinates);
+
+        projectedMeshAdapter.registerArea(getOsmIds().get(0), MeshPolygonType.AREA, coordinates, null, areasToAdjust);
 
         return ;
     }

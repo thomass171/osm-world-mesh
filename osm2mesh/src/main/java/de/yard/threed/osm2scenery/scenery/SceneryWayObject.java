@@ -382,7 +382,7 @@ public class SceneryWayObject extends SceneryFlatObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
+    public void addToTerrainMesh(ProjectedMeshAdapter projectedMeshAdapter) throws MeshInconsistencyException {
 
         // TODO 10.3.26 save 'meshWay' like meshconnector
         // 28.10.26: Find the areas the way overlaps, which need to be adjusted when adding the way.
@@ -391,8 +391,8 @@ public class SceneryWayObject extends SceneryFlatObject {
             // no area, so nothing to persist. Already logged.
             return;
         }
-        List<MeshPolygon> areasToAdjust = meshServiceBridge.findAreaIntersections(outlines.getFirst(), outlines.getSecond());
-        (meshServiceBridge).persistWay(this.osmWayId, outlines, areasToAdjust);
+        List<MeshPolygon> areasToAdjust = projectedMeshAdapter.findAreaIntersections(outlines.getFirst(), outlines.getSecond());
+        (projectedMeshAdapter).persistWay(this.osmWayId, outlines, areasToAdjust);
         return ;
     }
 

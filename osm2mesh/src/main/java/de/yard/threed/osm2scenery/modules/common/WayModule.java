@@ -61,7 +61,7 @@ public abstract class WayModule extends SceneryModule {
     }
 
     //static  private Map<Long, List<Road>> roadmap = new HashMap<>();
-    MeshServiceBridge wayMeshServiceBridge;
+    ProjectedMeshAdapter wayProjectedMeshAdapter;
 
     @Override
     @Deprecated
@@ -125,7 +125,7 @@ public abstract class WayModule extends SceneryModule {
                 //road.addToWayMap(ROAD, sceneryContext);
             }
 
-            wayMeshServiceBridge = new MeshServiceBridge(meshName, meshServiceFacade, projection);
+            wayProjectedMeshAdapter = new ProjectedMeshAdapter(meshName, meshServiceFacade, projection);
 
             // 14.2.26: Main change. No longer collect elements but persist way to DB.
             // 18.3.26: The simple incoming way might have been split into segments, so iteration is needed
@@ -142,7 +142,7 @@ public abstract class WayModule extends SceneryModule {
                 if (connectors.getSecond() != null) {
                     sfo.setEndConnector(connectors.getSecond());
                 }
-                sfo.cca(wayMeshServiceBridge);
+                sfo.cca(wayProjectedMeshAdapter);
 
             }
 
@@ -293,7 +293,7 @@ public abstract class WayModule extends SceneryModule {
         connector.classify();
         // done in persist connector.createPolygon(null, null,  SceneryContext.getInstance());
         // DB persist
-        connector.cca(wayMeshServiceBridge);//addToTerrainMesh(tm);
+        connector.cca(wayProjectedMeshAdapter);//addToTerrainMesh(tm);
         return meshServiceFacade.getConnector(connector.getOsmId());
         //return connector;
         // }
@@ -879,7 +879,7 @@ public abstract class WayModule extends SceneryModule {
         }
 
         @Override
-        public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
+        public void addToTerrainMesh(ProjectedMeshAdapter projectedMeshAdapter) throws MeshInconsistencyException {
 
             return;
         }

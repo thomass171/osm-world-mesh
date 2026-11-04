@@ -20,8 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * 4.11.26 deprecated after refactoring of parent class. Code should move somewhere else, but where? Maybe to BridgeGap or BridgeModule.
+ */
 @Slf4j
-public class BridgeMeshServiceBridge extends MeshServiceBridge {
+@Deprecated
+public class BridgeMeshServiceBridge extends ProjectedMeshAdapter {
     BridgeGap bridgeGap;
 
     /**

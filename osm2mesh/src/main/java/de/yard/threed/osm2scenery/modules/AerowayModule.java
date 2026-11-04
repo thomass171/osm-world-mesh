@@ -459,7 +459,7 @@ public class AerowayModule extends SceneryModule {
         }
 
         @Override
-        public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
+        public void addToTerrainMesh(ProjectedMeshAdapter projectedMeshAdapter) throws MeshInconsistencyException {
 
             return ;
         }

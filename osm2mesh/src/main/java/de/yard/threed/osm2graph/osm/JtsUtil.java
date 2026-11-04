@@ -36,6 +36,9 @@ import static java.lang.Double.NaN;
  */
 @Slf4j
 public class JtsUtil {
+    // About 0.06 mm, which is far above rounding noise and far below any real mesh feature.
+    private static final double SAME_LOCATION_TOLERANCE_RAD = 1e-11;
+
     public static GeometryFactory GF = new GeometryFactory();
 
     /**
@@ -1937,6 +1940,23 @@ public class JtsUtil {
             coors.add((projection.project(p.getFirst())));
         }
         return createPolygon(coors);
+    }
+
+    public static Polygon createPolygonFromPairList(List<Pair<Coordinate, Long>> polygonLine) {
+        List<Coordinate> coors = new ArrayList<>();
+        for (Pair<Coordinate, Long> p : polygonLine) {
+            coors.add((p.getFirst()));
+        }
+        return createPolygon(coors);
+    }
+
+    /**
+     * Whether both are the same location (2D, so elevation is ignored). Intentionally no exact comparison of doubles
+     * because the same location might differ by rounding noise when it was calculated twice.
+     */
+    public static boolean isSameLocation(LatLon a, LatLon b) {
+        return Math.abs(a.getLatRad() - b.getLatRad()) < SAME_LOCATION_TOLERANCE_RAD
+                && Math.abs(a.getLonRad() - b.getLonRad()) < SAME_LOCATION_TOLERANCE_RAD;
     }
 
     public static Pair<GeoCoordinate, GeoCoordinate> unproject(Pair<Coordinate, Coordinate> p, SceneryProjection projection) {

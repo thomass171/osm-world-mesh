@@ -1,5 +1,6 @@
 package de.yard.threed.osm2scenery.scenery;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineSegment;
 import com.vividsolutions.jts.geom.Polygon;
 import de.yard.threed.core.*;
@@ -9,7 +10,7 @@ import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
-import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
+import de.yard.threed.osm2scenery.scenery.components.ProjectedMeshAdapter;
 import de.yard.threed.osm2scenery.scenery.components.WayArea;
 import de.yard.threed.osm2scenery.util.CoordinatePair;
 import de.yard.threed.osm2scenery.util.SvgWriter;
@@ -64,7 +65,8 @@ public class SceneryWayConnector extends SceneryNodeObject {
     // 20.3.26: As of MapWaySegment2 the way osmid as key is no longer sufficient
     Map<MapWaySegment2, WayArea> wayAreaCandidates = new HashMap<>();
     // set by createPolygon. 2026 approach for polygon? "second" is the osm id. Of what and for what?
-    private List<Pair<GeoCoordinate, Long>> polygonLine = null;
+    // 2.11.26 Stay with projected data on module level
+    private List<Pair</*2.11.26 Geo*/Coordinate, Long>> polygonLine = null;
     //24.8.26 public MeshPolygon meshWayConnector = null;
 
     public SceneryWayConnector(String creatortag, MapNode node, ConfMaterial material, Category category, SceneryProjection projection) {
@@ -495,7 +497,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
         if (node.getOsmId() == 2345486254L) {
             int h = 9;
         }
-        polygonLine = new ArrayList<Pair<GeoCoordinate, Long>>();
+        polygonLine = new ArrayList<Pair<Coordinate, Long>>();
 
         switch (type) {
             /*19.3.26 no longer mid connector  case SIMPLE_INNER_SINGLE_JUNCTION:
@@ -542,7 +544,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
         return null;
     }
 
-    public List<Pair<GeoCoordinate, Long>> getPolygonLine() {
+    public List<Pair<Coordinate, Long>> getPolygonLine() {
         return polygonLine;
     }
 
@@ -591,36 +593,36 @@ public class SceneryWayConnector extends SceneryNodeObject {
      * Create a CCW rectangle connector polygon between the two mains.
      * Points 0 and 1 will be at main0 while 2 and 3 are at main1.
      */
-    private static List<Pair<GeoCoordinate, Long>> createConnectorRectangle(MapNode node, WayArea mainWayArea0, WayArea mainWayArea1, SceneryProjection projection) throws MeshInconsistencyException {
+    private static List<Pair<Coordinate, Long>> createConnectorRectangle(MapNode node, WayArea mainWayArea0, WayArea mainWayArea1, SceneryProjection projection) throws MeshInconsistencyException {
 
         CoordinatePair major0line = mainWayArea0.shiftStartOrEnd(node, 5.5);
         CoordinatePair major1line = mainWayArea1.shiftStartOrEnd(node, 5.5);
         if (major0line == null || major1line == null) {
             throw new MeshInconsistencyException("no major lines?");
         }
-        List<Pair<GeoCoordinate, Long>> polygonLine = new ArrayList<Pair<GeoCoordinate, Long>>();
+        List<Pair<Coordinate, Long>> polygonLine = new ArrayList<Pair<Coordinate, Long>>();
 
         // Polygon will be CCW. Vertices 0 and 1 are always on main0.
         if (mainWayArea0.mapWay.isEndNode(node)) {
-            polygonLine.add(new Pair<>(JtsUtil.unproject(major0line.left(), projection), mainWayArea0.mapWay.getOsmId()));
-            polygonLine.add(new Pair<>(JtsUtil.unproject(major0line.right(), projection), mainWayArea0.mapWay.getOsmId()));
+            polygonLine.add(new Pair<>((major0line.left()), mainWayArea0.mapWay.getOsmId()));
+            polygonLine.add(new Pair<>((major0line.right()), mainWayArea0.mapWay.getOsmId()));
             //       attachpair.put(main0.getOsmId(), new Pair(1, 0));
         } else {
             if (mainWayArea0.mapWay.isStartNode(node)) {
-                polygonLine.add(new Pair<>(JtsUtil.unproject(major0line.right(), projection), mainWayArea0.mapWay.getOsmId()));
-                polygonLine.add(new Pair<>(JtsUtil.unproject(major0line.left(), projection), mainWayArea0.mapWay.getOsmId()));
+                polygonLine.add(new Pair<>((major0line.right()), mainWayArea0.mapWay.getOsmId()));
+                polygonLine.add(new Pair<>((major0line.left()), mainWayArea0.mapWay.getOsmId()));
                 ////    attachpair.put(main0.getOsmId(), new Pair(0, 1));
             }
         }
 
         if (mainWayArea1.isEndNode(node)) {
-            polygonLine.add(new Pair<>(JtsUtil.unproject(major1line.left(), projection), mainWayArea0.mapWay.getOsmId()));
-            polygonLine.add(new Pair<>(JtsUtil.unproject(major1line.right(), projection), mainWayArea1.mapWay.getOsmId()));
+            polygonLine.add(new Pair<>((major1line.left()), mainWayArea0.mapWay.getOsmId()));
+            polygonLine.add(new Pair<>((major1line.right()), mainWayArea1.mapWay.getOsmId()));
             //attachpair.put(main1.getOsmId(), new Pair(3, 2));
         } else {
             if (mainWayArea1.isStartNode(node)) {
-                polygonLine.add(new Pair<>(JtsUtil.unproject(major1line.right(), projection), mainWayArea0.mapWay.getOsmId()));
-                polygonLine.add(new Pair<>(JtsUtil.unproject(major1line.left(), projection), mainWayArea1.mapWay.getOsmId()));
+                polygonLine.add(new Pair<>((major1line.right()), mainWayArea0.mapWay.getOsmId()));
+                polygonLine.add(new Pair<>((major1line.left()), mainWayArea1.mapWay.getOsmId()));
             }
         }
 
@@ -628,9 +630,9 @@ public class SceneryWayConnector extends SceneryNodeObject {
         polygonLine.add(polygonLine.get(0));
 
         // be sure the polygon is consistent
-        Polygon geo = JtsUtil.createPolygon(polygonLine, projection);
+        Polygon geo = JtsUtil.createPolygonFromPairList(polygonLine);
         if (geo == null || !geo.isValid()) {
-            throw MeshInconsistencyException.forInvalidPolygon("invalid connector polygon", node.getOsmId(), JtsUtil.unproject(geo, projection));
+            throw MeshInconsistencyException.forInvalidPolygon("invalid connector polygon", node.getOsmId(), (geo));
         }
         return polygonLine;
     }
@@ -688,7 +690,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
         Polygon geo;
         do {
             //13.3.26 CoordinateList coors = new CoordinateList();
-            polygonLine = new ArrayList<Pair<GeoCoordinate, Long>>();
+            polygonLine = new ArrayList<Pair<Coordinate, Long>>();
 
             // Segments must be CCW. Each way gets its own two nodes, so a 4way cooector will have 8 nodes
             // 11.8.26 angle order also is CCW.
@@ -702,15 +704,15 @@ public class SceneryWayConnector extends SceneryNodeObject {
                 segs[i] = new LineSegment(toCoordinate(center.add(nrm)), toCoordinate(center.add(nrm.negate())));
                 //13.3.26 coors.add(segs[i].p0);
                 //13.3.26 coors.add(segs[i].p1);
-                polygonLine.add(new Pair<>(JtsUtil.unproject(segs[i].p0, projection), way.getOsmId()));
-                polygonLine.add(new Pair<>(JtsUtil.unproject(segs[i].p1, projection), way.getOsmId()));
+                polygonLine.add(new Pair<>((segs[i].p0), way.getOsmId()));
+                polygonLine.add(new Pair<>((segs[i].p1), way.getOsmId()));
 
                 // refer to coords for attachpoints
                 int upperIndex = polygonLine.size() - 1;
                 buildAttachPair(/*12.3.26 segs[i].p0, segs[i].p1*/ upperIndex - 1, upperIndex, wayIndex);
             }
             polygonLine.add(polygonLine.get(0));
-            geo = JtsUtil.createPolygon(polygonLine, projection);
+            geo = JtsUtil.createPolygonFromPairList(polygonLine);
             if (geo == null || !geo.isValid()) {
                 log.warn("invalid polygon with width " + defaultWidth);
             } else {
@@ -1017,7 +1019,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
      * @return
      */
     @Override
-    public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
+    public void addToTerrainMesh(ProjectedMeshAdapter projectedMeshAdapter) throws MeshInconsistencyException {
 
         /**
          * TerrainMesh vorbereiten.
@@ -1039,8 +1041,8 @@ public class SceneryWayConnector extends SceneryNodeObject {
 
         //10.3.26 now in cca() createPolygon(tm.getGridCellBounds(), tm, SceneryContext.getInstance());
         // 28.10.26: Find the areas the connector overlaps, which need to be adjusted when adding the connector.
-        List<MeshPolygon> areasToAdjust = meshServiceBridge.findAreaIntersections(polygonLine);
-        /*24.8.26 meshWayConnector =*/ ((MeshServiceBridge) meshServiceBridge).registerConnector(node.getOsmId(), polygonLine, attachpair, null, areasToAdjust);
+        List<MeshPolygon> areasToAdjust = projectedMeshAdapter.findAreaIntersections(polygonLine.stream().map(Pair::getFirst).toList());
+        /*24.8.26 meshWayConnector =*/ ((ProjectedMeshAdapter) projectedMeshAdapter).registerConnector(node.getOsmId(), polygonLine.stream().map(Pair::getFirst).toList(), attachpair, null, areasToAdjust);
 
         // 27.2.26: We are back at storing polygons, so don't go this way any more.
        /*
@@ -1382,7 +1384,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
 
     public Polygon getPolygon(SceneryProjection projection) {
         //5.3.26 return flatComponent[0].getPolygon(null);
-        return JtsUtil.createPolygon(polygonLine, projection);
+        return JtsUtil.createPolygonFromPairList(polygonLine);
     }
 
 }

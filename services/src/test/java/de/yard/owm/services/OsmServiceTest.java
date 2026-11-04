@@ -272,12 +272,29 @@ public class OsmServiceTest extends AbstractSceneryTest {
                 desdorfTestData.expectedBoundary,
                 ExpectedMeshPolygon.expectedArea(87822834L, MeshPolygonType.AREA, 38/*appears to be correct)*/));
 
+        assertEquals(1, meshPolygonRepository.findByOsmId(87822834L).size(), "Farmland 87822834L should be only 1 area before split by way 37935545.");
         // farmland 87822834L 'below' K43 needs to be split into 2 areas by way 37935545.
         results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 37935545L);
         assertEquals(1, results.getProcessCounter());
         assertEquals(0, results.getFailureCounter());
 
+        terrainMesh = meshService.loadMesh("Desdorf");
         terrainMesh.writeToSvg();
+
+        assertEquals(6, meshPolygonRepository.findByOsmId(87822834L).size(), "Farmland 87822834L should be split into 6 areas by way 37935545.");
+
+        // Parts of already splitted farmland 87822834L 'below' K43 needs to be further split by building 391605370.
+        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 391605370L);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
+
+        terrainMesh = meshService.loadMesh("Desdorf");
+        terrainMesh.writeToSvg();
+
+        // The split does happen: the log shows Area 391605370 overlaps 1 area(s), then Adjusted PersistedMeshPolygon(osmId=87822834) to 1 part(s).
+        // But the building only cuts a notch out of one part, so the count of 6 remains.
+        assertEquals(6, meshPolygonRepository.findByOsmId(87822834L).size());
+
     }
 
     /*17.5.26 public static DesdorfTestData setupForDesdorf(MeshService meshService, TestServices testServices, TerrainMeshManager terrainMeshManager) throws Exception {

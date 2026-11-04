@@ -7,7 +7,7 @@ import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.polygon20.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
-import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
+import de.yard.threed.osm2scenery.scenery.components.ProjectedMeshAdapter;
 import de.yard.threed.osm2world.*;
 
 import java.util.ArrayList;
@@ -150,7 +150,7 @@ public /*26.7.19abstract*/ class ScenerySupplementAreaObject extends SceneryFlat
     }
 
     @Override
-    public void addToTerrainMesh(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
+    public void addToTerrainMesh(ProjectedMeshAdapter projectedMeshAdapter) throws MeshInconsistencyException {
 
         return ;
     }

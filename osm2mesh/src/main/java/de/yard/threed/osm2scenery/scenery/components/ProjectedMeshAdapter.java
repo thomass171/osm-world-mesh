@@ -19,11 +19,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 28.10.26: Was TerrainMeshAdder once. Now it is the bridge between projection based scenery objects
+ * 28.10.26: Was TerrainMeshAdder once. Now it is the adapter between projection based scenery objects
  * and the unprojected mesh service.
+ * 4.11.26: Renamed from MeshServiceBridge.
  */
 @Slf4j
-public class MeshServiceBridge implements SceneryObjectComponent {
+public class ProjectedMeshAdapter implements SceneryObjectComponent {
     // 19.8.26 Moved here from TerrainMesh
     String meshName;
     public MeshServiceFacade meshService;
@@ -32,7 +33,7 @@ public class MeshServiceBridge implements SceneryObjectComponent {
     // public void addToTerrainMesh(AbstractArea[] areas, TerrainMesh tm) throws OsmProcessException, MeshInconsistencyException;
     //void addToTerrainMesh(MeshServiceFacade meshService) throws OsmProcessException, MeshInconsistencyException;
 
-    public MeshServiceBridge(String meshName, MeshServiceFacade meshService, SceneryProjection projection) {
+    public ProjectedMeshAdapter(String meshName, MeshServiceFacade meshService, SceneryProjection projection) {
         this.meshName = meshName;
         this.meshService = meshService;
         this.projection = projection;
@@ -66,8 +67,8 @@ public class MeshServiceBridge implements SceneryObjectComponent {
      * Analog to registerConnector (so GeoCoordinate instead of Coordinate). Returns the AREA polygons a connector
      * with this polygon would overlap.
      */
-    public List<MeshPolygon> findAreaIntersections(List<Pair<GeoCoordinate, Long>> line) throws MeshInconsistencyException {
-        return meshService.findAreaIntersectionsOfArea(meshName, line);
+    public List<MeshPolygon> findAreaIntersections(List<Coordinate> line) throws MeshInconsistencyException {
+        return meshService.findAreaIntersectionsOfArea(meshName, JtsUtil.unproject(line, projection));
     }
 
     /**
@@ -76,8 +77,8 @@ public class MeshServiceBridge implements SceneryObjectComponent {
      * 1.9.26 TODO should expect Coordinate like registerWay and registerArea, not GeoCoordinate. But for now it is easier to keep it like this.
      * 28.10.26: areasToAdjust like in registerWay().
      */
-    public void/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Pair<GeoCoordinate, Long>> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
-        TerrainMesh tm = meshService.addConnector(meshName, osmNodeId, line, wayAttachPoints, landClass, areasToAdjust);
+    public void/*MeshWayConnector*/ registerConnector(long osmNodeId, List<Coordinate> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+        TerrainMesh tm = meshService.addConnector(meshName, osmNodeId, JtsUtil.unproject(line, projection), wayAttachPoints, landClass, areasToAdjust);
         //24.8.26 return tm.getConnector(osmNodeId);
 
     }
@@ -85,8 +86,8 @@ public class MeshServiceBridge implements SceneryObjectComponent {
     /**
      * Analog to registerWay.
      */
-    public void/*MeshWayConnector*/ registerArea(long osmNodeId, MeshPolygonType type, List<Coordinate> coordinates, LandClass landClass) throws MeshInconsistencyException {
-        TerrainMesh tm = meshService.addArea(meshName, osmNodeId, type, JtsUtil.unproject(coordinates, projection), landClass);
+    public void/*MeshWayConnector*/ registerArea(long osmNodeId, MeshPolygonType type, List<Coordinate> coordinates, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+        TerrainMesh tm = meshService.addArea(meshName, osmNodeId, type, JtsUtil.unproject(coordinates, projection), landClass, areasToAdjust);
 
     }
 

@@ -16,7 +16,7 @@ import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.Area;
 import de.yard.threed.osm2scenery.scenery.components.CutResult;
 import de.yard.threed.osm2scenery.scenery.components.DecoratorComponent;
-import de.yard.threed.osm2scenery.scenery.components.MeshServiceBridge;
+import de.yard.threed.osm2scenery.scenery.components.ProjectedMeshAdapter;
 import de.yard.threed.osm2scenery.util.RenderedArea;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
 import de.yard.threed.osm2world.*;
@@ -605,14 +605,14 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
      * For a more consistent program flow
      * 10.3.26
      */
-    public void cca(MeshServiceBridge meshServiceBridge) throws MeshInconsistencyException {
-        createPolygon(/*new ArrayList<>(),*/ meshServiceBridge.meshService);
+    public void cca(ProjectedMeshAdapter projectedMeshAdapter) throws MeshInconsistencyException {
+        createPolygon(/*new ArrayList<>(),*/ projectedMeshAdapter.meshService);
         // clip() is needed for ways, but already done/set in createPolygon for other surfaces
         if (!isClipped) {
             clip();
         }
         // DB persist
-        addToTerrainMesh(meshServiceBridge);
+        addToTerrainMesh(projectedMeshAdapter);
     }
     /**
      * resolve overlaps
