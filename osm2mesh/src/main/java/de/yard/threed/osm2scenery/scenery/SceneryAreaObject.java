@@ -34,6 +34,7 @@ import java.util.Map;
  * Kann jetzt auch eine generische Area sein, damit SceneryFlatObject wieder abstract sein kann.
  * Gegenstück zu SceneryNodeObject.
  * Auch für die Grundfläche von Buildings.
+ * 16.11.26: Not sure it is a good idea to have a SceneryAreaObject for a building. The name part 'Area' might link to meshpolygontype.AREA.
  * <p>
  * Created on 15.08.18.
  */
@@ -169,7 +170,9 @@ public class SceneryAreaObject extends SceneryFlatObject {
         List<Coordinate> coordinates = Arrays.asList(area.poly.polygon.getCoordinates());
         List<MeshPolygon> areasToAdjust = projectedMeshAdapter.findAreaIntersections(coordinates);
 
-        projectedMeshAdapter.registerArea(getOsmIds().get(0), MeshPolygonType.AREA, coordinates, null, areasToAdjust);
+        // Buildings get their own type, because unlike AREA they must not be split/resized by later ways.
+        MeshPolygonType type = category == Category.BUILDING ? MeshPolygonType.BUILDING : MeshPolygonType.AREA;
+        projectedMeshAdapter.registerArea(getOsmIds().get(0), type, coordinates, null, areasToAdjust);
 
         return ;
     }

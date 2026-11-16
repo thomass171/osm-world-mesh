@@ -203,7 +203,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
         terrainMesh = meshService.loadMesh("Desdorf");
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
-                ExpectedMeshPolygon.expectedArea(322751224L, MeshPolygonType.AREA, 7));
+                ExpectedMeshPolygon.expectedArea(322751224L, MeshPolygonType.BUILDING, 7));
 
         terrainMesh.writeToSvg();
     }
