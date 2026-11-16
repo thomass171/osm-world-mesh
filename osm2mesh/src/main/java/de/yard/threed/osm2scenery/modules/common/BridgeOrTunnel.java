@@ -4,6 +4,7 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.*;
@@ -41,9 +42,9 @@ public abstract class BridgeOrTunnel extends HighwayModule.Highway/*SceneryVolum
     public SceneryWayObject eroad;
 
     public BridgeOrTunnel(String creatortag, MapWaySegment2 mapWay, TagMap materialmap, Category category/*/* SceneryWayObject roadorrailway,* / /*MapWay mapWay/*MapWaySegment segment,
-                          AbstractNetworkWaySegmentWorldObject primaryRepresentation*/, SceneryContext sceneryContext) {
+                          AbstractNetworkWaySegmentWorldObject primaryRepresentation*/, LandClass landClass, SceneryContext sceneryContext) {
         //super(creatortag, category);
-        super(mapWay, materialmap, sceneryContext);
+        super(mapWay, materialmap, landClass, sceneryContext);
         this.creatortag=creatortag;
         //this.roadorrailway = roadorrailway;
         isTerrainProvider=false;

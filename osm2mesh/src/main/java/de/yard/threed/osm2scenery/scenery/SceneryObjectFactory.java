@@ -37,7 +37,7 @@ public class SceneryObjectFactory {
      */
     public static SceneryWayObject createTaxiway(MapWay line, TagMap materialmap, AerowayModule.TaxiWayCustomData taxiWayCustomData, SceneryContext sceneryContext) {
 
-        SceneryWayObject taxiway = new SceneryWayObject("Taxiway", line.segment2s.get(0), Materials.TAXIWAY_YELLOW, SceneryObject.Category.TAXIWAY, new FixedWidthProvider(AerowayModule.GROUNDNETMARKERWIDTH), sceneryContext, null);
+        SceneryWayObject taxiway = new SceneryWayObject("Taxiway", line.segment2s.get(0), Materials.TAXIWAY_YELLOW, SceneryObject.Category.TAXIWAY, null, new FixedWidthProvider(AerowayModule.GROUNDNETMARKERWIDTH), sceneryContext, null);
         return taxiway;
     }
 

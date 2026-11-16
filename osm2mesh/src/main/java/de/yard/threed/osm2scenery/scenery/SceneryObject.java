@@ -285,6 +285,7 @@ public abstract class SceneryObject {
     //untereinder verbunden oder zumindest verbindbar sind (wichtig für Elevation) und haben die selbe Klasse, z.B. "Highway".
     //Darum zunächst mal auch Taxiway und Runway. 3.6.19: Und darum nicht mehr BRIDGE, weil das jetzt eine ROAD ist.
     //Betrifft auch die Nuzung der WayMap.
+    // 16.11.26: Not sure if Category is really needed. It is not used for anything yet? Maybe it can be removed.
     public enum Category {
         ROAD, RIVER, RAILWAY, /*BRIDGE,*/ RUNWAY, TAXIWAY, BUILDING, APRON, GENERICAREA;
 

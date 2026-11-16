@@ -103,7 +103,7 @@ public class HighwayModule extends WayModule {
                     if (BridgeModule.isBridge(mapway.getTags())) {
                         //return GroundState.ABOVE;
                         //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
-                        BridgeModule.Bridge bridge/*Highway roadoverbridge*/ = new BridgeModule.Bridge /*Highway*/(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
+                        BridgeModule.Bridge bridge/*Highway roadoverbridge*/ = new BridgeModule.Bridge /*Highway*/(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, getLandClass(), SceneryContext.getInstance());
                         //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
                         SceneryContext.getInstance().highways.put(osmid, bridge/*roadoverbridge*/);
                         //roadsAndBridges.add(bridge.roadoverbridge);
@@ -128,13 +128,13 @@ public class HighwayModule extends WayModule {
 
                     } else if (TunnelModule.isTunnel(mapway.getTags())) {
                         //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
-                        Highway road = new Highway(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
+                        Highway road = new Highway(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, getLandClass(), SceneryContext.getInstance());
                         SceneryContext.getInstance().highways.put(osmid, road);
                         roadsAndBridges.add(road);
                         road.addToWayMap(ROAD, SceneryContext.getInstance());
                     } else {
                         // normaler Highway
-                        Highway road = new Highway(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, SceneryContext.getInstance());
+                        Highway road = new Highway(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, getLandClass(), SceneryContext.getInstance());
                         SceneryContext.getInstance().highways.put(osmid, road);
 
                         //SceneryArea area = new SceneryArea("Road", p, ASPHALT, mapway.getOsmId());
@@ -214,6 +214,11 @@ public class HighwayModule extends WayModule {
     }
 
     @Override
+    protected LandClass getLandClass() {
+        return LandClass.Asphalt;
+    }
+
+    @Override
     public void classify(MapData mapData) throws MeshInconsistencyException {
         List<SceneryWayConnector> connectors = SceneryContext.getInstance().wayMap.getConnectors(ROAD);
         for (SceneryWayConnector connector : connectors) {
@@ -284,7 +289,7 @@ public class HighwayModule extends WayModule {
             }*/
 
         //if (road1.isOuterNode(node) && road2.isOuterNode(node)) {
-        connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD, null);
+        connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD, getLandClass(), null);
         //10.9.19: Besser alle Ways an den Connector haengen stat nur zwei, sonst geht mir nachher evtl. eine inner connector way durch. (z.B. 1379039502)
         for (SceneryWayObject way : connectedRoads) {
             //   connector.add(road1);
@@ -1032,10 +1037,10 @@ public class HighwayModule extends WayModule {
         final private boolean steps;
         private AbstractArea marking;
 
-        public Highway(MapWaySegment2/*Segment*/ line/*, TagGroup tags/*, long osmid*/, TagMap materialmap, SceneryContext sceneryContext) {
+        public Highway(MapWaySegment2/*Segment*/ line/*, TagGroup tags/*, long osmid*/, TagMap materialmap, LandClass landClass, SceneryContext sceneryContext) {
 
             //super(line);
-            super("Road", line, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, null, sceneryContext, null);//mapWay = line;
+            super("Road", line, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, landClass, null, sceneryContext, null);//mapWay = line;
 
 
             this.tags = line.getTags();//tags;

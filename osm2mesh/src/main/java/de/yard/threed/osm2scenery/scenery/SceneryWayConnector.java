@@ -67,10 +67,13 @@ public class SceneryWayConnector extends SceneryNodeObject {
     // set by createPolygon. 2026 approach for polygon? "second" is the osm id. Of what and for what?
     // 2.11.26 Stay with projected data on module level
     private List<Pair</*2.11.26 Geo*/Coordinate, Long>> polygonLine = null;
+    // optional, might be null
+    private final LandClass landClass;
     //24.8.26 public MeshPolygon meshWayConnector = null;
 
-    public SceneryWayConnector(String creatortag, MapNode node, ConfMaterial material, Category category, SceneryProjection projection) {
+    public SceneryWayConnector(String creatortag, MapNode node, ConfMaterial material, Category category, LandClass landClass, SceneryProjection projection) {
         super(creatortag, node, material, category, projection);
+        this.landClass = landClass;
         this.cycle = Cycle.WAY;
         if (node.getOsmId() == 295055704 || node.getOsmId() == 1379039502) {
             int h = 9;
@@ -1042,7 +1045,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
         //10.3.26 now in cca() createPolygon(tm.getGridCellBounds(), tm, SceneryContext.getInstance());
         // 28.10.26: Find the areas the connector overlaps, which need to be adjusted when adding the connector.
         List<MeshPolygon> areasToAdjust = projectedMeshAdapter.findAreaIntersections(polygonLine.stream().map(Pair::getFirst).toList());
-        /*24.8.26 meshWayConnector =*/ ((ProjectedMeshAdapter) projectedMeshAdapter).registerConnector(node.getOsmId(), polygonLine.stream().map(Pair::getFirst).toList(), attachpair, null, areasToAdjust);
+        /*24.8.26 meshWayConnector =*/ ((ProjectedMeshAdapter) projectedMeshAdapter).registerConnector(node.getOsmId(), polygonLine.stream().map(Pair::getFirst).toList(), attachpair, landClass, areasToAdjust);
 
         // 27.2.26: We are back at storing polygons, so don't go this way any more.
        /*

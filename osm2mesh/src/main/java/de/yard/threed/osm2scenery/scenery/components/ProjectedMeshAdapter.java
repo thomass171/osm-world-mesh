@@ -95,11 +95,11 @@ public class ProjectedMeshAdapter implements SceneryObjectComponent {
      * 28.10.26: Moved here from WayTerrainMeshAdder.
      * areasToAdjust: see registerWay().
      */
-    public void persistWay(long osmWayId, Pair<List<Coordinate>, List<Coordinate>> outlines, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+    public void persistWay(long osmWayId, Pair<List<Coordinate>, List<Coordinate>> outlines, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
 
 
 
-        registerWay(osmWayId, null, outlines.getFirst(), outlines.getSecond(), null, 2, null, areasToAdjust);
+        registerWay(osmWayId, null, outlines.getFirst(), outlines.getSecond(), null, 2, landClass, areasToAdjust);
 
 
         // Also consider dead end. Connect left and right lines from above.

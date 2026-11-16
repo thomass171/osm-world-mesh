@@ -1,5 +1,7 @@
 package de.yard.threed.osm2scenery.scenery;
 
+import de.yard.threed.osm2world.TagGroup;
+
 /**
  * Persisted via its code (see getCode()/fromDbValue()), the same way MeshPolygonType handles its database value.
  */
@@ -10,6 +12,7 @@ public enum LandClass {
     LAKE("Lk"),
     Sea("Sea"),
     Asphalt("As"),
+    FARMLAND("Fl"),
     ;
     //asphalt, kies,pflaster,sand,beton,parkplatz
     //forest,gras,busch,rasen,golf,acker
@@ -27,6 +30,21 @@ public enum LandClass {
             }
         }
         throw new IllegalArgumentException("Unknown DB value: " + dbValue);
+    }
+
+    /**
+     * Derives the land class from the OSM tags of an area (eg. of a MapArea).
+     * Returns null if no land class is known for the tags.
+     * Not intended for ways, only for areas.
+     */
+    public static LandClass osmTagsToLandClass(TagGroup tags) {
+        if (tags == null) {
+            return null;
+        }
+        if (tags.contains("landuse", "farmland")) {
+            return FARMLAND;
+        }
+        return null;
     }
 
     public String getCode() {

@@ -16,6 +16,7 @@ import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygonOld;
 import de.yard.threed.osm2scenery.scenery.BridgeGap;
 import de.yard.threed.osm2scenery.scenery.BridgeSideRamp;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.ScenerySupplementAreaObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
@@ -93,9 +94,9 @@ public class BridgeModule extends SceneryModule {
         public BridgeHead startHead, endHead;
 
         public Bridge(MapWaySegment2 mapWay, TagMap materialmap/*SceneryWayObject roadorrailway/*MapWay mapWay/*MapWaySegment segment,
-                AbstractNetworkWaySegmentWorldObject primaryWO*/, SceneryContext sceneryContext) {
+                AbstractNetworkWaySegmentWorldObject primaryWO*/, LandClass landClass, SceneryContext sceneryContext) {
             //TODO category kann auch Railway sein.
-            super("Bridge", mapWay, materialmap, Category.ROAD/*BRIDGE*/, sceneryContext);
+            super("Bridge", mapWay, materialmap, Category.ROAD/*BRIDGE*/, landClass, sceneryContext);
             //super("Bridge", roadorrailway, Category.BRIDGE/*mapWay/*segment, primaryWO*/);
             //shadowway = MapDataHelper.createShadowMapWay(roadorrailway.mapWay);
 

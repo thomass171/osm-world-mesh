@@ -12,6 +12,7 @@ import de.yard.owm.testutils.TestServices;
 import de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
+
+import java.util.List;
 
 import static de.yard.threed.osm2mesh.DesdorfExpectations.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -89,6 +92,18 @@ public class OsmServiceTest extends AbstractSceneryTest {
         terrainMesh.writeToSvg();
 
         assertNull(terrainMesh.isValid());
+
+        // ways and connectors from HighwayModule are asphalt
+        List<PersistedMeshPolygon> k41 = meshPolygonRepository.findByOsmId(24927839L);
+        assertFalse(k41.isEmpty());
+        for (PersistedMeshPolygon p : k41) {
+            assertEquals(MeshPolygonType.WAY, p.getType());
+            assertEquals(LandClass.Asphalt, p.getLandClass());
+        }
+        List<PersistedMeshPolygon> connector = meshPolygonRepository.findByOsmId(255563538L);
+        assertEquals(1, connector.size());
+        assertEquals(MeshPolygonType.CONNECTOR, connector.get(0).getType());
+        assertEquals(LandClass.Asphalt, connector.get(0).getLandClass());
     }
 
     /**
@@ -204,6 +219,11 @@ public class OsmServiceTest extends AbstractSceneryTest {
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
                 ExpectedMeshPolygon.expectedArea(322751224L, MeshPolygonType.BUILDING, 7));
+
+        // farmland
+        // TODO 16.11.26: Might fail, so the result (counter, polygons, land class FARMLAND) isn't checked yet. Add validation when it works.
+        osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 121078811L);
+        terrainMesh = meshService.loadMesh("Desdorf");
 
         terrainMesh.writeToSvg();
     }

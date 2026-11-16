@@ -63,9 +63,12 @@ public class SceneryWayObject extends SceneryFlatObject {
     //17.3.2 all nodes are effective meanwhile public List<MapNode> effectiveNodes;
     // 7.5.24: The persisted OSM way
     public long osmWayId;
+    // optional, might be null
+    private final LandClass landClass;
 
-    public SceneryWayObject(String creatortag, MapWaySegment2 mapWay, Material material, Category category, WidthProvider widthProvider, SceneryContext sceneryContext, SceneryProjection projection) {
+    public SceneryWayObject(String creatortag, MapWaySegment2 mapWay, Material material, Category category, LandClass landClass, WidthProvider widthProvider, SceneryContext sceneryContext, SceneryProjection projection) {
         super(creatortag, material, category, null/*new WayArea(material)*/,projection);
+        this.landClass = landClass;
         this.mapWay = mapWay;
         this.widthProvider = widthProvider;
         this.cycle = Cycle.WAY;
@@ -131,6 +134,7 @@ public class SceneryWayObject extends SceneryFlatObject {
      */
     public SceneryWayObject(OsmWay osmWay, SceneryProjection projection) {
         super(""/*creatortag*/, null/*material*/, null/*category*/, null/*new WayArea(material)*/, projection);
+        this.landClass = null;
 
     }
 
@@ -392,7 +396,7 @@ public class SceneryWayObject extends SceneryFlatObject {
             return;
         }
         List<MeshPolygon> areasToAdjust = projectedMeshAdapter.findAreaIntersections(outlines.getFirst(), outlines.getSecond());
-        (projectedMeshAdapter).persistWay(this.osmWayId, outlines, areasToAdjust);
+        (projectedMeshAdapter).persistWay(this.osmWayId, outlines, landClass, areasToAdjust);
         return ;
     }
 

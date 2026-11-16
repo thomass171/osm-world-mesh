@@ -8,6 +8,7 @@ import de.yard.threed.osm2mesh.DesdorfExpectations;
 import de.yard.threed.osm2mesh.testutils.DefaultMockingSceneryTest;
 import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
 import de.yard.threed.osm2scenery.scenery.components.ProjectedMeshAdapter;
 import de.yard.threed.osm2scenery.util.SvgWriter;
@@ -38,7 +39,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
         MapWay way24927839 = desdorfTestData.fullMapData.findMapWay(24927839);
 
-        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(255563538), ASPHALT, ROAD, desdorfTestData.getGridCellBounds().getProjection());
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(255563538), ASPHALT, ROAD, LandClass.Asphalt, desdorfTestData.getGridCellBounds().getProjection());
         wayConnector.add(way182152619.getFirstSegment());
         wayConnector.add(way107468171.getLastSegment());
         wayConnector.add(way24927839.getLastSegment());
@@ -82,7 +83,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MapWay way33817500 = desdorfTestData.fullMapData.findMapWay(33817500);
         MapWay way33817501 = desdorfTestData.fullMapData.findMapWay(33817501);
 
-        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(387409895), ASPHALT, ROAD, desdorfTestData.getGridCellBounds().getProjection());
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(387409895), ASPHALT, ROAD, LandClass.Asphalt, desdorfTestData.getGridCellBounds().getProjection());
         // order of adding ways effects final polygon vertices! Really? SHouldn't
         wayConnector.add(way33817500.getLastSegment());
         wayConnector.add(way33817501.getFirstSegment());
@@ -115,7 +116,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
         MapWay way37935654 = desdorfTestData.fullMapData.findMapWay(37935654);
 
-        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(445410497), ASPHALT, ROAD, desdorfTestData.getGridCellBounds().getProjection());
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(445410497), ASPHALT, ROAD, LandClass.Asphalt, desdorfTestData.getGridCellBounds().getProjection());
         wayConnector.add(way107468169.getFirstSegment());
         wayConnector.add(way23696493.getLastSegment());
         wayConnector.add(way107468171.getFirstSegment());
@@ -148,7 +149,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MapWay way182152619 = desdorfTestData.fullMapData.findMapWay(182152619);
         MapWay way225794271 = desdorfTestData.fullMapData.findMapWay(225794271);
 
-        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(251517906), ASPHALT, ROAD, desdorfTestData.getGridCellBounds().getProjection());
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(251517906), ASPHALT, ROAD, LandClass.Asphalt, desdorfTestData.getGridCellBounds().getProjection());
         wayConnector.add(way182152619.getFirstSegment());
         wayConnector.add(way182152619.getLastSegment());// 'last' is 'second' here
         wayConnector.add(way225794271.getLastSegment());
@@ -180,7 +181,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MapWay way225794271 = desdorfTestData.fullMapData.findMapWay(225794271);
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
 
-        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(255563537), ASPHALT, ROAD, desdorfTestData.getGridCellBounds().getProjection());
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(255563537), ASPHALT, ROAD, LandClass.Asphalt, desdorfTestData.getGridCellBounds().getProjection());
         wayConnector.add(way225794271.getLastSegment());
         wayConnector.add(way107468171.segment2s.get(3));
         wayConnector.add(way107468171.segment2s.get(4));
@@ -215,7 +216,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MapWay way33817500 = desdorfTestData.fullMapData.findMapWay(33817500);
         MapWay way33817499 = desdorfTestData.fullMapData.findMapWay(33817499);
 
-        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(387409892), ASPHALT, ROAD, desdorfTestData.getGridCellBounds().getProjection());
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(387409892), ASPHALT, ROAD, LandClass.Asphalt, desdorfTestData.getGridCellBounds().getProjection());
         wayConnector.add(way33817500.getFirstSegment());
         wayConnector.add(way33817499.getFirstSegment());
         wayConnector.add(way33817499.getLastSegment());
@@ -247,7 +248,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MapWay way24879711 = desdorfTestData.fullMapData.findMapWay(24879711);
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
 
-        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(270353278), ASPHALT, ROAD, desdorfTestData.getGridCellBounds().getProjection());
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(270353278), ASPHALT, ROAD, LandClass.Asphalt, desdorfTestData.getGridCellBounds().getProjection());
         wayConnector.add(way24879711.getFirstSegment());
         wayConnector.add(way107468171.getFirstSegment());
         wayConnector.add(way107468171.segment2s.get(1));
@@ -279,7 +280,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MapWay way37935545 = desdorfTestData.fullMapData.findMapWay(37935545);
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
 
-        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(445409643), ASPHALT, ROAD, desdorfTestData.getGridCellBounds().getProjection());
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(445409643), ASPHALT, ROAD, LandClass.Asphalt, desdorfTestData.getGridCellBounds().getProjection());
         wayConnector.add(way37935545.getFirstSegment());
         wayConnector.add(way107468171.segment2s.get(1));
         wayConnector.add(way107468171.segment2s.get(2));
@@ -311,7 +312,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         MapWay way33817499 = desdorfTestData.fullMapData.findMapWay(33817499);
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
 
-        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(387409890), ASPHALT, ROAD, desdorfTestData.getGridCellBounds().getProjection());
+        SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(387409890), ASPHALT, ROAD, LandClass.Asphalt, desdorfTestData.getGridCellBounds().getProjection());
         wayConnector.add(way33817499.getFirstSegment());
         wayConnector.add(way107468171.segment2s.get(2));
         wayConnector.add(way107468171.segment2s.get(3));

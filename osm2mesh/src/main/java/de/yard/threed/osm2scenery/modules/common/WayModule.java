@@ -100,7 +100,7 @@ public abstract class WayModule extends SceneryModule {
 
             if (BridgeModule.isBridge(mapwaySegment.getTags())) {
                 //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
-                BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapwaySegment, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, sceneryContext);
+                BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapwaySegment, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, getLandClass(), sceneryContext);
                 //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
                 sceneryContext.highways.put(osmid, bridge);
                 roadsAndBridges.add(bridge);
@@ -108,7 +108,7 @@ public abstract class WayModule extends SceneryModule {
                 bridge.addToWayMap(ROAD, sceneryContext);
             } else if (TunnelModule.isTunnel(mapwaySegment.getTags())) {
                 //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
-                Highway road = new Highway(mapwaySegment, materialmap, sceneryContext);
+                Highway road = new Highway(mapwaySegment, materialmap, getLandClass(), sceneryContext);
                 sceneryContext.highways.put(osmid, road);
                 roadsAndBridges.add(road);
                 road.addToWayMap(ROAD, sceneryContext);
@@ -118,7 +118,7 @@ public abstract class WayModule extends SceneryModule {
                 SceneryWayObject way = new SceneryWayObject("Road", mapwaySegment,
                         null,
                         //Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/,
-                        ROAD, new FixedWidthProvider(5.0), sceneryContext, projection);//mapWay = line;
+                        ROAD, getLandClass(), new FixedWidthProvider(5.0), sceneryContext, projection);//mapWay = line;
                 //sceneryContext.highways.put(osmid, road);
                 roadsAndBridges.add(way);
 
@@ -149,6 +149,14 @@ public abstract class WayModule extends SceneryModule {
             //Elevation and BridgeApproaches comes later
         }
 
+    }
+
+    /**
+     * The land class for ways and connectors created by this module. Optional, might be null.
+     * Default implementation to be overridden.
+     */
+    protected LandClass getLandClass() {
+        return null;
     }
 
     public void createConnector() {
@@ -282,7 +290,7 @@ public abstract class WayModule extends SceneryModule {
             }*/
 
         //if (road1.isOuterNode(node) && road2.isOuterNode(node)) {
-        SceneryWayConnector connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD, projection);
+        SceneryWayConnector connector = new SceneryWayConnector("RoadConnector", node, ASPHALT, ROAD, getLandClass(), projection);
         //10.9.19: Better have all ways at connector to avoid loosing one.
         for (MapWaySegment2 way : connectedRoads) {
             connector.add(way);
@@ -1029,10 +1037,10 @@ public abstract class WayModule extends SceneryModule {
         final private boolean steps;
         private AbstractArea marking;
 
-        public Highway(MapWaySegment2/*Segment*/ line/*, TagGroup tags/*, long osmid*/, TagMap materialmap, SceneryContext sceneryContext) {
+        public Highway(MapWaySegment2/*Segment*/ line/*, TagGroup tags/*, long osmid*/, TagMap materialmap, LandClass landClass, SceneryContext sceneryContext) {
 
             //super(line);
-            super("Road", null/*18.3.26 segment now line*/, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, null, sceneryContext, null);//mapWay = line;
+            super("Road", null/*18.3.26 segment now line*/, Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/, ROAD, landClass, null, sceneryContext, null);//mapWay = line;
 
 
             this.tags = line.getTags();//tags;

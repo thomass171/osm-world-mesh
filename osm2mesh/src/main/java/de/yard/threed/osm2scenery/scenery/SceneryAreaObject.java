@@ -172,7 +172,8 @@ public class SceneryAreaObject extends SceneryFlatObject {
 
         // Buildings get their own type, because unlike AREA they must not be split/resized by later ways.
         MeshPolygonType type = category == Category.BUILDING ? MeshPolygonType.BUILDING : MeshPolygonType.AREA;
-        projectedMeshAdapter.registerArea(getOsmIds().get(0), type, coordinates, null, areasToAdjust);
+        LandClass landClass = maparea == null ? null : LandClass.osmTagsToLandClass(maparea.getTags());
+        projectedMeshAdapter.registerArea(getOsmIds().get(0), type, coordinates, landClass, areasToAdjust);
 
         return ;
     }

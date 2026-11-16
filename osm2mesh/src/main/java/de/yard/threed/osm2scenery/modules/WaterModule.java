@@ -7,6 +7,7 @@ import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.FixedWidthProvider;
+import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.util.TagFilter;
 import de.yard.threed.osm2scenery.util.TagMap;
@@ -139,10 +140,15 @@ public class WaterModule extends WayModule {
         return false;
     }
 
+    @Override
+    protected LandClass getLandClass() {
+        return LandClass.RIVER;
+    }
+
     public static class Waterway extends SceneryWayObject {
 
         public Waterway(MapWay/*Segment*/ line, SceneryContext sceneryContext) {
-            super("River", line.segment2s.get(0), WATER, RIVER, new FixedWidthProvider(getWidth(line.getTags())), sceneryContext, null);
+            super("River", line.segment2s.get(0), WATER, RIVER, LandClass.RIVER, new FixedWidthProvider(getWidth(line.getTags())), sceneryContext, null);
             //16.8.18 super.createPolygon(getWidth());
         }
 		
