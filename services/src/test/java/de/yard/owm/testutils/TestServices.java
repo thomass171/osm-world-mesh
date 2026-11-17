@@ -1,5 +1,7 @@
 package de.yard.owm.testutils;
 
+import de.yard.owm.services.mesh.MeshService;
+import de.yard.owm.services.osm.OsmService;
 import de.yard.owm.services.persistence.*;
 import de.yard.threed.TestUtil;
 import de.yard.threed.core.GeoCoordinate;
@@ -10,6 +12,7 @@ import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
+import de.yard.threed.osm2world.MapData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +54,12 @@ public class TestServices implements ValidatorServiceFacade {
     @Autowired
     private MeshFailureRepository meshFailureRepository;
 
+    @Autowired
+    private OsmService osmService;
+
+    @Autowired
+    private MeshService meshService;
+
     public void cleanup() {
         meshFailureRepository.deleteAll();
         meshPolygonNodeRepository.deleteAll();
@@ -64,6 +73,18 @@ public class TestServices implements ValidatorServiceFacade {
         osmWayRepository.deleteAll();
         osmNodeRepository.deleteAll();
 
+    }
+
+    /**
+     * Populate the mesh with a single OSM way, check the process counter (expecting no failures)
+     * and return the freshly loaded mesh.
+     */
+    public TerrainMesh populateAndLoadMesh(String meshName, MapData mapData, long osmWayId, int expectedProcessCounter) throws Exception {
+        OsmService.Results results = osmService.populateMesh(meshName, mapData, osmWayId);
+        assertEquals(expectedProcessCounter, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
+
+        return meshService.loadMesh(meshName);
     }
 
     /**

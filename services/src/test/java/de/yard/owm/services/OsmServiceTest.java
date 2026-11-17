@@ -78,11 +78,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
     //Using maingrid appears easier finally @Sql({"classpath:meshDesdorf.sql"})
     public void testDesdorfK41Segment() throws Exception {
 
-        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 24927839L);
-        assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());
-
-        TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
+        TerrainMesh terrainMesh = testServices.populateAndLoadMesh("Desdorf", desdorfTestData.fullMapData, 24927839L, 1);
 
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
@@ -112,11 +108,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
     @Test
     public void testDesdorf107468171K43() throws Exception {
 
-        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
-        assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());
-
-        TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
+        TerrainMesh terrainMesh = testServices.populateAndLoadMesh("Desdorf", desdorfTestData.fullMapData, 107468171L, 1);
 
         terrainMesh.writeToSvg();
 
@@ -136,7 +128,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
         );
 
         // try again with the same data. It should fail because the polygon already exists.
-        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
+        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
         assertEquals(0, results.getProcessCounter());
         assertEquals(1, results.getFailureCounter());
         assertEquals(1, results.getFailures().size());
@@ -154,11 +146,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
     public void testDesdorfStepByStep() throws Exception {
 
         // lower K41 (full map data is needed for connector, so no filterWay(24927839)
-        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 24927839L);
-        assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());
-
-        TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
+        TerrainMesh terrainMesh = testServices.populateAndLoadMesh("Desdorf", desdorfTestData.fullMapData, 24927839L, 1);
 
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
@@ -168,11 +156,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
         terrainMesh.writeToSvg();
 
         // upper K41
-        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 182152619L);
-        assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());
-
-        terrainMesh = meshService.loadMesh("Desdorf");
+        terrainMesh = testServices.populateAndLoadMesh("Desdorf", desdorfTestData.fullMapData, 182152619L, 1);
 
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
@@ -221,18 +205,10 @@ public class OsmServiceTest extends AbstractSceneryTest {
                 ExpectedMeshPolygon.expectedArea(322751224L, MeshPolygonType.BUILDING, 7));
 
         // one more way ("Klarenhof")
-        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 24879711L);
-        assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());
-
-        terrainMesh = meshService.loadMesh("Desdorf");
+        terrainMesh = testServices.populateAndLoadMesh("Desdorf", desdorfTestData.fullMapData, 24879711L, 1);
 
         // large farmland. It overlaps way 24879711, so it is clipped to it (and split into two parts).
-        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 121078811L);
-        assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());
-
-        terrainMesh = meshService.loadMesh("Desdorf");
+        terrainMesh = testServices.populateAndLoadMesh("Desdorf", desdorfTestData.fullMapData, 121078811L, 1);
         assertNull(terrainMesh.isValid());
         List<PersistedMeshPolygon> farmland121078811 = meshPolygonRepository.findByOsmId(121078811L);
         assertEquals(2, farmland121078811.size());
@@ -279,11 +255,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
     @Test
     public void testDesdorfAreaSplit() throws Exception {
 
-        OsmService.Results results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 107468171L);
-        assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());
-
-        TerrainMesh terrainMesh = meshService.loadMesh("Desdorf");
+        TerrainMesh terrainMesh = testServices.populateAndLoadMesh("Desdorf", desdorfTestData.fullMapData, 107468171L, 1);
 
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
@@ -299,32 +271,20 @@ public class OsmServiceTest extends AbstractSceneryTest {
         );
 
         // farmland 'below' K43. It needs to be split into 2 areas.
-        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 87822834L);
-        assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());
-
-        terrainMesh = meshService.loadMesh("Desdorf");
+        terrainMesh = testServices.populateAndLoadMesh("Desdorf", desdorfTestData.fullMapData, 87822834L, 1);
         testServices.validateMesh(terrainMesh,
                 desdorfTestData.expectedBoundary,
                 ExpectedMeshPolygon.expectedArea(87822834L, MeshPolygonType.AREA, 38/*appears to be correct)*/));
 
         assertEquals(1, meshPolygonRepository.findByOsmId(87822834L).size(), "Farmland 87822834L should be only 1 area before split by way 37935545.");
         // farmland 87822834L 'below' K43 needs to be split into 2 areas by way 37935545.
-        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 37935545L);
-        assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());
-
-        terrainMesh = meshService.loadMesh("Desdorf");
+        terrainMesh = testServices.populateAndLoadMesh("Desdorf", desdorfTestData.fullMapData, 37935545L, 1);
         terrainMesh.writeToSvg();
 
         assertEquals(6, meshPolygonRepository.findByOsmId(87822834L).size(), "Farmland 87822834L should be split into 6 areas by way 37935545.");
 
         // Parts of already splitted farmland 87822834L 'below' K43 needs to be further split by building 391605370.
-        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 391605370L);
-        assertEquals(1, results.getProcessCounter());
-        assertEquals(0, results.getFailureCounter());
-
-        terrainMesh = meshService.loadMesh("Desdorf");
+        terrainMesh = testServices.populateAndLoadMesh("Desdorf", desdorfTestData.fullMapData, 391605370L, 1);
         terrainMesh.writeToSvg();
 
         // The split does happen: the log shows Area 391605370 overlaps 1 area(s), then Adjusted PersistedMeshPolygon(osmId=87822834) to 1 part(s).
