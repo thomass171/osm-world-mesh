@@ -220,10 +220,26 @@ public class OsmServiceTest extends AbstractSceneryTest {
                 desdorfTestData.expectedBoundary,
                 ExpectedMeshPolygon.expectedArea(322751224L, MeshPolygonType.BUILDING, 7));
 
-        // farmland
-        // TODO 16.11.26: Might fail, so the result (counter, polygons, land class FARMLAND) isn't checked yet. Add validation when it works.
-        osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 121078811L);
+        // one more way ("Klarenhof")
+        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 24879711L);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
+
         terrainMesh = meshService.loadMesh("Desdorf");
+
+        // large farmland. It overlaps way 24879711, so it is clipped to it (and split into two parts).
+        results = osmService.populateMesh("Desdorf", desdorfTestData.fullMapData, 121078811L);
+        assertEquals(1, results.getProcessCounter());
+        assertEquals(0, results.getFailureCounter());
+
+        terrainMesh = meshService.loadMesh("Desdorf");
+        assertNull(terrainMesh.isValid());
+        List<PersistedMeshPolygon> farmland121078811 = meshPolygonRepository.findByOsmId(121078811L);
+        assertEquals(2, farmland121078811.size());
+        for (PersistedMeshPolygon p : farmland121078811) {
+            assertEquals(MeshPolygonType.AREA, p.getType());
+            assertEquals(LandClass.FARMLAND, p.getLandClass());
+        }
 
         terrainMesh.writeToSvg();
     }

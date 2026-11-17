@@ -38,6 +38,10 @@ import static java.lang.Double.NaN;
 public class JtsUtil {
     // About 0.06 mm, which is far above rounding noise and far below any real mesh feature.
     private static final double SAME_LOCATION_TOLERANCE_RAD = 1e-11;
+    // An overlap smaller than this ratio of a polygon's area is rounding noise (eg. of touching polygons) rather than a real
+    // overlap. Relative, so it fits projected (m²) and geo (degree²) coordinates. Far above rounding noise even for small
+    // buildings in geo coordinates, but still only about 1 m² for 1 km² farmland.
+    private static final double MIN_OVERLAP_AREA_RATIO = 1e-6;
 
     public static GeometryFactory GF = new GeometryFactory();
 
@@ -1229,36 +1233,67 @@ public class JtsUtil {
      * <p>
      * Konvertiert die möglichen verschiedenen Resultate einheitlich in eine Polygon List.
      * <p>
-     * Wenn p1 komplett ausserhalb liegt (kein Overlap) wird entgegen mathematischen Regeln null returned.
-     * <p>
      * 25.04.19
      * 29.10.26: Never returns polygons with holes. A hole (eg. when p1 is completely inside p0) is removed
      * by splitting the polygon through the hole (see splitAtHoles()).
-     * Returns an empty list when nothing of p0 remains or difference failed (already logged).
+     * 16.11.26: Returns what remains of p0:
+     * - p0 itself (the same instance) if p1 doesn't really overlap it (see MIN_OVERLAP_AREA_RATIO) (was null before)
+     * - otherwise the remaining parts, which might be several
+     * - an empty list if p0 is completely covered by p1
+     * 17.11.26: The minimum overlap is relative to the area of p0 now, so no more parameter (and default 0.0001) depending
+     * on projected or geo coordinates.
+     * Parameters are expected to be valid polygons. Never throws an exception. If the subtraction fails, the error is
+     * logged and p0 is returned as if there is no overlap. A remaining overlap will be detected by mesh validation later.
      */
     public static List<Polygon> subtractPolygons(Polygon p0, Polygon p1) {
-        return subtractPolygons(p0, p1, 0.0001);
+        try {
+            Geometry diff = JtsUtil.difference(p0, p1);
+            if (diff == null) {
+                // already logged
+                return List.of(p0);
+            }
+            if (Math.abs(diff.getArea() - p0.getArea()) < p0.getArea() * MIN_OVERLAP_AREA_RATIO) {
+                // overlap too small (or only touching), so p0 isn't affected
+                return List.of(p0);
+            }
+            List<Polygon> result = new ArrayList<>();
+            double resultArea = 0;
+            for (Polygon part : extractPolygons(diff)) {
+                for (Polygon p : splitAtHoles(part)) {
+                    result.add(p);
+                    resultArea += p.getArea();
+                }
+            }
+            // splitAtHoles() might silently lose parts when an intersection fails (already logged)
+            if (Math.abs(resultArea - diff.getArea()) > p0.getArea() * MIN_OVERLAP_AREA_RATIO) {
+                log.error("Subtracting polygons lost area (" + resultArea + " instead of " + diff.getArea() + "). Keeping p0=" + p0 + ", p1=" + p1);
+                return List.of(p0);
+            }
+            return result;
+        } catch (RuntimeException e) {
+            log.error("Subtracting polygons failed. Keeping p0=" + p0 + ", p1=" + p1, e);
+            return List.of(p0);
+        }
     }
 
     /**
-     * 28.10.26: With configurable minimum area change for detecting 'no overlap'. The default of 0.0001 is
-     * fine for projected coordinates (meter) but far too large for GeoCoordinates (degree), where it would
-     * always return null.
+     * Returns what remains of p0 after subtracting all 'subtrahends':
+     * - p0 itself (the same instance) if no subtrahend really overlaps it (see subtractPolygons())
+     * - otherwise the remaining parts, which might be several and have no holes (see subtractPolygons())
+     * - an empty list if p0 is completely covered
+     * Like subtractPolygons() it never throws an exception.
+     * 16.11.26
      */
-    public static List<Polygon> subtractPolygons(Polygon p0, Polygon p1, double minAreaChange) {
-        List<Polygon> result = new ArrayList<>();
-        Geometry diff = JtsUtil.difference(p0, p1);
-        if (diff == null) {
-            return result;
+    public static List<Polygon> subtractAllPolygons(Polygon p0, List<? extends Polygon> subtrahends) {
+        List<Polygon> parts = List.of(p0);
+        for (Polygon subtrahend : subtrahends) {
+            List<Polygon> newParts = new ArrayList<>();
+            for (Polygon part : parts) {
+                newParts.addAll(subtractPolygons(part, subtrahend));
+            }
+            parts = newParts;
         }
-        // 29.10.26 Not sure what purpose the check for 'minAreaChange' could/should have. At least some tests rely on it.
-        if (Math.abs(diff.getArea() - p0.getArea()) < minAreaChange) {
-            return null;
-        }
-        for (Polygon part : extractPolygons(diff)) {
-            result.addAll(splitAtHoles(part));
-        }
-        return result;
+        return parts;
     }
 
     /**

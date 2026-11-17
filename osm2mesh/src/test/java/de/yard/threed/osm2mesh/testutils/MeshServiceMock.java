@@ -58,10 +58,19 @@ public class MeshServiceMock implements MeshServiceFacade {
         return findAreaIntersectionsOfArea(new GeoPolygon(polygon));
     }
 
+    @Override
+    public List<MeshPolygon> findWayIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException {
+        return findIntersections(new GeoPolygon(polygon), List.of(MeshPolygonType.WAY, MeshPolygonType.CONNECTOR));
+    }
+
     private List<MeshPolygon> findAreaIntersectionsOfArea(GeoPolygon wayPolygon) {
+        return findIntersections(wayPolygon, List.of(MeshPolygonType.AREA));
+    }
+
+    private List<MeshPolygon> findIntersections(GeoPolygon wayPolygon, List<MeshPolygonType> types) {
         List<MeshPolygon> result = new ArrayList<>();
         for (MeshPolygon p : polygons) {
-            if (p.getType() == MeshPolygonType.AREA && Boolean.TRUE.equals(JtsUtil.overlaps(wayPolygon, p.getGeoPolygon()))) {
+            if (types.contains(p.getType()) && Boolean.TRUE.equals(JtsUtil.overlaps(wayPolygon, p.getGeoPolygon()))) {
                 result.add(p);
             }
         }
@@ -103,15 +112,13 @@ public class MeshServiceMock implements MeshServiceFacade {
     }
 
     @Override
-    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
-        List<GeoCoordinate> polyList = new ArrayList<>();
+    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<List<GeoCoordinate>> polygonList, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+        for (List<GeoCoordinate> geoCoordinates : polygonList) {
+            List<GeoCoordinate> polyList = new ArrayList<>(geoCoordinates);
+            polyList.add(polyList.get(0)); // close polygon
 
-        for (GeoCoordinate geoCoordinate : geoCoordinates) {
-            polyList.add(geoCoordinate);
+            polygons.add(new MeshPolygonMock(osmId, type, landClass, polyList));
         }
-        polyList.add(polyList.get(0)); // close polygon
-
-        polygons.add(new MeshPolygonMock(osmId, type, landClass, polyList));
         return TerrainMesh.init(gridCellBounds, points, polygons);
     }
 }

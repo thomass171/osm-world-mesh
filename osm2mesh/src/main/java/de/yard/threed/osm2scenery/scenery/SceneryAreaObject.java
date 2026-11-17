@@ -11,6 +11,7 @@ import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
+import de.yard.threed.osm2scenery.polygon20.GeoPolygon;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
@@ -169,13 +170,52 @@ public class SceneryAreaObject extends SceneryFlatObject {
         AbstractArea area = flatComponent[0];
         List<Coordinate> coordinates = Arrays.asList(area.poly.polygon.getCoordinates());
         List<MeshPolygon> areasToAdjust = projectedMeshAdapter.findAreaIntersections(coordinates);
+        // 16.11.26: Existing ways (and connectors) are not split, instead the new area is clipped to them.
+        List<MeshPolygon> waysToRespect = projectedMeshAdapter.findWayIntersections(coordinates);
 
         // Buildings get their own type, because unlike AREA they must not be split/resized by later ways.
         MeshPolygonType type = category == Category.BUILDING ? MeshPolygonType.BUILDING : MeshPolygonType.AREA;
         LandClass landClass = maparea == null ? null : LandClass.osmTagsToLandClass(maparea.getTags());
-        projectedMeshAdapter.registerArea(getOsmIds().get(0), type, coordinates, landClass, areasToAdjust);
+        List<List<Coordinate>> polygons = clipToWays(area.poly.polygon, waysToRespect, projectedMeshAdapter.projection);
+        projectedMeshAdapter.registerArea(getOsmIds().get(0), type, polygons, landClass, areasToAdjust);
 
         return ;
+    }
+
+    /**
+     * Subtracts the ways from the area. Returns the remaining (closed) parts, which is just the area itself if
+     * no way overlaps it.
+     * 16.11.26: Moved here from ProjectedMeshAdapter, so clipping is done with projected coordinates now.
+     */
+    private List<List<Coordinate>> clipToWays(Polygon area, List<MeshPolygon> ways, SceneryProjection projection) throws MeshInconsistencyException {
+        long osmId = getOsmIds().get(0);
+        if (ways.isEmpty()) {
+            return List.of(Arrays.asList(area.getCoordinates()));
+        }
+        log.debug("Area {} overlaps {} way(s)/connector(s) it needs to be clipped to", osmId, ways.size());
+        List<Polygon> wayPolygons = new ArrayList<>();
+        for (MeshPolygon way : ways) {
+            GeoPolygon wayPolygon = way.getGeoPolygon();
+            if (wayPolygon == null) {
+                // already logged
+                throw new MeshInconsistencyException("way to clip area " + osmId + " to is inconsistent: " + way);
+            }
+            wayPolygons.add(JtsUtil.project(wayPolygon, projection));
+        }
+        List<Polygon> parts = JtsUtil.subtractAllPolygons(area, wayPolygons);
+        if (parts.isEmpty()) {
+            throw new MeshInconsistencyException("area " + osmId + " is completely covered by ways");
+        }
+        List<List<Coordinate>> result = new ArrayList<>();
+        for (Polygon part : parts) {
+            if (part.getNumInteriorRing() > 0) {
+                // subtractPolygons() should have split it, so already logged there
+                throw new MeshInconsistencyException("clipping area " + osmId + " to ways leads to a hole, which isn't supported");
+            }
+            result.add(Arrays.asList(part.getExteriorRing().getCoordinates()));
+        }
+        log.debug("Clipped area {} to {} part(s)", osmId, result.size());
+        return result;
     }
 
 

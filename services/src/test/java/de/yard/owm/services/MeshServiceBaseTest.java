@@ -231,11 +231,11 @@ public class MeshServiceBaseTest {
         buildSmall2024();
 
         // an area and a way south of it, not touching each other
-        meshService.addArea("small2024", 300, MeshPolygonType.AREA, List.of(
+        meshService.addArea("small2024", 300, MeshPolygonType.AREA, List.of(List.of(
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0001)),
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0004)),
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0004)),
-                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001))), null, List.of());
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001)))), null, List.of());
         meshService.addWay("small2024", 301, null,
                 buildLine(51.00005, 7.0001, 51.00005, 7.0004),
                 buildLine(51.0, 7.0001, 51.0, 7.0004), null, 1, LandClass.Asphalt, List.of());
@@ -275,11 +275,11 @@ public class MeshServiceBaseTest {
 
         buildSmall2024();
 
-        meshService.addArea("small2024", 300, MeshPolygonType.AREA, List.of(
+        meshService.addArea("small2024", 300, MeshPolygonType.AREA, List.of(List.of(
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0001)),
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0004)),
                 GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0004)),
-                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001))), null, List.of());
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001)))), null, List.of());
 
         // north/south way crossing the area splits it into a west and an east part
         List<GeoCoordinate> leftLine = buildLine(51.00005, 7.0002, 51.00045, 7.0002);
@@ -315,6 +315,71 @@ public class MeshServiceBaseTest {
         meshService.loadMesh("small2024").validate();
         assertEquals(0, meshService.findAreaIntersectionsOfWay("small2024", leftLine, rightLine).size());
         assertEquals(0, meshService.findAreaIntersectionsOfArea("small2024", connector).size());
+    }
+
+    /**
+     * An area crossed by an existing way is added as two polygons (clipped to the way by the caller).
+     * An existing area overlapped by both polygons is adjusted to both.
+     */
+    @Test
+    public void testAddAreaWithSeveralPolygons() throws MeshInconsistencyException {
+
+        buildSmall2024();
+
+        // existing area in the north, existing north/south way
+        meshService.addArea("small2024", 300, MeshPolygonType.AREA, List.of(List.of(
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0003, 7.0001)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0003, 7.0004)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0004)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0004, 7.0001)))), null, List.of());
+        List<GeoCoordinate> leftLine = buildLine(51.00005, 7.0002, 51.00025, 7.0002);
+        List<GeoCoordinate> rightLine = buildLine(51.00005, 7.00025, 51.00025, 7.00025);
+        meshService.addWay("small2024", 301, null, leftLine, rightLine, null, 1, LandClass.Asphalt, List.of());
+
+        // new area overlapping both. Only the way is a way intersection.
+        List<GeoCoordinate> newArea = List.of(
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0001)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0004)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.0004)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.0001)),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0001)));
+        List<MeshPolygon> ways = meshService.findWayIntersectionsOfArea("small2024", newArea);
+        assertEquals(1, ways.size());
+        assertEquals(301, ways.get(0).getOsmId());
+        List<MeshPolygon> areasToAdjust = meshService.findAreaIntersectionsOfArea("small2024", newArea);
+        assertEquals(1, areasToAdjust.size());
+        assertEquals(300, areasToAdjust.get(0).getOsmId());
+
+        // new area clipped to the way: west and east part (closed, like from SceneryAreaObject), both overlapping the existing area
+        meshService.addArea("small2024", 302, MeshPolygonType.AREA, List.of(
+                List.of(
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0001)),
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0002)),
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00025, 7.0002)),
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00025, 7.00025)),
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.00025)),
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.0001)),
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0001))),
+                List.of(
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.00025)),
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.0004)),
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.0004)),
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.00035, 7.00025)),
+                        GeoCoordinate.fromLatLon(LatLon.fromDegrees(51.0001, 7.00025)))),
+                LandClass.FARMLAND, areasToAdjust);
+
+        List<PersistedMeshPolygon> newAreas = meshPolygonRepository.findByOsmId(302);
+        assertEquals(2, newAreas.size());
+        newAreas.forEach(a -> assertEquals(LandClass.FARMLAND, a.getLandClass()));
+        // the existing area just lost its southern strip. Its south edge has an additional point where the two new parts meet.
+        List<PersistedMeshPolygon> areas = meshPolygonRepository.findByOsmId(300);
+        assertEquals(1, areas.size());
+        assertEquals(5, areas.get(0).getGeoCoordinates().size());
+
+        // no overlaps left
+        meshService.loadMesh("small2024").validate();
+        // only the parts of the new area itself are left
+        meshService.findAreaIntersectionsOfArea("small2024", newArea).forEach(a -> assertEquals(302, a.getOsmId()));
     }
 
     private List<GeoCoordinate> buildLine(double lat0, double lon0, double lat1, double lon1) {

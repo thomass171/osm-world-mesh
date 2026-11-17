@@ -114,7 +114,9 @@ public class Background {
             Polygon pePolygon = be.polygon;
             if (pePolygon.intersects(uncutarea)) {
                 List<Polygon> diff = JtsUtil.subtractPolygons(pePolygon, uncutarea);
-                if (diff == null || diff.size() == 0) {
+                // 16.11.26: Unchanged pePolygon (formerly null) means no real overlap or failure. Dropping it like before looks
+                // like a bug (gap in background), but is kept for now.
+                if (diff.size() == 0 || (diff.size() == 1 && diff.get(0) == pePolygon)) {
                     //4.9.19:nicht loggenmswert
                     //log.error("no diff found");
                 } else {

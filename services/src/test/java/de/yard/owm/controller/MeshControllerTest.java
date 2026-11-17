@@ -68,8 +68,8 @@ public class MeshControllerTest {
     }
 
     /**
-     * Takes appx. 1min on my machine. The test is not really needed, but it is a good check that the whole process works,
-     * eg. PUT for the retry of failed ways.
+     * Takes appx. 1min on my machine. The test is not really needed, but it is a good check that the whole process works.
+     * No longer can PUT for the retry of failed ways because nothing fails.
      */
     @Test
     public void testDesdorfFull() throws Exception {
@@ -81,8 +81,36 @@ public class MeshControllerTest {
                 TestUtil.loadFileFromClasspath("Desdorf.osm.xml"));
         response = validateResponse(result, HttpStatus.OK);
         MeshResponse meshBuildResponse = jsonService.jsonToModel(response, MeshResponse.class);
-        // currently we have 5 failures, but that might change over time. Now 3. Now 17.
-        validateFailures(14, meshBuildResponse.getFailures());
+        // currently we have 5 failures, but that might change over time. Now 3. Now 17. Now 14.
+        // 16.11.26: No more failures since areas are clipped to existing ways. Failure handling is tested in testFailures().
+        validateFailures(0, meshBuildResponse.getFailures());
+
+        result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf");
+        response = validateResponse(result, HttpStatus.OK);
+    }
+
+    /**
+     * A failure is provoked by adding the same way twice, so the second one overlaps the first.
+     * 16.11.26: Moved here from testDesdorfFull(), which no longer has failures.
+     */
+    @Test
+    public void testFailures() throws Exception {
+
+        MvcResult result = TestUtils.doPost(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf", "");
+        String response = validateResponse(result, HttpStatus.OK);
+
+        // lower K41
+        result = TestUtils.doPutXml(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf&osmwayid=24927839",
+                TestUtil.loadFileFromClasspath("Desdorf.osm.xml"));
+        response = validateResponse(result, HttpStatus.OK);
+        validateFailures(0, jsonService.jsonToModel(response, MeshResponse.class).getFailures());
+
+        // again
+        result = TestUtils.doPutXml(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf&osmwayid=24927839",
+                TestUtil.loadFileFromClasspath("Desdorf.osm.xml"));
+        response = validateResponse(result, HttpStatus.OK);
+        MeshResponse meshBuildResponse = jsonService.jsonToModel(response, MeshResponse.class);
+        validateFailures(1, meshBuildResponse.getFailures());
 
         // the SVG is not part of the response, but retrievable one at a time via a dedicated endpoint
         Long failureId = meshBuildResponse.getFailures().get(0).getId();
@@ -93,12 +121,14 @@ public class MeshControllerTest {
         result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "/failure/99999999/svg");
         validateResponse(result, HttpStatus.NOT_FOUND);
 
-        // retry processing of a single failed way via the optional osmwayid parameter
+        // retry processing of a single failed way via the optional osmwayid parameter. Fails again, because the way still exists.
         String failedSourceRef = meshBuildResponse.getFailures().get(0).getSourceRef();
         String osmwayid = failedSourceRef.substring(failedSourceRef.lastIndexOf('/') + 1);
+        assertEquals("24927839", osmwayid);
         result = TestUtils.doPutXml(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf&osmwayid=" + osmwayid,
                 TestUtil.loadFileFromClasspath("Desdorf.osm.xml"));
-        validateResponse(result, HttpStatus.OK);
+        response = validateResponse(result, HttpStatus.OK);
+        validateFailures(1, jsonService.jsonToModel(response, MeshResponse.class).getFailures());
 
         result = TestUtils.doGet(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf");
         response = validateResponse(result, HttpStatus.OK);

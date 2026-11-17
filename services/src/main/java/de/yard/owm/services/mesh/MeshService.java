@@ -171,42 +171,48 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             closedOutline.add(outline.get(0));
             GeoPolygon wayPolygon = new GeoPolygon(closedOutline);
             for (MeshPolygon area : areasToAdjust) {
-                adjustPolygon(((PersistedMeshPolygon) area).getId(), wayPolygon);
+                adjustPolygon(((PersistedMeshPolygon) area).getId(), List.of(wayPolygon));
             }
         }
 
-        TerrainMesh terrainMesh = addPolygon(meshName, osmWayId, MeshPolygonType.WAY, landClass, outline.iterator());
+        TerrainMesh terrainMesh = addPolygons(meshName, osmWayId, MeshPolygonType.WAY, landClass, List.of(outline.iterator()));
         log.debug("Added way {} to mesh. Took {} ms.", osmWayId, System.currentTimeMillis() - startTime);
         return terrainMesh;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+    public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<List<GeoCoordinate>> polygons, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
         long startTime = System.currentTimeMillis();
 
         if (!areasToAdjust.isEmpty()) {
             log.debug("Area {} overlaps {} area(s) that need to be adjusted", osmId, areasToAdjust.size());
-            GeoPolygon newArea = new GeoPolygon(geoCoordinates);
+            List<GeoPolygon> newAreas = new ArrayList<>();
+            for (List<GeoCoordinate> geoCoordinates : polygons) {
+                newAreas.add(new GeoPolygon(geoCoordinates));
+            }
             for (MeshPolygon area : areasToAdjust) {
-                adjustPolygon(((PersistedMeshPolygon) area).getId(), newArea);
+                adjustPolygon(((PersistedMeshPolygon) area).getId(), newAreas);
             }
         }
 
-        TerrainMesh terrainMesh = addPolygon(meshName, osmId, type, landClass, geoCoordinates.iterator());
-        log.debug("Added area {} of type {} to mesh. Took {} ms.", osmId, type, System.currentTimeMillis() - startTime);
+        TerrainMesh terrainMesh = addPolygons(meshName, osmId, type, landClass, polygons.stream().map(List::iterator).toList());
+        log.debug("Added area {} of type {} with {} polygon(s) to mesh. Took {} ms.", osmId, type, polygons.size(), System.currentTimeMillis() - startTime);
         return terrainMesh;
     }
 
     /**
      * If we decide to maintain background, adding a polygon also requires a cut of background.
+     * 16.11.26: Several polygons with the same osmId, which are validated together.
      */
-    private TerrainMesh addPolygon(String meshName, long osmId, MeshPolygonType type, LandClass landClass, Iterator<GeoCoordinate> nodeProvider) throws MeshInconsistencyException {
+    private TerrainMesh addPolygons(String meshName, long osmId, MeshPolygonType type, LandClass landClass, List<Iterator<GeoCoordinate>> nodeProviders) throws MeshInconsistencyException {
         PersistedMesh mesh = meshRepository.findByName(meshName);
         if (mesh == null) {
             throw new RuntimeException("mesh not found:" + meshName);
         }
-        PersistedMeshPolygon meshPolygon = buildPersistedMeshPolygon(mesh, osmId, type, landClass, nodeProvider);
-        meshPolygonRepository.save(meshPolygon);
+        for (Iterator<GeoCoordinate> nodeProvider : nodeProviders) {
+            PersistedMeshPolygon meshPolygon = buildPersistedMeshPolygon(mesh, osmId, type, landClass, nodeProvider);
+            meshPolygonRepository.save(meshPolygon);
+        }
 
         TerrainMesh terrainMesh = loadMesh(meshName);
 
@@ -235,7 +241,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             log.debug("Connector {} overlaps {} area(s) that need to be adjusted", osmNodeId, areasToAdjust.size());
             GeoPolygon connectorPolygon = new GeoPolygon(polygon);
             for (MeshPolygon area : areasToAdjust) {
-                adjustPolygon(((PersistedMeshPolygon) area).getId(), connectorPolygon);
+                adjustPolygon(((PersistedMeshPolygon) area).getId(), List.of(connectorPolygon));
             }
         }
 
@@ -413,7 +419,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     public List<MeshPolygon> findAreaIntersectionsOfWay(String meshName, List<GeoCoordinate> leftLine, List<GeoCoordinate> rightLine) throws MeshInconsistencyException {
         List<GeoCoordinate> outline = buildWayOutline(leftLine, rightLine);
         outline.add(outline.get(0));
-        return findAreaIntersections(meshName, new GeoPolygon(outline));
+        return findIntersections(meshName, new GeoPolygon(outline), Set.of(MeshPolygonType.AREA));
     }
 
     /**
@@ -421,7 +427,15 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public List<MeshPolygon> findAreaIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException {
-        return findAreaIntersections(meshName, new GeoPolygon(polygon));
+        return findIntersections(meshName, new GeoPolygon(polygon), Set.of(MeshPolygonType.AREA));
+    }
+
+    /**
+     * Like findAreaIntersectionsOfArea(), but for the polygons of type WAY and CONNECTOR, which must not be split.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public List<MeshPolygon> findWayIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException {
+        return findIntersections(meshName, new GeoPolygon(polygon), Set.of(MeshPolygonType.WAY, MeshPolygonType.CONNECTOR));
     }
 
     public PersistedMeshNode buildMeshNode(GeoCoordinate coordinate, PersistedMesh mesh) {
@@ -462,6 +476,11 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
 
             @Override
+            public List<MeshPolygon> findWayIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException {
+                return ms.findWayIntersectionsOfArea(meshName, polygon);
+            }
+
+            @Override
             public TerrainMesh addConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
                 return ms.addConnector(meshName, osmNodeId, polygon, wayAttachPoints, landClass, areasToAdjust);
             }
@@ -482,22 +501,23 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
 
             @Override
-            public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
-                return ms.addArea(meshName, osmId, type, geoCoordinates, landClass, areasToAdjust);
+            public TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<List<GeoCoordinate>> polygons, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+                return ms.addArea(meshName, osmId, type, polygons, landClass, areasToAdjust);
             }
         };
     }
 
     /**
-     * Adjusts (cuts/splits) an existing polygon (typically an AREA) so it no longer overlaps newPolygon by
-     * subtracting newPolygon from it. The existing polygon is replaced by one or more new polygons having the
+     * Adjusts (cuts/splits) an existing polygon (typically an AREA) so it no longer overlaps newPolygons by
+     * subtracting newPolygons from it. The existing polygon is replaced by one or more new polygons having the
      * same osmId, type and landClass (so its id changes). Nothing is validated here, that is up to the caller
-     * after adding newPolygon.
+     * after adding newPolygons.
      * Throws MeshInconsistencyException if the result can't be represented (polygon with hole) or
      * the subtraction fails.
      * 28.10.26
+     * 16.11.26: List of new polygons (eg. an area clipped to ways), because the existing polygon can only be replaced once.
      */
-    private void adjustPolygon(long polygonToAdjustId, GeoPolygon newPolygon) throws MeshInconsistencyException {
+    private void adjustPolygon(long polygonToAdjustId, List<GeoPolygon> newPolygons) throws MeshInconsistencyException {
         // Avoid problems with detached entities and reload polygon (the entity instances might have been created before the new TX started).
         PersistedMeshPolygon existing = meshPolygonRepository.findById(polygonToAdjustId)
                 .orElseThrow(() -> new MeshInconsistencyException("polygon to adjust not found: " + polygonToAdjustId));
@@ -506,18 +526,16 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             // already logged
             throw new MeshInconsistencyException("polygon to adjust is inconsistent: " + existing);
         }
-        // Use the same overlap limit as JtsUtil.overlaps() for GeoCoordinates
-        List<Polygon> parts = JtsUtil.subtractPolygons(existingPolygon, newPolygon, 0.000000001);
-        if (parts == null) {
+        List<Polygon> parts = JtsUtil.subtractAllPolygons(existingPolygon, newPolygons);
+        if (parts.size() == 1 && parts.get(0) == existingPolygon) {
             log.debug("No overlap of {}, so nothing to adjust", existing);
             return;
         }
         if (parts.isEmpty()) {
-            // Either completely covered by newPolygon or the subtraction failed (already logged).
-            throw new MeshInconsistencyException("adjusting " + existing + " failed (no remaining part)");
+            throw new MeshInconsistencyException("adjusting " + existing + " failed, because it is completely covered");
         }
         PersistedMesh mesh = existing.getMesh();
-        List<PersistedMeshPolygon> newPolygons = new ArrayList<>();
+        List<PersistedMeshPolygon> replacements = new ArrayList<>();
         for (Polygon part : parts) {
             if (part.getNumInteriorRing() > 0) {
                 // subtractPolygons() should have split it, so already logged there
@@ -526,13 +544,13 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             List<GeoCoordinate> coordinates = JtsUtil.coordinatesToGeoCoordinates(Arrays.asList(part.getExteriorRing().getCoordinates()));
             // skip closing coordinate, buildPolygon() closes itself
             coordinates.remove(coordinates.size() - 1);
-            newPolygons.add(buildPersistedMeshPolygon(mesh, existing.getOsmId(), existing.getType(), existing.getLandClass(), coordinates.iterator()));
+            replacements.add(buildPersistedMeshPolygon(mesh, existing.getOsmId(), existing.getType(), existing.getLandClass(), coordinates.iterator()));
         }
         // like deletePolygon(), keep the mesh relation in sync
         mesh.getPolygons().remove(existing);
         meshPolygonRepository.delete(existing);
-        meshPolygonRepository.saveAll(newPolygons);
-        log.debug("Adjusted {} to {} part(s)", existing, newPolygons.size());
+        meshPolygonRepository.saveAll(replacements);
+        log.debug("Adjusted {} to {} part(s)", existing, replacements.size());
     }
 
     /**
@@ -592,7 +610,10 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         return l;
     }
 
-    private List<MeshPolygon> findAreaIntersections(String meshName, GeoPolygon wayPolygon) throws MeshInconsistencyException {
+    /**
+     * The polygons of one of the given types that overlap 'wayPolygon'.
+     */
+    private List<MeshPolygon> findIntersections(String meshName, GeoPolygon wayPolygon, Set<MeshPolygonType> types) throws MeshInconsistencyException {
         PersistedMesh mesh = meshRepository.findByName(meshName);
         if (mesh == null) {
             throw new RuntimeException("mesh not found:" + meshName);
@@ -604,7 +625,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
                 envelope.getMinY(), envelope.getMaxY(), envelope.getMinX(), envelope.getMaxX());
         List<MeshPolygon> result = new ArrayList<>();
         for (PersistedMeshPolygon p : meshPolygonRepository.findAllById(candidateIds)) {
-            if (p.getType() != MeshPolygonType.AREA) {
+            if (!types.contains(p.getType())) {
                 continue;
             }
             GeoPolygon geoPolygon = p.getGeoPolygon();
@@ -614,7 +635,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             }
         }
         result.sort(Comparator.comparing(p -> ((PersistedMeshPolygon) p).getId()));
-        log.debug("Found {} intersecting area(s) of {} candidate(s) in mesh {}", result.size(), candidateIds.size(), meshName);
+        log.debug("Found {} intersecting polygon(s) of type {} of {} candidate(s) in mesh {}", result.size(), types, candidateIds.size(), meshName);
         return result;
     }
 }

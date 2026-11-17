@@ -11,7 +11,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JtsUtilTest {
@@ -45,9 +45,15 @@ public class JtsUtilTest {
 
     @Test
     public void testSubtractPolygonsNoOverlap() {
-        assertNull(JtsUtil.subtractPolygons(square, polygon("POLYGON((20 0, 30 0, 30 10, 20 10, 20 0))")));
+        // returns the polygon itself
+        assertSame(square, JtsUtil.subtractPolygons(square, polygon("POLYGON((20 0, 30 0, 30 10, 20 10, 20 0))")).get(0));
         // only touching
-        assertNull(JtsUtil.subtractPolygons(square, polygon("POLYGON((10 0, 20 0, 20 10, 10 10, 10 0))")));
+        assertEquals(List.of(square), JtsUtil.subtractPolygons(square, polygon("POLYGON((10 0, 20 0, 20 10, 10 10, 10 0))")));
+    }
+
+    @Test
+    public void testSubtractPolygonsCovered() {
+        assertEquals(0, JtsUtil.subtractPolygons(square, polygon("POLYGON((-1 -1, 11 -1, 11 11, -1 11, -1 -1))")).size());
     }
 
     @Test
@@ -69,14 +75,43 @@ public class JtsUtilTest {
 
     @Test
     public void testSubtractPolygonsGeoCoordinates() {
-        // degree sized polygons need a smaller minAreaChange
+        // Real geo coordinates (lon/lat near 7/51) on purpose instead of readable integers: Polygons of a few meters
+        // have tiny areas in degree² (here about 1e-8), which is what the relative minimum overlap
+        // (MIN_OVERLAP_AREA_RATIO) has to cope with. An absolute limit suitable for projected coordinates wouldn't work here.
         Polygon area = polygon("POLYGON((7.0001 51.0001, 7.0004 51.0001, 7.0004 51.0004, 7.0001 51.0004, 7.0001 51.0001))");
         Polygon connector = polygon("POLYGON((7.0002 51.0002, 7.0003 51.0002, 7.0003 51.0003, 7.0002 51.0003, 7.0002 51.0002))");
-        assertNull(JtsUtil.subtractPolygons(area, connector));
-        List<Polygon> result = JtsUtil.subtractPolygons(area, connector, 0.000000001);
+        List<Polygon> result = JtsUtil.subtractPolygons(area, connector);
         assertEquals(2, result.size());
         result.forEach(p -> assertEquals(0, p.getNumInteriorRing()));
         assertEquals(area.getArea() - connector.getArea(), result.stream().mapToDouble(Polygon::getArea).sum(), 1e-15);
+
+        // only touching (sharing the east edge)
+        Polygon neighbour = polygon("POLYGON((7.0004 51.0001, 7.0005 51.0001, 7.0005 51.0004, 7.0004 51.0004, 7.0004 51.0001))");
+        assertSame(area, JtsUtil.subtractPolygons(area, neighbour).get(0));
+    }
+
+    @Test
+    public void testSubtractAllPolygons() {
+        // a north/south and a west/east strip crossing each other split into 4 parts
+        List<Polygon> result = JtsUtil.subtractAllPolygons(square, List.of(
+                polygon("POLYGON((4 -1, 6 -1, 6 11, 4 11, 4 -1))"),
+                polygon("POLYGON((-1 4, 11 4, 11 6, -1 6, -1 4))")));
+        assertEquals(4, result.size());
+        assertNoHolesAndArea(64, result);
+
+        // no overlap at all returns the polygon itself
+        assertEquals(List.of(square), JtsUtil.subtractAllPolygons(square, List.of(polygon("POLYGON((20 0, 30 0, 30 10, 20 10, 20 0))"))));
+        assertSame(square, JtsUtil.subtractAllPolygons(square, List.of()).get(0));
+
+        // only the second one overlaps
+        result = JtsUtil.subtractAllPolygons(square, List.of(
+                polygon("POLYGON((20 0, 30 0, 30 10, 20 10, 20 0))"),
+                polygon("POLYGON((5 -1, 11 -1, 11 11, 5 11, 5 -1))")));
+        assertEquals(1, result.size());
+        assertNoHolesAndArea(50, result);
+
+        // completely covered
+        assertEquals(0, JtsUtil.subtractAllPolygons(square, List.of(polygon("POLYGON((-1 -1, 11 -1, 11 11, -1 11, -1 -1))"))).size());
     }
 
     private void assertNoHolesAndArea(double expectedArea, List<Polygon> polygons) {

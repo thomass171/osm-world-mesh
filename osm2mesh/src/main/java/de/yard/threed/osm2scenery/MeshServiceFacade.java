@@ -50,8 +50,13 @@ public interface MeshServiceFacade {
 
     /**
      * The most generic use case
+     * 16.11.26: Adds a list of polygons instead of a single polygon, because an area might be split into several polygons
+     * by clipping it to existing ways (see findWayIntersectionsOfArea()). Each polygon is stored as a separate
+     * polygon with the same osmId.
+     *
+     * @param areasToAdjust like in addWay(). They are adjusted to all of the polygons.
      */
-    TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<GeoCoordinate> geoCoordinates, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException;
+    TerrainMesh addArea(String meshName, long osmId, MeshPolygonType type, List<List<GeoCoordinate>> polygons, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException;
 
     /**
      * Returns the polygons of type AREA that overlap the polygon a way with these outlines would get in addWay().
@@ -63,5 +68,11 @@ public interface MeshServiceFacade {
      * Like findAreaIntersections() for a way, but for an area (closed, like in addConnector()).
      */
     List<MeshPolygon> findAreaIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException;
+
+    /**
+     * Like findAreaIntersectionsOfArea(), but returns the polygons of type WAY and CONNECTOR. Unlike areas these
+     * must not be split, so a new area has to be clipped to them instead.
+     */
+    List<MeshPolygon> findWayIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException;
 
 }

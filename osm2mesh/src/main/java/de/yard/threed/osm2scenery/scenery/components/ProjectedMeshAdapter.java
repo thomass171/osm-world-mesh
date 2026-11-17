@@ -64,11 +64,19 @@ public class ProjectedMeshAdapter implements SceneryObjectComponent {
     }
 
     /**
-     * Analog to registerConnector (so GeoCoordinate instead of Coordinate). Returns the AREA polygons a connector
+     * Returns the AREA polygons an arbitrary polygon intersects.
      * with this polygon would overlap.
      */
     public List<MeshPolygon> findAreaIntersections(List<Coordinate> line) throws MeshInconsistencyException {
         return meshService.findAreaIntersectionsOfArea(meshName, JtsUtil.unproject(line, projection));
+    }
+
+    /**
+     * Returns the WAY and CONNECTOR polygons an arbitrary polygon intersects. These are not split like areas,
+     * but the polygon needs to be clipped to them (see SceneryAreaObject).
+     */
+    public List<MeshPolygon> findWayIntersections(List<Coordinate> line) throws MeshInconsistencyException {
+        return meshService.findWayIntersectionsOfArea(meshName, JtsUtil.unproject(line, projection));
     }
 
     /**
@@ -84,10 +92,15 @@ public class ProjectedMeshAdapter implements SceneryObjectComponent {
     }
 
     /**
-     * Analog to registerWay.
+     * Analog to register() methods.
+     * 16.11.26: Add an OSM area. Technically it might be a list of (closed) polygons, because the area might have been clipped to existing ways (see findWayIntersections()).
      */
-    public void/*MeshWayConnector*/ registerArea(long osmNodeId, MeshPolygonType type, List<Coordinate> coordinates, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
-        TerrainMesh tm = meshService.addArea(meshName, osmNodeId, type, JtsUtil.unproject(coordinates, projection), landClass, areasToAdjust);
+    public void registerArea(long osmNodeId, MeshPolygonType type, List<List<Coordinate>> polygons, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+        List<List<GeoCoordinate>> geoPolygons = new ArrayList<>();
+        for (List<Coordinate> coordinates : polygons) {
+            geoPolygons.add(JtsUtil.unproject(coordinates, projection));
+        }
+        TerrainMesh tm = meshService.addArea(meshName, osmNodeId, type, geoPolygons, landClass, areasToAdjust);
 
     }
 
