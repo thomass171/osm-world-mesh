@@ -21,4 +21,19 @@ public class OsmXmlParserTest {
         assertEquals(1, osmData.getWays().size());
     }
 
+    /**
+     * Kenten-South has unused attributes (changeset, timestamp, user, uid, visible) stripped. 'version' is required by osmosis.
+     */
+    @Test
+    public void testKentenSouth() throws Exception {
+
+        String xml = loadFileFromClasspath("Kenten/Kenten-South.osm.xml");
+        OsmXmlParser parser = new OsmXmlParser(xml);
+        OSMData osmData = parser.getData();
+        assertNotNull(osmData);
+        assertEquals(1030, osmData.getNodes().size());
+        assertEquals(75, osmData.getWays().size());
+        assertEquals(13, osmData.getRelations().size());
+    }
+
 }

@@ -13,6 +13,7 @@ public enum WellKnownMesh {
     //String[] wellKnownMes
     K41(MainGrid.buildDesdorf()),
     Desdorf(MainGrid.buildDesdorf()),
+    Kenten(MainGrid.buildDesdorf()),
     Zieverich(null/*TODO*/);
 
     private GridCellBounds getGridCellBounds;
@@ -23,6 +24,9 @@ public enum WellKnownMesh {
         }
         if (meshName.equals(K41.name())) {
             return K41;
+        }
+        if (meshName.equals(Kenten.name())) {
+            return Kenten;
         }
         throw new GeneralOwmException("No well known mesh: " + meshName);
     }

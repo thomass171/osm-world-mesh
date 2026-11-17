@@ -68,6 +68,10 @@ public class OsmControllerTest {
         response = validateResponse(result,HttpStatus.OK);
         assertTrue(response.contains("K41-segment.osm.xml"));
 
+        result = TestUtils.doGet(mockMvc, ENDPOINT_OSM + "?meshName=Kenten");
+        response = validateResponse(result,HttpStatus.OK);
+        assertTrue(response.contains("Kenten-South.osm.xml"));
+
     }
 
     @Test

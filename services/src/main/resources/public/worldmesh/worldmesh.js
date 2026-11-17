@@ -23,6 +23,8 @@ var map;
 var tileGroup = null;
 var foundGeoRoute = null;
 var map_routeMarker = null;
+// The mesh that is currently loaded and displayed on the map.
+// It is set after creating or successful load of a mesh.
 var currentMesh = null;
 
 // rectangular area selection on the map
@@ -257,6 +259,7 @@ function updateStatus() {
     $("#btn_deletemesh").prop("disabled",true);
     $("#btn_populatemesh").prop("disabled",true);
 
+    // When no currentMesh exists, it can be created. When it exists, it can be deleted or populated.
     if (currentMesh != null) {
         $("#btn_deletemesh").prop("disabled",false);
         $("#btn_populatemesh").prop("disabled",false);
@@ -278,23 +281,12 @@ function updateStatusForGeoRoute() {
 
 /**
  * 'oninput' callback for mesh input field.
+ * Triggers on every key press and tries to load the mesh with the given name.
  */
 function meshNameChanged() {
     var meshName = getInputMeshName();
     console.log("meshName changed to " + meshName);
-/*
-    var runwayoptions = document.getElementById("sel_runway_"+idsuffix).options;
-    clearOptions("sel_runway_"+idsuffix);
-
-    if (icao.length == 4) {*/
-        loadMesh(meshName, null);
-    /*} else {
-        // Only start searching with 3 characters. Starting with 2 returns too much data that takes too long and doesn't
-        // fit into the select box
-        if (icao.length >= 3) {
-            searchAirport(icao, idsuffix);
-        }
-    }*/
+    loadMesh(meshName, null);
 }
 
 function createMesh() {
@@ -336,12 +328,20 @@ function deleteMesh() {
 }
 
 /**
+ * Load a mesh from the server and show it on the map. Also populates the OSM dataset select box.
  * No search. 'meshName' must be the full pure name.
+ * currentMesh is set to the mesh name after a successful load, or null if the mesh does not exist.
  */
 function loadMesh(meshName, selectValue) {
     console.log("Loading mesh " + meshName);
     // Initially clear everything
     clearTable("tb_failures");
+    // Mesh might not exist (yet). Reset state until the GET succeeds, so 'Create Mesh' gets enabled for it
+    // and nothing of a previous mesh remains visible.
+    clearTileGroup();
+    clearOptions("sel_osmdataset");
+    currentMesh = null;
+    updateStatus();
 
     doGet(serviceshost+"/worldmesh/mesh?meshName="+meshName, json => {
         console.log("got " + json);

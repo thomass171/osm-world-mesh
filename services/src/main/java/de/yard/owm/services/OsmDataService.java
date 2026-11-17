@@ -35,6 +35,7 @@ public class OsmDataService {
                     .filter(filename -> filename.endsWith(".osm.xml"))
                     .collect(Collectors.toUnmodifiableList());
         } catch (IOException e) {
+            log.error("Failed to list datasets for well known mesh {}: {}", wellKnownMesh, e.getMessage(), e);
             throw new GeneralOwmException(e.getMessage());
         }
     }
