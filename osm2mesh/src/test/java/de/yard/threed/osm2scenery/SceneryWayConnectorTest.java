@@ -7,7 +7,7 @@ import de.yard.threed.core.Pair;
 import de.yard.threed.core.platform.Platform;
 import de.yard.threed.core.testutil.CoreTestFactory;
 import de.yard.threed.core.testutil.PlatformFactoryTestingCore;
-import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
+import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.threed.osm2mesh.testutils.MeshServiceMock;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceForMocking;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -26,7 +26,7 @@ public class SceneryWayConnectorTest extends AbstractSceneryWayConnectorTest {
     /*What for @Test
     public void testConnector387409895() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData();
+        MeshTestData desdorfTestData = new MeshTestData();
         MapWay way107468169 = desdorfTestData.fullMapData.findMapWay(107468169);
 
         SceneryWayConnector wayConnector = new SceneryWayConnector("RoadConnector", desdorfTestData.fullMapData.findMapNode(387409895), ASPHALT, ROAD);
@@ -86,8 +86,8 @@ public class SceneryWayConnectorTest extends AbstractSceneryWayConnectorTest {
 
 
     @Override
-    protected DesdorfTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
-        return new DesdorfTestData(meshServiceFactory, validatorServiceFactory);
+    protected MeshTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
+        return MeshTestData.desdorf(meshServiceFactory, validatorServiceFactory);
     }
 
     @Override

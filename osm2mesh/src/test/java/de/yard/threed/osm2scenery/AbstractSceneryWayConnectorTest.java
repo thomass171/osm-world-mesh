@@ -6,7 +6,7 @@ import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.core.Degree;
 import de.yard.threed.osm2mesh.DesdorfExpectations;
 import de.yard.threed.osm2mesh.testutils.DefaultMockingSceneryTest;
-import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
+import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.LandClass;
 import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
@@ -29,11 +29,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingSceneryTest {
 
-    protected abstract DesdorfTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception;
+    protected abstract MeshTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception;
 
     @Test
     public void testDesdorfConnector255563538() throws Exception {
-        DesdorfTestData desdorfTestData = setupForDesdorf(getMeshServiceFactory(), getValidatorServiceFactory());// new DesdorfTestData(getMeshServiceFactory());
+        MeshTestData desdorfTestData = setupForDesdorf(getMeshServiceFactory(), getValidatorServiceFactory());// MeshTestData.desdorf(getMeshServiceFactory());
 
         MapWay way182152619 = desdorfTestData.fullMapData.findMapWay(182152619);
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
@@ -69,7 +69,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
                 .writeTmpFile();
     }
 
-    private ProjectedMeshAdapter buildWayTerrainMeshAdder(DesdorfTestData desdorfTestData) {
+    private ProjectedMeshAdapter buildWayTerrainMeshAdder(MeshTestData desdorfTestData) {
         return new ProjectedMeshAdapter(desdorfTestData.terrainMesh.meshName,desdorfTestData.meshService,desdorfTestData.terrainMesh.getGridCellBounds().getProjection());
     }
 
@@ -79,7 +79,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
     @Test
     public void testConnector387409895() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MeshTestData desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(), getValidatorServiceFactory());
         MapWay way33817500 = desdorfTestData.fullMapData.findMapWay(33817500);
         MapWay way33817501 = desdorfTestData.fullMapData.findMapWay(33817501);
 
@@ -110,7 +110,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
     @Test
     public void testConnector445410497() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MeshTestData desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(), getValidatorServiceFactory());
         MapWay way107468169 = desdorfTestData.fullMapData.findMapWay(107468169);
         MapWay way23696493 = desdorfTestData.fullMapData.findMapWay(23696493);
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
@@ -145,7 +145,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
     @Test
     public void testConnector251517906() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MeshTestData desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(), getValidatorServiceFactory());
         MapWay way182152619 = desdorfTestData.fullMapData.findMapWay(182152619);
         MapWay way225794271 = desdorfTestData.fullMapData.findMapWay(225794271);
 
@@ -177,7 +177,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
     @Test
     public void testConnector255563537() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MeshTestData desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(), getValidatorServiceFactory());
         MapWay way225794271 = desdorfTestData.fullMapData.findMapWay(225794271);
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
 
@@ -212,7 +212,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
     @Test
     public void testConnector387409892() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MeshTestData desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(), getValidatorServiceFactory());
         MapWay way33817500 = desdorfTestData.fullMapData.findMapWay(33817500);
         MapWay way33817499 = desdorfTestData.fullMapData.findMapWay(33817499);
 
@@ -244,7 +244,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
     @Test
     public void testConnector270353278() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MeshTestData desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(), getValidatorServiceFactory());
         MapWay way24879711 = desdorfTestData.fullMapData.findMapWay(24879711);
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
 
@@ -276,7 +276,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
     @Test
     public void testConnector445409643() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MeshTestData desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(), getValidatorServiceFactory());
         MapWay way37935545 = desdorfTestData.fullMapData.findMapWay(37935545);
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
 
@@ -308,7 +308,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
     @Test
     public void testConnector387409890() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        MeshTestData desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(), getValidatorServiceFactory());
         MapWay way33817499 = desdorfTestData.fullMapData.findMapWay(33817499);
         MapWay way107468171 = desdorfTestData.fullMapData.findMapWay(107468171);
 

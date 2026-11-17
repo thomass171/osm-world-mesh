@@ -150,12 +150,14 @@ public class GridCellBounds /*implements TargetBounds*/ {
         if (topright.z - bottomleft.z > maxextension) {
             maxextension = topright.z - bottomleft.z;
         }
-        buildBoundaryPolygon(List.of(
-                LatLon.fromDegrees(top, left),
-                LatLon.fromDegrees(top, right),
-                LatLon.fromDegrees(bottom, right),
-                LatLon.fromDegrees(bottom, left)
-        ));
+        // CCW like the Desdorf triangle. Needed for getBoundary().
+        coords = List.of(
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(bottom, left), 0),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(bottom, right), 0),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(top, right), 0),
+                GeoCoordinate.fromLatLon(LatLon.fromDegrees(top, left), 0)
+        );
+        buildBoundaryPolygon(coords);
     }
 
     private void buildBoundaryPolygon(List<? extends LatLon> boundary) throws MeshInconsistencyException {

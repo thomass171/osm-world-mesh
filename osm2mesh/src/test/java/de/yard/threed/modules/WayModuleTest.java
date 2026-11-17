@@ -5,7 +5,7 @@ import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.core.platform.Platform;
 import de.yard.threed.core.testutil.CoreTestFactory;
 import de.yard.threed.core.testutil.PlatformFactoryTestingCore;
-import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
+import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.threed.osm2mesh.testutils.MeshServiceMock;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceForMocking;
 import de.yard.threed.osm2scenery.SceneryContext;
@@ -26,8 +26,8 @@ public class WayModuleTest extends AbstractWayModuleTest {
     Platform platform = CoreTestFactory.initPlatformForTest(new PlatformFactoryTestingCore(), null);
 
     @Override
-    protected DesdorfTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
-        return new DesdorfTestData(meshServiceFactory, validatorServiceFactory);
+    protected MeshTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
+        return MeshTestData.desdorf(meshServiceFactory, validatorServiceFactory);
     }
 
     @Override

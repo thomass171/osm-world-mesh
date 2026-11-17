@@ -6,7 +6,7 @@ import de.yard.owm.testutils.TestServices;
 import de.yard.threed.MeshServiceFactory;
 import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.modules.AbstractSurfaceAreaModuleTest;
-import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
+import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,9 +39,9 @@ public class SurfaceAreaModuleTest extends AbstractSurfaceAreaModuleTest {
     }
 
     @Override
-    protected DesdorfTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
+    protected MeshTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
         //return OsmServiceTest.setupForDesdorf(meshService, testServices, terrainMeshManager);
-        return new DesdorfTestData(meshServiceFactory, validatorServiceFactory);
+        return MeshTestData.desdorf(meshServiceFactory, validatorServiceFactory);
 
     }
 

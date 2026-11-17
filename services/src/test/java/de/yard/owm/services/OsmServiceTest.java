@@ -4,7 +4,7 @@ import de.yard.threed.AbstractSceneryTest;
 import de.yard.threed.MeshServiceFactory;
 import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.osm2mesh.DesdorfExpectations;
-import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
+import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.owm.services.mesh.MeshService;
 import de.yard.owm.services.osm.OsmService;
 import de.yard.owm.services.persistence.*;
@@ -65,12 +65,12 @@ public class OsmServiceTest extends AbstractSceneryTest {
 
     @Autowired
     private PlatformService platformService;
-    private DesdorfTestData desdorfTestData;
+    private MeshTestData desdorfTestData;
 
     @BeforeEach
     void setUp() throws Exception {
         testServices.cleanup();
-        desdorfTestData = new DesdorfTestData(getMeshServiceFactory(), getValidatorServiceFactory());
+        desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(), getValidatorServiceFactory());
     }
 
 
@@ -293,7 +293,19 @@ public class OsmServiceTest extends AbstractSceneryTest {
 
     }
 
-    /*17.5.26 public static DesdorfTestData setupForDesdorf(MeshService meshService, TestServices testServices, TerrainMeshManager terrainMeshManager) throws Exception {
+    @Test
+    public void testKentenStepByStep() throws Exception {
+        // Not in setUp() because SceneryContext is static and would be overwritten for the Desdorf tests.
+        MeshTestData kentenTestData = MeshTestData.kenten(getMeshServiceFactory(), getValidatorServiceFactory());
+
+        // residential 'Zum Biotop'
+        TerrainMesh terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 8076368L, 1);
+
+        terrainMesh.writeToSvg();
+    }
+
+
+    /*17.5.26 public static MeshTestData setupForDesdorf(MeshService meshService, TestServices testServices, TerrainMeshManager terrainMeshManager) throws Exception {
         // The 'lower' segment. Full data will provide one connector
         //OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("K41-segment.osm.xml");
         OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("Desdorf.osm.xml");
@@ -327,7 +339,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
         return new DesdorfTestdata(expectedBoundary, mapData, expectedK43);
     }
 
-    /*17.5.26 public static DesdorfTestData setupForDesdorf(MeshService meshService, TestServices testServices, TerrainMeshManager terrainMeshManager) throws Exception {
+    /*17.5.26 public static MeshTestData setupForDesdorf(MeshService meshService, TestServices testServices, TerrainMeshManager terrainMeshManager) throws Exception {
         // The 'lower' segment. Full data will provide one connector
         //OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("K41-segment.osm.xml");
         OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("Desdorf.osm.xml");

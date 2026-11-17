@@ -3,7 +3,7 @@ package de.yard.threed.modules;
 import de.yard.threed.MeshServiceFactory;
 import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.osm2mesh.testutils.DefaultMockingSceneryTest;
-import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
+import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.BuildingModule;
 import de.yard.threed.osm2scenery.modules.SurfaceAreaModule;
@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
 
 public abstract class AbstractSurfaceAreaModuleTest extends DefaultMockingSceneryTest {
 
-    protected abstract DesdorfTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception;
+    protected abstract MeshTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception;
 
-    DesdorfTestData desdorfTestData;
+    MeshTestData desdorfTestData;
     SurfaceAreaModule surfaceAreaModule;
 
     @BeforeEach

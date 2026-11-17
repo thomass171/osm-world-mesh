@@ -13,7 +13,7 @@ public enum WellKnownMesh {
     //String[] wellKnownMes
     K41(MainGrid.buildDesdorf()),
     Desdorf(MainGrid.buildDesdorf()),
-    Kenten(MainGrid.buildDesdorf()),
+    Kenten(MainGrid.buildKenten()),
     Zieverich(null/*TODO*/);
 
     private GridCellBounds getGridCellBounds;

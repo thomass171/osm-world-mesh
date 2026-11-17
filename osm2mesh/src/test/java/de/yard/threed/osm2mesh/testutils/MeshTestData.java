@@ -23,7 +23,7 @@ import static de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon.expectedWay;
 
 @Data
 @AllArgsConstructor
-public class DesdorfTestData {
+public class MeshTestData {
     // just four intuitive coordinates near "Desdorf"
     public static GeoCoordinate SW = GeoCoordinate.fromLatLon(LatLon.fromDegrees(50.94, 6.6), 0);
     public static GeoCoordinate NW = GeoCoordinate.fromLatLon(LatLon.fromDegrees(50.95, 6.6), 0);
@@ -37,10 +37,28 @@ public class DesdorfTestData {
     public ExpectedMeshPolygon expectedBoundary;
     public MeshServiceFacade meshService;
 
-    public DesdorfTestData(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
-        osmData = TestUtil.loadOsmDataFromXmlClasspath("Desdorf.osm.xml");
+    /**
+     * The classic 'Desdorf' triangle.
+     */
+    public static MeshTestData desdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
+        return new MeshTestData("Desdorf", "Desdorf.osm.xml", MainGrid.buildDesdorf(), 3, meshServiceFactory, validatorServiceFactory);
+    }
 
-        gridCellBounds = MainGrid.buildDesdorf();
+    /**
+     * Rectangle of 'Kenten-South'. The OSM file only exists in module 'services'.
+     */
+    public static MeshTestData kenten(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
+        return new MeshTestData("Kenten", "Kenten/Kenten-South.osm.xml", MainGrid.buildKenten(), 4, meshServiceFactory, validatorServiceFactory);
+    }
+
+    /**
+     * @param expectedBoundaryNodes number of nodes of the grid boundary (3 for the Desdorf triangle, 4 for a rectangle)
+     */
+    public MeshTestData(String meshName, String osmFilename, GridCellBounds gridCellBounds, int expectedBoundaryNodes,
+                           MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
+        osmData = TestUtil.loadOsmDataFromXmlClasspath(osmFilename);
+
+        this.gridCellBounds = gridCellBounds;
 
         OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
         fullMapData = converter.createMapData(osmData);
@@ -51,10 +69,10 @@ public class DesdorfTestData {
         ValidatorServiceFacade validatorService = validatorServiceFactory.createService();
 
         //15.5.26 terrainMesh = TerrainMesh.init(gridCellBounds);
-        meshService.createMesh("Desdorf", gridCellBounds.getBoundary());
+        meshService.createMesh(meshName, gridCellBounds.getBoundary());
 
-        terrainMesh = meshService.loadMesh("Desdorf");
-        expectedBoundary = expectedBoundary(3);
+        terrainMesh = meshService.loadMesh(meshName);
+        expectedBoundary = expectedBoundary(expectedBoundaryNodes);
         validatorService.validateMesh(terrainMesh, expectedBoundary);
 
         //15.5.26?? TerrainMesh.meshFactoryInstance = new PersistedMeshFactory("Desdorf", gridCellBounds.getProjection().getBaseProjection(), terrainMeshManager);

@@ -105,6 +105,17 @@ public class MainGrid {
         return simpleTargetBounds;
     }
 
+    /**
+     * Rectangle from the bounds of 'Kenten-South.osm.xml'.
+     */
+    public static GridCellBounds buildKenten() {
+        try {
+            return GridCellBounds.buildFromGeos(50.9406910, 50.9374050, 6.6483810, 6.6553330);
+        } catch (MeshInconsistencyException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static GridCellBounds buildA4Poll() {
         //A$ Poll 370524/370513, ha falsch, das sind ja Endpunkte, ich brauch Zwischenpunkte,
         //besser 370512/1664879703, die sind aber nicht direkt auf gleicher Höhe.

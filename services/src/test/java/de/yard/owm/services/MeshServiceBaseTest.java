@@ -17,7 +17,7 @@ import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.core.Pair;
 import de.yard.threed.modules.AbstractWayModuleTest;
-import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
+import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
 import de.yard.threed.osm2scenery.AbstractSceneryWayConnectorTest;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -110,7 +110,7 @@ public class MeshServiceBaseTest {
     public void testAddNode() throws Exception {
 
         // OsmServiceTest.setupForDesdorf(meshService, testServices, terrainMeshManager);
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(),getValidatorServiceFactory());
+        MeshTestData desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(),getValidatorServiceFactory());
 
         // SQL script already deletes. Setting this here might be fatal as projection might change
         TerrainMesh.meshFactoryInstance = new PersistedMeshFactory("Desdorf", projectionDESDORF_SW, manager);
@@ -130,7 +130,7 @@ public class MeshServiceBaseTest {
     public void testDesdorf() throws Exception {
 
         //OsmServiceTest.setupForDesdorf(meshService, testServices, terrainMeshManager);
-        DesdorfTestData desdorfTestData = new DesdorfTestData(getMeshServiceFactory(),getValidatorServiceFactory());
+        MeshTestData desdorfTestData = MeshTestData.desdorf(getMeshServiceFactory(),getValidatorServiceFactory());
 
         // SQL script already deletes. Setting this here might be fatal as projection might change
         TerrainMesh.meshFactoryInstance = new PersistedMeshFactory("Desdorf", projectionDESDORF_SW, manager);

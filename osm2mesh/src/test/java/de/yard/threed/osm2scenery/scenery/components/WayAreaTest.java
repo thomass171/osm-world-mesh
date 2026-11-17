@@ -43,7 +43,7 @@ public class WayAreaTest {
     @Test
     public void testDesdorfLowerK41() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(gridCellBounds -> new MeshServiceMock(gridCellBounds),()->new ValidatorServiceForMocking()        );
+        MeshTestData desdorfTestData = MeshTestData.desdorf(gridCellBounds -> new MeshServiceMock(gridCellBounds),()->new ValidatorServiceForMocking()        );
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(24927839);
         double width = 7.7;
@@ -59,7 +59,7 @@ public class WayAreaTest {
     @Test
     public void testDesdorfUpperK41() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(gridCellBounds -> new MeshServiceMock(gridCellBounds),()->new ValidatorServiceForMocking()        );
+        MeshTestData desdorfTestData = MeshTestData.desdorf(gridCellBounds -> new MeshServiceMock(gridCellBounds),()->new ValidatorServiceForMocking()        );
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(182152619);
         double width = 7.7;
@@ -84,7 +84,7 @@ public class WayAreaTest {
     @Test
     public void testDesdorfK43() throws Exception {
 
-        DesdorfTestData desdorfTestData = new DesdorfTestData(gridCellBounds -> new MeshServiceMock(gridCellBounds),()->new ValidatorServiceForMocking()        );
+        MeshTestData desdorfTestData = MeshTestData.desdorf(gridCellBounds -> new MeshServiceMock(gridCellBounds),()->new ValidatorServiceForMocking()        );
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(107468171);
         double width = 7.7;

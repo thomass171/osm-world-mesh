@@ -11,7 +11,7 @@ import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.core.LatLon;
 import de.yard.threed.modules.AbstractWayModuleTest;
-import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
+import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.threed.osm2mesh.testutils.ValidatorServiceFacade;
 import de.yard.threed.osm2scenery.AbstractSceneryWayConnectorTest;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -96,9 +96,9 @@ public class MeshServiceWayConnectorTest extends AbstractSceneryWayConnectorTest
 
 
     @Override
-    protected DesdorfTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
+    protected MeshTestData setupForDesdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
         //return OsmServiceTest.setupForDesdorf(meshService, testServices, terrainMeshManager);
-        return new DesdorfTestData(meshServiceFactory, validatorServiceFactory);
+        return MeshTestData.desdorf(meshServiceFactory, validatorServiceFactory);
 
     }
 

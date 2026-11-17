@@ -6,7 +6,7 @@ import de.yard.owm.services.osm.OsmService;
 import de.yard.owm.testutils.TestServices;
 import de.yard.threed.core.GeoCoordinate;
 import de.yard.threed.osm2graph.osm.JtsUtil;
-import de.yard.threed.osm2mesh.testutils.DesdorfTestData;
+import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
 import lombok.extern.slf4j.Slf4j;
@@ -80,15 +80,15 @@ public class PersistedMeshPolygonTest {
         meshPolygon.setMesh(persistedMesh);
 
         if (valid) {
-            meshPolygon.addNode(meshService.buildMeshNode(DesdorfTestData.SW, persistedMesh));
-            meshPolygon.addNode(meshService.buildMeshNode(DesdorfTestData.SE, persistedMesh));
-            meshPolygon.addNode(meshService.buildMeshNode(DesdorfTestData.NE, persistedMesh));
-            meshPolygon.addNode(meshService.buildMeshNode(DesdorfTestData.NW, persistedMesh));
+            meshPolygon.addNode(meshService.buildMeshNode(MeshTestData.SW, persistedMesh));
+            meshPolygon.addNode(meshService.buildMeshNode(MeshTestData.SE, persistedMesh));
+            meshPolygon.addNode(meshService.buildMeshNode(MeshTestData.NE, persistedMesh));
+            meshPolygon.addNode(meshService.buildMeshNode(MeshTestData.NW, persistedMesh));
         }else {
-            meshPolygon.addNode(meshService.buildMeshNode(DesdorfTestData.SW, persistedMesh));
-            meshPolygon.addNode(meshService.buildMeshNode(DesdorfTestData.NE, persistedMesh));
-            meshPolygon.addNode(meshService.buildMeshNode(DesdorfTestData.SE, persistedMesh));
-            meshPolygon.addNode(meshService.buildMeshNode(DesdorfTestData.NW, persistedMesh));
+            meshPolygon.addNode(meshService.buildMeshNode(MeshTestData.SW, persistedMesh));
+            meshPolygon.addNode(meshService.buildMeshNode(MeshTestData.NE, persistedMesh));
+            meshPolygon.addNode(meshService.buildMeshNode(MeshTestData.SE, persistedMesh));
+            meshPolygon.addNode(meshService.buildMeshNode(MeshTestData.NW, persistedMesh));
         }
         meshPolygon.close();
         assertEquals(valid, meshPolygon.isValidForSave());
