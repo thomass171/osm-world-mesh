@@ -43,13 +43,14 @@ import static de.yard.threed.osm2world.WorldModuleGeometryUtil.filterWorldObject
  * <p>
  * Needs to be applied <em>after</em> all the modules that generate
  * whatever runs over the bridge.
- * 27.5.19: Bridges werden doch - vorerst - bei Roads mitgemacht.
+ * 27.5.19: Aren't bridges built during way(road) processing?
+ * So no need to make it a module?
  */
 @Slf4j
-public class BridgeModule extends SceneryModule {
+public class BridgeModule /*extends SceneryModule */{
 
     public BridgeModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
-        super(meshServiceFacade, projection, meshName);
+       // super(meshServiceFacade, projection, meshName);
     }
 
     public static final boolean isBridge(TagGroup tags) {
@@ -61,20 +62,11 @@ public class BridgeModule extends SceneryModule {
         return isBridge(segment.getTags());
     }
 
-    @Override
+    //@Override
+    @Deprecated
     public SceneryObjectList applyTo(MapData grid) {
         
-		/*WaySegmentWorldObject primaryRepresentation =
-            segment.getPrimaryRepresentation();
-		
-		if (primaryRepresentation instanceof AbstractNetworkWaySegmentWorldObject
-				&& isBridge(segment)) {
-			
-			segment.addRepresentation(new Bridge(segment,
-					(AbstractNetworkWaySegmentWorldObject) primaryRepresentation));
-			
-		}*/
-        return null;
+	    return null;
     }
 
     public static final double BRIDGE_UNDERSIDE_HEIGHT = 0.2f;
@@ -96,7 +88,7 @@ public class BridgeModule extends SceneryModule {
         public Bridge(MapWaySegment2 mapWay, TagMap materialmap/*SceneryWayObject roadorrailway/*MapWay mapWay/*MapWaySegment segment,
                 AbstractNetworkWaySegmentWorldObject primaryWO*/, LandClass landClass, SceneryContext sceneryContext) {
             //TODO category kann auch Railway sein.
-            super("Bridge", mapWay, materialmap, Category.ROAD/*BRIDGE*/, landClass, sceneryContext);
+            super("Bridge", mapWay, materialmap, SceneryObject.Category.ROAD/*BRIDGE*/, landClass, sceneryContext);
             //super("Bridge", roadorrailway, Category.BRIDGE/*mapWay/*segment, primaryWO*/);
             //shadowway = MapDataHelper.createShadowMapWay(roadorrailway.mapWay);
 
@@ -108,23 +100,26 @@ public class BridgeModule extends SceneryModule {
 
         /*@Override        public List<ScenerySupplementAreaObject> createPolygon(List<SceneryObject> objects, GridCellBounds gridbounds){        }*/
 
+        /**
+         * 18.11.26 depends on bridge type
+         */
         public void createSupplements() {
             //bridge heads need clipped ways
             // Ramp. The polygon of the approach road isType primary, so exists.
-            SceneryWayObject wayAtNode = getConnectedRoad(getStartNode());
+            /*18.11.26 SceneryWayObject wayAtNode = getConnectedRoad(getStartNode());
             startHead = null;//9.3.26 new BridgeHead(this, getStartNode(), wayAtNode,getStartConnector());
             wayAtNode = getConnectedRoad(getEndNode());
             endHead = null;//9.3.26 new BridgeHead(this, getEndNode(), wayAtNode,getEndConnector());
 
             gap = closeBridgeGap();
-            startHead.ramp0 = new BridgeSideRamp("BridgeSideRamp", startHead, GRASS, this/*roadorrailway*/.mapWay.getStartNode(), true);
+            startHead.ramp0 = new BridgeSideRamp("BridgeSideRamp", startHead, GRASS, this/*roadorrailway* /.mapWay.getStartNode(), true);
             startHead.ramp0.name = "ramp0";
-            startHead.ramp1 = new BridgeSideRamp("BridgeSideRamp", startHead, GRASS, this/*roadorrailway*/.mapWay.getStartNode(), false);
+            startHead.ramp1 = new BridgeSideRamp("BridgeSideRamp", startHead, GRASS, this/*roadorrailway* /.mapWay.getStartNode(), false);
             startHead.ramp1.name = "ramp1";
-            endHead.ramp0 = new BridgeSideRamp("BridgeSideRamp", endHead, GRASS, this/*roadorrailway*/.mapWay.getEndNode(), true);
+            endHead.ramp0 = new BridgeSideRamp("BridgeSideRamp", endHead, GRASS, this/*roadorrailway* /.mapWay.getEndNode(), true);
             endHead.ramp0.name = "ramp2";
-            endHead.ramp1 = new BridgeSideRamp("BridgeSideRamp", endHead, GRASS, this/*roadorrailway*/.mapWay.getEndNode(), false);
-            endHead.ramp1.name = "ramp3";
+            endHead.ramp1 = new BridgeSideRamp("BridgeSideRamp", endHead, GRASS, this/*roadorrailway* /.mapWay.getEndNode(), false);
+            endHead.ramp1.name = "ramp3";*/
         }
 
         /*@Override
@@ -236,10 +231,10 @@ public class BridgeModule extends SceneryModule {
             //TODO 28.8.18: average ist doch wohl nicht gut?a
             double average = ElevationMap.getInstance().getAverage();
             double elevation = average +/*3*/6;
-            for (EleConnectorGroup eleConnectorGroup : getEleConnectorGroups().eleconnectorgroups) {
+            /*18.11.26for (EleConnectorGroup eleConnectorGroup : getEleConnectorGroups().eleconnectorgroups) {
                 eleConnectorGroup.fixElevation(elevation);
                 ElevationMap.getInstance().fix(eleConnectorGroup);
-            }
+            }*/
             //das überbrückte Element etwas tiefer? Naja, irgendwann mal
 
             //aber die Rampen an der Bridge erhöhen.
@@ -264,7 +259,7 @@ public class BridgeModule extends SceneryModule {
 
         }*/
         public SceneryObject getRoad() {
-            return this/*roadorrailway*/;
+            return null;//this/*roadorrailway*/;
         }
 
         public SceneryObject getGroundFiller() {
@@ -307,7 +302,7 @@ public class BridgeModule extends SceneryModule {
 
         public double getWidth() {
             //return roadorrailway.getWidth();
-            return super.getWidth();
+            return 0;//super.getWidth();
         }
     }
 

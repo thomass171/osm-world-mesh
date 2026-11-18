@@ -100,10 +100,10 @@ public class SceneryObjectList {
      *
      * @return
      */
-    public List<SceneryObject> findBridges() {
+    /*18.11.26public List<SceneryObject> findBridges() {
         List<SceneryObject> result = objects.stream().filter(o -> o instanceof BridgeModule.Bridge).collect(Collectors.toList());
         return result;
-    }
+    }*/
 
     public List<SceneryWayObject> findWaysByCategory(SceneryObject.Category category) {
         List<SceneryWayObject> result = new ArrayList();

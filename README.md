@@ -66,6 +66,11 @@ For now postponed to tile generation
   * Enhancements (if enabled)
   * Decorations (if enabled)
 
+Latest idea for bridges is: Still don't contribute to terrain mesh, rather a volume object. And we need
+to consider GraphBasedObject some day. Could use a ObjectPositioner for
+positioning an external model on the mesh, exactly aligned to the mesh. The surface
+of the bridge model could be covered by a texture that matches
+the layout of the connected ways (lanes, sidewalk).
 
 # Phrases:
 

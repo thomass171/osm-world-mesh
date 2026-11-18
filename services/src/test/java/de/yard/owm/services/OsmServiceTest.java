@@ -309,8 +309,8 @@ public class OsmServiceTest extends AbstractSceneryTest {
         terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 313410101L, 1);
         terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 8610418L, 1);
         // bridges. Not yet, Bridge has no projection (NPE in SceneryWayObject.clip())
-        //terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 7644287L, 1);
-        //terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 313410100L, 1);
+        terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 7644287L, 1);
+        terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 313410100L, 1);
 
         terrainMesh.writeToSvg();
     }

@@ -44,12 +44,12 @@ public class BridgeMeshServiceBridge extends ProjectedMeshAdapter {
         if (!SceneryBuilder.FTR_SMARTBG) {
             // return;
         }
-        if (bridgeGap.bridge.mapWay.getOsmId() == 2345485946L) {
+        /*18.11.26if (bridgeGap.bridge.mapWay.getOsmId() == 2345485946L) {
             int h = 9;
-        }
+        }*/
 
         if (SceneryBuilder.TerrainMeshDebugLog) {
-            log.debug("Adding bridge to mesh: " + bridgeGap.bridge.getOsmIdsAsString());
+            //log.debug("Adding bridge to mesh: " + bridgeGap.bridge.getOsmIdsAsString());
         }
         addRamps(bridgeGap.bridge.startHead, tm);
         addRamps(bridgeGap.bridge.endHead, tm);

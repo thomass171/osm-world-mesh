@@ -120,11 +120,11 @@ public class BridgeGap extends ScenerySupplementAreaObject {
     public void resolveSupplementOverlaps(List<SceneryFlatObject> overlaps, TerrainMesh tm) {
         if (overlaps.size() == 1) {
             //mal annehmen, dass das der Overlap mit einem Way unter der Brücke ist. Da hilt dann ein Split.
-            OverlapResolver.resolveTerrainOverlaps(this, overlaps, bridge.mapWay.getOsmId(), tm);
+            //18.11.26 OverlapResolver.resolveTerrainOverlaps(this, overlaps, bridge.mapWay.getOsmId(), tm);
             log.debug("resolveOverlaps returned " + getArea().length + " areas.");
         } else {
             // das kann man bestimmt auch eleganter lösen.
-            log.debug("setting overlapping bridge gap filler to empty for bridge" + bridge.mapWay.getOsmId());
+            //18.11.26 log.debug("setting overlapping bridge gap filler to empty for bridge" + bridge.mapWay.getOsmId());
             flatComponent = new AbstractArea[]{AbstractArea.EMPTYAREA};
         }
     }

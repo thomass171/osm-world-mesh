@@ -1,10 +1,13 @@
 package de.yard.threed.osm2scenery.modules.common;
 
+import de.yard.threed.core.Util;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
+import de.yard.threed.osm2scenery.modules.ObjectPositioner;
 import de.yard.threed.osm2scenery.scenery.LandClass;
+import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2scenery.util.TagMap;
 import de.yard.threed.osm2world.*;
@@ -28,9 +31,13 @@ import de.yard.threed.osm2world.*;
  * 27.8.19: Kein Overlay mehr. Das ist einfach ein SceneryObject.
  * 12.9.19: Die Ableitung von Highway ist doch unpassend, Railways gehen auch durch Tunnel/Bridges. Sollte es nicht besser eine Component sein?
  * Es bleibt ja im Grunde ein Highway mit Lanes, Bürgersteig, etc. Undf auch eine Railway mit all ihren Eigenschaften.
+ * 18.11.26: Doesn't contribute to terrain mesh, but a volume object. And we need
+ * to consider GraphBasedObject some day. See also README.md.
  */
-public abstract class BridgeOrTunnel extends HighwayModule.Highway/*SceneryVolumeOverlayObject/*SceneryWayObject/*implements WaySegmentWorldObject*/ {
+public abstract class BridgeOrTunnel /*18.11.26 try without extends HighwayModule.Highway/*SceneryVolumeOverlayObject/*SceneryWayObject/*implements WaySegmentWorldObject*/ {
 
+    // Instead of extending HighwayModule.Highway, we have a positione for placing a 3D model
+    ObjectPositioner positioner;
     //protected MapWaySegment segment;
 
     protected AbstractNetworkWaySegmentWorldObject primaryRep;
@@ -41,13 +48,13 @@ public abstract class BridgeOrTunnel extends HighwayModule.Highway/*SceneryVolum
    public SceneryWayObject sroad;
     public SceneryWayObject eroad;
 
-    public BridgeOrTunnel(String creatortag, MapWaySegment2 mapWay, TagMap materialmap, Category category/*/* SceneryWayObject roadorrailway,* / /*MapWay mapWay/*MapWaySegment segment,
+    public BridgeOrTunnel(String creatortag, MapWaySegment2 mapWay, TagMap materialmap, SceneryObject.Category category/*/* SceneryWayObject roadorrailway,* / /*MapWay mapWay/*MapWaySegment segment,
                           AbstractNetworkWaySegmentWorldObject primaryRepresentation*/, LandClass landClass, SceneryContext sceneryContext) {
         //super(creatortag, category);
-        super(mapWay, materialmap, landClass, sceneryContext);
+        /*18.11.26 super(mapWay, materialmap, landClass, sceneryContext);
         this.creatortag=creatortag;
         //this.roadorrailway = roadorrailway;
-        isTerrainProvider=false;
+        isTerrainProvider=false;*/
         //vorerst um den vom Way loszuwerden. Ableiter kann neu setzen.
         //20.8.26 terrainMeshAdder=null;
         //3.6.19 mal ohne versuchen flatComponent.isOverlay = true;
@@ -91,17 +98,17 @@ public abstract class BridgeOrTunnel extends HighwayModule.Highway/*SceneryVolum
         return this.getClass().getSimpleName() + "(" + this/*roadorrailway* / + ")";
     }*/
 
-    @Override
+    /*18.11.26 @Override
     public final void buildEleGroups() {
         super.buildEleGroups();
         //Die ElevationGroups sind "einfach" die des darueberlaufenden Ways.
-        EleConnectorGroupSet eg = this/*roadorrailway*/.getEleConnectorGroups();
+        EleConnectorGroupSet eg = this/*roadorrailway* /.getEleConnectorGroups();
         for (EleConnectorGroup e : eg.eleconnectorgroups) {
             e.setGroundState(GroundState.ABOVE);
         }
         elevations=eg;
 
-    }
+    }*/
 
     /**
      * Zum Debuggen.
@@ -124,9 +131,10 @@ public abstract class BridgeOrTunnel extends HighwayModule.Highway/*SceneryVolum
 */
 
     public SceneryWayObject getConnectedRoad(MapNode rampNode) {
-        if (rampNode==this/*roadorrailway*/.mapWay.getStartNode()){
+        Util.notyet(); // 18.11.26
+        /*18.11.26if (rampNode==this/*roadorrailway* /.mapWay.getStartNode()){
             return sroad;
-        }
+        }*/
         return eroad;
     }
 }

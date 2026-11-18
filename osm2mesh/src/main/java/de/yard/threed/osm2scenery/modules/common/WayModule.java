@@ -100,12 +100,16 @@ public abstract class WayModule extends SceneryModule {
 
             if (BridgeModule.isBridge(mapwaySegment.getTags())) {
                 //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
+                //18.11.26: Bridge is now a volume object, not a way anymore. It doesn't contribute to terrain mesh.
+                //But a way needs to contribute to the traffic graph.
+                //However the ramps could be vertical mesh parts, depending on the bridge type.
                 BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapwaySegment, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, getLandClass(), sceneryContext);
                 //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
-                sceneryContext.highways.put(osmid, bridge);
+                //TODO add ramps to mesh and way to graph
+                /*sceneryContext.highways.put(osmid, bridge);
                 roadsAndBridges.add(bridge);
                 sceneryContext.bridges.put(osmid, bridge);
-                bridge.addToWayMap(ROAD, sceneryContext);
+                bridge.addToWayMap(ROAD, sceneryContext);*/
             } else if (TunnelModule.isTunnel(mapwaySegment.getTags())) {
                 //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
                 Highway road = new Highway(mapwaySegment, materialmap, getLandClass(), sceneryContext);
@@ -327,23 +331,23 @@ public abstract class WayModule extends SceneryModule {
      */
     public static void buildBridgeApproaches(/*SceneryObjectList*/List<SceneryObject> roadsAndBridges, SceneryContext sceneryContext) {
         for (BridgeModule.Bridge bridge : sceneryContext.bridges.values()) {
-            List<SceneryWayObject> sroads = getConnectedWays(bridge./*roadorrailway.*/mapWay.getStartNode(), true, sceneryContext);
-            sroads.remove(bridge/*.roadorrailway*/);
+          /*18.11.26   List<SceneryWayObject> sroads = getConnectedWays(bridge./*roadorrailway.* /mapWay.getStartNode(), true, sceneryContext);
+            sroads.remove(bridge/*.roadorrailway* /);
             if (checkRoadsAtBridge(sroads)) {
                 continue;
             }
-            raiseBridgeApproach(sroads, bridge/*.roadorrailway*/.mapWay.getStartNode());
-            List<SceneryWayObject> eroads = getConnectedWays(bridge/*.roadorrailway*/.mapWay.getEndNode(), true, sceneryContext);
-            eroads.remove(bridge/*.roadorrailway*/);
+            raiseBridgeApproach(sroads, bridge/*.roadorrailway* /.mapWay.getStartNode());
+            List<SceneryWayObject> eroads = getConnectedWays(bridge/*.roadorrailway* /.mapWay.getEndNode(), true, sceneryContext);
+            eroads.remove(bridge/*.roadorrailway* /);
             if (checkRoadsAtBridge(eroads)) {
                 continue;
             }
-            raiseBridgeApproach(eroads, bridge/*.roadorrailway*/.mapWay.getEndNode());
+            raiseBridgeApproach(eroads, bridge/*.roadorrailway* /.mapWay.getEndNode());
             //vorerst kommen die da mal mit rein.
             bridge.sroad = sroads.get(0);
             bridge.eroad = eroads.get(0);
             //roadsAndBridges.add(bridge.closeBridgeGap(sroads.get(0), eroads.get(0)));
-
+*/
         }
     }
 

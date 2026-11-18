@@ -108,7 +108,7 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
     public void resolveSupplementOverlaps(List<SceneryFlatObject> overlaps, TerrainMesh tm){
         int h=9;
         // das kann man bestimmt auch eleganter lösen.
-        log.debug("setting overlapping bridge ramp to empty for bridge"+bridgeHead.bridge.mapWay.getOsmId());
+        //18.11.26log.debug("setting overlapping bridge ramp to empty for bridge"+bridgeHead.bridge.mapWay.getOsmId());
         flatComponent[0]= AbstractArea.EMPTYAREA;
     }
 

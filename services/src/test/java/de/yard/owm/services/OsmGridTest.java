@@ -910,9 +910,9 @@ public class OsmGridTest {
      * Ist das generisch für alle Bridges? Eher nicht.
      */
     private void validateBridge(BridgeModule.Bridge bridge, ScenerySupplementAreaObject bridgegroundfillerfromobjectlist, HighwayModule.Highway roadToBridgeFromNorth, TerrainMesh tm) throws MeshInconsistencyException {
-        assertFalse(bridge.isTerrainProvider(), "isTerrainProvider");
+        /*18.11.26assertFalse(bridge.isTerrainProvider(), "isTerrainProvider");
         assertTrue(bridge.isClipped(), "bridge.clipped");
-        assertEquals("Bridge", bridge.getCreatorTag(), "creatortag");
+        assertEquals("Bridge", bridge.getCreatorTag(), "creatortag");*/
         assertTrue(bridge.getGroundFiller() == bridgegroundfillerfromobjectlist, "BridgeGroundFiller");
         assertEquals("BridgeGroundFiller", bridge.getGroundFiller().getCreatorTag(), "GroundFiller.creatortag");
 
@@ -923,9 +923,10 @@ public class OsmGridTest {
         TestUtil.validateConnector(endConnector, SceneryWayConnector.WayConnectorType.SIMPLE_CONNECTOR, null);
 
 
-        assertEquals(68f + 6f, bridge.getEleConnectorGroups().eleconnectorgroups.get(0).getElevation().floatValue(), "scenery.bridge.elevation");
-        assertEquals(68f + 6f, bridge./*.roadorrailway*/getEleConnectorGroups().eleconnectorgroups.get(0).getElevation().floatValue(), "scenery.bridge.roadorrailway.elevation");
-        assertEquals(68f + 6f, (float) ((SceneryFlatObject) bridge/*.roadorrailway*/).getArea()[0].getPolygon(tm).getCoordinates()[0].z, "scenery.bridge.roadorrailway.elevation");
+        /*18.11.26assertEquals(68f + 6f, bridge.getEleConnectorGroups().eleconnectorgroups.get(0).getElevation().floatValue(), "scenery.bridge.elevation");
+        assertEquals(68f + 6f, bridge./*.roadorrailway* /getEleConnectorGroups().eleconnectorgroups.get(0).getElevation().floatValue(), "scenery.bridge.roadorrailway.elevation");
+        assertEquals(68f + 6f, (float) ((SceneryFlatObject) bridge/*.roadorrailway* /).getArea()[0].getPolygon(tm).getCoordinates()[0].z, "scenery.bridge.roadorrailway.elevation");
+        */
         //assert elevations of the northern ramp. 17.7.19: Ist ramp2 nicht north right?
         ScenerySupplementAreaObject rampnorthleft = bridge.endHead.ramp0;
         Coordinate[] rampcoors = rampnorthleft.getArea()[0].poly.polygon.getCoordinates();
