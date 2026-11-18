@@ -17,7 +17,7 @@ import java.util.Map;
 import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.GENERICAREA;
 
 /**
- * Eine Oberfläche (direkt oder indirekt als area in OSM definiert), z.B. (Forests, farmland, lakes, aso.).
+ * An area (direct or indirect defined as area in OSM), e.g. (Forests, farmland, lakes, aso.).
  * Kann auch eine Dummyarea sein (Taxiway?)?
  * Wird vorab in den Background eingebaut.
  * <p>
@@ -58,6 +58,7 @@ public class SurfaceAreaModule extends SceneryModule {
     }
 
     @Override
+    @Deprecated
     public SceneryObjectList applyTo(MapData grid) {
         SceneryObjectList l = new SceneryObjectList();
 
@@ -96,25 +97,17 @@ public class SurfaceAreaModule extends SceneryModule {
 
         TagGroup tags = area.getTags();
 
-        boolean applied = false;
-        if (tags.containsKey("surface")) {
-            SurfaceArea surfaceArea = new SurfaceArea(area, tags.getValue("surface"));
-            cca(surfaceArea);
-            applied = true;
-        } else {
-
-            for (Tag tagWithDefault : defaultSurfaceMap.keySet()) {
-                if (tags.contains(tagWithDefault)) {
-                    SurfaceArea surfaceArea = new SurfaceArea(
-                            area, defaultSurfaceMap.get(tagWithDefault));
-                    cca(surfaceArea);
-                    applied = true;
-                    // avoid creating more than one surface area for the same OSM area
-                    break;
-                }
+        // Tag "surface" alone is no indicator for an area. It is also used for ways (eg. highways). So only
+        // the area defining tags decide, "surface" (if present) just refines the surface of the area.
+        for (Tag tagWithDefault : defaultSurfaceMap.keySet()) {
+            if (tags.contains(tagWithDefault)) {
+                String surface = tags.containsKey("surface") ? tags.getValue("surface") : defaultSurfaceMap.get(tagWithDefault);
+                cca(new SurfaceArea(area, surface));
+                // avoid creating more than one surface area for the same OSM area
+                return true;
             }
         }
-        return applied;
+        return false;
 
     }
 

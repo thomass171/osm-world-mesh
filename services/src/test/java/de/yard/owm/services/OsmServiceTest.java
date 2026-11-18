@@ -298,8 +298,19 @@ public class OsmServiceTest extends AbstractSceneryTest {
         // Not in setUp() because SceneryContext is static and would be overwritten for the Desdorf tests.
         MeshTestData kentenTestData = MeshTestData.kenten(getMeshServiceFactory(), getValidatorServiceFactory());
 
-        // residential 'Zum Biotop'
-        TerrainMesh terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 8076368L, 1);
+        // 'Erftflutkanal'
+        TerrainMesh terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 7358975L, 1);
+
+        // 'L 276' segments in order along the road, bridges last
+        terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 8076258L, 1);
+        terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 313410103L, 1);
+        terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 313410102L, 1);
+        terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 504203499L, 1);
+        terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 313410101L, 1);
+        terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 8610418L, 1);
+        // bridges. Not yet, Bridge has no projection (NPE in SceneryWayObject.clip())
+        //terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 7644287L, 1);
+        //terrainMesh = testServices.populateAndLoadMesh("Kenten", kentenTestData.fullMapData, 313410100L, 1);
 
         terrainMesh.writeToSvg();
     }
