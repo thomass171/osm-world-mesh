@@ -92,6 +92,13 @@ public class ProjectedMeshAdapter implements SceneryObjectComponent {
     }
 
     /**
+     * Like registerConnector(), but for a connector at the end of a bridge.
+     */
+    public void registerBridgeConnector(long osmNodeId, List<Coordinate> line, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+        meshService.addBridgeConnector(meshName, osmNodeId, JtsUtil.unproject(line, projection), wayAttachPoints, landClass, areasToAdjust);
+    }
+
+    /**
      * Analog to register() methods.
      * 16.11.26: Add an OSM area. Technically it might be a list of (closed) polygons, because the area might have been clipped to existing ways (see findWayIntersections()).
      */

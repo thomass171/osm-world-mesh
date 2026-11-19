@@ -8,6 +8,7 @@ import de.yard.threed.osm2graph.osm.*;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
+import de.yard.threed.osm2scenery.modules.Bridge;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.ProjectedMeshAdapter;
@@ -154,7 +155,11 @@ public class SceneryWayConnector extends SceneryNodeObject {
             }
             /*17.4.26 if (allouternodes) */
             {
-                type = WayConnectorType.SIMPLE_CONNECTOR;
+                if (Bridge.isBridge(ways.get(0).getTags()) || Bridge.isBridge(ways.get(1).getTags())) {
+                    type = WayConnectorType.BRIDGE_CONNECTOR;
+                } else {
+                    type = WayConnectorType.SIMPLE_CONNECTOR;
+                }
                 if (mainOrderFits(new int[]{0, 1})) {
                     majorway0 = 0;
                     majorway1 = 1;
@@ -520,6 +525,10 @@ public class SceneryWayConnector extends SceneryNodeObject {
                 createPolygonSTANDARD_JUNCTION(projection);
                 break;
             case SIMPLE_CONNECTOR:
+                buildSimpleMainConnection(projection);
+                break;
+            case BRIDGE_CONNECTOR:
+                // 19.11.26: For now like SIMPLE_CONNECTOR. Should be a almost vertical gray plane once.
                 buildSimpleMainConnection(projection);
                 break;
             /*case CROSSING:
@@ -1045,7 +1054,11 @@ public class SceneryWayConnector extends SceneryNodeObject {
         //10.3.26 now in cca() createPolygon(tm.getGridCellBounds(), tm, SceneryContext.getInstance());
         // 28.10.26: Find the areas the connector overlaps, which need to be adjusted when adding the connector.
         List<MeshPolygon> areasToAdjust = projectedMeshAdapter.findAreaIntersections(polygonLine.stream().map(Pair::getFirst).toList());
-        /*24.8.26 meshWayConnector =*/ ((ProjectedMeshAdapter) projectedMeshAdapter).registerConnector(node.getOsmId(), polygonLine.stream().map(Pair::getFirst).toList(), attachpair, landClass, areasToAdjust);
+        if (type == WayConnectorType.BRIDGE_CONNECTOR) {
+            projectedMeshAdapter.registerBridgeConnector(node.getOsmId(), polygonLine.stream().map(Pair::getFirst).toList(), attachpair, landClass, areasToAdjust);
+        } else {
+            projectedMeshAdapter.registerConnector(node.getOsmId(), polygonLine.stream().map(Pair::getFirst).toList(), attachpair, landClass, areasToAdjust);
+        }
 
         // 27.2.26: We are back at storing polygons, so don't go this way any more.
        /*
@@ -1268,7 +1281,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
         WayArea mainWayArea0 = wayAreaCandidates.get(getMajor0());
         WayArea mainWayArea1 = wayAreaCandidates.get(getMajor1());
 
-        if (type == WayConnectorType.SIMPLE_CONNECTOR && getMajor0() != null) {
+        if ((type == WayConnectorType.SIMPLE_CONNECTOR || type == WayConnectorType.BRIDGE_CONNECTOR) && getMajor0() != null) {
             WayArea wayArea = mainWayArea0;
             CoordinatePair reduced;
             if (major0StartsHere()) {
@@ -1380,7 +1393,10 @@ public class SceneryWayConnector extends SceneryNodeObject {
         //CROSSING,
         //generic connector with n nodes. Polygon with area. Used when we do not find one of
         // the above predefined pattern, eg. with "number of ways > 3".
-        GENERIC;
+        GENERIC,
+        //connection of exactly two waysegments at their outer nodes with at least one segment a bridge.
+        BRIDGE_CONNECTOR,
+        ;
 
 
     }

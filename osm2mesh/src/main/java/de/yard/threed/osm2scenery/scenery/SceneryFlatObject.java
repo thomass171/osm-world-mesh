@@ -244,7 +244,7 @@ public abstract class /*Abstract*/SceneryFlatObject extends SceneryObject {
     public OsmOrigin getOsmOrigin() {
         if (this instanceof SceneryWayObject) {
             MapWaySegment2 mapWay = null;
-            mapWay = ((SceneryWayObject) this).mapWay;
+            mapWay = ((SceneryWayObject) this).mapWaySegment2;
             return new OsmOrigin(creatortag, getOsmIds(), mapWay);
         }
         if (this instanceof SceneryAreaObject) {

@@ -54,7 +54,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
 
         // DB persist
         wayConnector.cca(buildWayTerrainMeshAdder(desdorfTestData));
-        MeshServiceFacade meshService = desdorfTestData.meshService;
+        MeshServiceFacade meshService = desdorfTestData.meshServiceFacade;
         MeshPolygon/*MeshWayConnector*/ meshWayConnector = meshService.getConnector(255563538);
         assertNotNull(meshWayConnector);
         // angle values appear correct
@@ -70,7 +70,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
     }
 
     private ProjectedMeshAdapter buildWayTerrainMeshAdder(MeshTestData desdorfTestData) {
-        return new ProjectedMeshAdapter(desdorfTestData.terrainMesh.meshName,desdorfTestData.meshService,desdorfTestData.terrainMesh.getGridCellBounds().getProjection());
+        return new ProjectedMeshAdapter(desdorfTestData.terrainMesh.meshName,desdorfTestData.meshServiceFacade,desdorfTestData.terrainMesh.getGridCellBounds().getProjection());
     }
 
     /**
@@ -97,7 +97,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
 
         // DB persist
         wayConnector.cca(buildWayTerrainMeshAdder(desdorfTestData));
-        MeshServiceFacade meshService = desdorfTestData.meshService;
+        MeshServiceFacade meshService = desdorfTestData.meshServiceFacade;
         MeshPolygon/*MeshWayConnector*/ meshWayConnector = meshService.getConnector(387409895);
         TestUtil.validateMeshPolygon(DesdorfExpectations.expectedConnector387409895, meshWayConnector);
 
@@ -137,7 +137,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
                 .addPolygon(wayConnector.getPolygon(desdorfTestData.gridCellBounds.getProjection()), SvgWriter.LabelMode.NODEBYINDEX)
                 .writeTmpFile();
 
-        MeshServiceFacade meshService = desdorfTestData.meshService;
+        MeshServiceFacade meshService = desdorfTestData.meshServiceFacade;
         MeshPolygon meshWayConnector = meshService.getConnector(445410497);
         TestUtil.validateMeshPolygon(DesdorfExpectations.expectedConnector445410497, meshWayConnector);
     }
@@ -168,7 +168,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
                 .addPolygon(wayConnector.getPolygon(desdorfTestData.gridCellBounds.getProjection()), SvgWriter.LabelMode.NODEBYINDEX)
                 .writeTmpFile();
 
-        MeshServiceFacade meshService = desdorfTestData.meshService;
+        MeshServiceFacade meshService = desdorfTestData.meshServiceFacade;
         MeshPolygon meshWayConnector = meshService.getConnector(251517906);
         validateMeshPolygon(expectedConnector251517906, meshWayConnector);
 
@@ -200,7 +200,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
                 .addPolygon(wayConnector.getPolygon(desdorfTestData.gridCellBounds.getProjection()), SvgWriter.LabelMode.NODEBYINDEX)
                 .writeTmpFile();
 
-        MeshServiceFacade meshService = desdorfTestData.meshService;
+        MeshServiceFacade meshService = desdorfTestData.meshServiceFacade;
         MeshPolygon meshWayConnector = meshService.getConnector(255563537);
         validateMeshPolygon(expectedConnector255563537, meshWayConnector);
 
@@ -229,7 +229,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         assertEquals(-1, wayConnector.minorway1);
 
         wayConnector.cca(buildWayTerrainMeshAdder(desdorfTestData));
-        MeshServiceFacade meshService = desdorfTestData.meshService;
+        MeshServiceFacade meshService = desdorfTestData.meshServiceFacade;
         MeshPolygon meshWayConnector = meshService.getConnector(387409892);
         validateMeshPolygon(expectedConnector387409892, meshWayConnector);
 
@@ -261,7 +261,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         assertEquals(0, wayConnector.minorway1);
 
         wayConnector.cca(buildWayTerrainMeshAdder(desdorfTestData));
-        MeshServiceFacade meshService = desdorfTestData.meshService;
+        MeshServiceFacade meshService = desdorfTestData.meshServiceFacade;
         MeshPolygon meshWayConnector = meshService.getConnector(270353278);
         validateMeshPolygon(expectedConnector270353278, meshWayConnector);
 
@@ -293,7 +293,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         assertEquals(-1, wayConnector.minorway1);
 
         wayConnector.cca(buildWayTerrainMeshAdder(desdorfTestData));
-        MeshServiceFacade meshService = desdorfTestData.meshService;
+        MeshServiceFacade meshService = desdorfTestData.meshServiceFacade;
         MeshPolygon meshWayConnector = meshService.getConnector(445409643);
         validateMeshPolygon(expectedConnector445409643, meshWayConnector);
 
@@ -325,7 +325,7 @@ public abstract class AbstractSceneryWayConnectorTest extends DefaultMockingScen
         assertEquals(-1, wayConnector.minorway1);
 
         wayConnector.cca(buildWayTerrainMeshAdder(desdorfTestData));
-        MeshServiceFacade meshService = desdorfTestData.meshService;
+        MeshServiceFacade meshService = desdorfTestData.meshServiceFacade;
         MeshPolygon meshWayConnector = meshService.getConnector(387409890);
         validateMeshPolygon(expectedConnector387409890, meshWayConnector);
 

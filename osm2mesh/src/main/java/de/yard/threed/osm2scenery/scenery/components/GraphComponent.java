@@ -11,7 +11,6 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
 import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
 import de.yard.threed.osm2world.MapNode;
-import de.yard.threed.osm2world.MapWaySegment;
 import de.yard.threed.osm2world.OSMNode;
 import de.yard.threed.osm2world.VectorXZ;
 
@@ -45,12 +44,12 @@ public class GraphComponent extends de.yard.threed.graph.GraphComponent {
         Graph graph = sceneryContext/*3.4.24 SceneryContext.getInstance()*/.getGraph(category);
         this.category = category;
 
-        for (Pair<MapNode,MapNode> line : parent.mapWay.getMapWayLines()) {
+        for (Pair<MapNode,MapNode> line : parent.mapWaySegment2.getMapWayLines()) {
             //13.8.19: Segment ausserhalb skippen
             /*17.3.26 we no longer care about if (line.getStartNode().location == MapNode.Location.OUTSIDEGRID || line.getEndNode().location == MapNode.Location.OUTSIDEGRID) {
                 //ignore
             } else*/ {
-                GraphEdge edge = addSegmentToGraph(graph, line, parent.id, parent.mapWay.getOsmId());
+                GraphEdge edge = addSegmentToGraph(graph, line, parent.id, parent.mapWaySegment2.getOsmId());
                 edge.customdata = this;
                 edgelist.add(edge);
             }

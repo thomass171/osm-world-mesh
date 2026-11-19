@@ -7,7 +7,7 @@ import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
-import de.yard.threed.osm2scenery.scenery.SceneryWayObject;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
 import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2world.MapWay;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +28,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
     @BeforeEach
     public void setUp() throws Exception {
         desdorfTestData = setupForDesdorf(getMeshServiceFactory(), getValidatorServiceFactory());
-        wayModule = new HighwayModule(desdorfTestData.meshService, desdorfTestData.gridCellBounds.getProjection(), "Desdorf");
+        wayModule = new HighwayModule(desdorfTestData.meshServiceFacade, desdorfTestData.gridCellBounds.getProjection(), "Desdorf");
     }
 
     @Test
@@ -39,7 +39,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         wayModule.applyTo(way, desdorfTestData.fullMapData);
 
         SvgWriter.build()
-                .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
+                .addMeshPolygons(desdorfTestData.meshServiceFacade.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
                 .writeTmpFile();
     }
 
@@ -51,7 +51,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         wayModule.applyTo(way, desdorfTestData.fullMapData);
 
         SvgWriter.build()
-                .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
+                .addMeshPolygons(desdorfTestData.meshServiceFacade.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
                 .writeTmpFile();
     }
 
@@ -102,7 +102,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         wayModule.applyTo(way33817500, desdorfTestData.fullMapData);
 
-        MeshPolygon meshWayConnector = desdorfTestData.meshService.getConnector(387409895);
+        MeshPolygon meshWayConnector = desdorfTestData.meshServiceFacade.getConnector(387409895);
         validateMeshPolygon(expectedConnector387409895, meshWayConnector);
 
         //SVG not possible?
@@ -122,11 +122,11 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         wayModule.applyTo(way107468169, desdorfTestData.fullMapData);
 
-        MeshPolygon meshWayConnector = desdorfTestData.meshService.getConnector(445410497);
+        MeshPolygon meshWayConnector = desdorfTestData.meshServiceFacade.getConnector(445410497);
         validateMeshPolygon(expectedConnector445410497, meshWayConnector);
 
         SvgWriter.build()
-                .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
+                .addMeshPolygons(desdorfTestData.meshServiceFacade.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
                 .writeTmpFile();
 
     }
@@ -141,11 +141,15 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         wayModule.applyTo(bridgeWay, desdorfTestData.getMapData(MeshTestData.DESDORF_BRIDGE_K41_A61));
 
-       // MeshPolygon meshWayConnector = desdorfTestData.meshService.getConnector(445410497);
-        //validateMeshPolygon(expectedConnector445410497, meshWayConnector);
+        // The bridge has only two nodes. At both a K41 way connects (182152619 at the start, 23245302 at the end).
+        for (long nodeOsmId : new long[]{251517908, 251517909}) {
+            MeshPolygon connector = desdorfTestData.meshServiceFacade.getConnector(nodeOsmId);
+            assertNotNull(connector, "connector " + nodeOsmId);
+            assertEquals(MeshPolygonType.BRIDGE_CONNECTOR, connector.getType(), "connector type " + nodeOsmId);
+        }
 
         SvgWriter.build()
-                .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
+                .addMeshPolygons(desdorfTestData.meshServiceFacade.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
                 .writeTmpFile();
 
     }

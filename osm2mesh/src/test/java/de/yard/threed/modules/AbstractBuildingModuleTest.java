@@ -5,16 +5,10 @@ import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.osm2mesh.testutils.DefaultMockingSceneryTest;
 import de.yard.threed.osm2mesh.testutils.MeshTestData;
 import de.yard.threed.osm2scenery.modules.BuildingModule;
-import de.yard.threed.osm2scenery.modules.HighwayModule;
-import de.yard.threed.osm2scenery.modules.common.WayModule;
-import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
 import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2world.MapWay;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static de.yard.threed.TestUtil.validateMeshPolygon;
-import static de.yard.threed.osm2mesh.DesdorfExpectations.*;
 
 public abstract class AbstractBuildingModuleTest extends DefaultMockingSceneryTest {
 
@@ -26,7 +20,7 @@ public abstract class AbstractBuildingModuleTest extends DefaultMockingSceneryTe
     @BeforeEach
     public void setUp() throws Exception {
         desdorfTestData = setupForDesdorf(getMeshServiceFactory(), getValidatorServiceFactory());
-        buildingModule = new BuildingModule(desdorfTestData.meshService, desdorfTestData.gridCellBounds.getProjection(), "Desdorf");
+        buildingModule = new BuildingModule(desdorfTestData.meshServiceFacade, desdorfTestData.gridCellBounds.getProjection(), "Desdorf");
     }
 
     @Test
@@ -37,7 +31,7 @@ public abstract class AbstractBuildingModuleTest extends DefaultMockingSceneryTe
         buildingModule.applyTo(way, desdorfTestData.fullMapData);
 
         SvgWriter.build()
-                .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
+                .addMeshPolygons(desdorfTestData.meshServiceFacade.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
                 .writeTmpFile();
     }
 

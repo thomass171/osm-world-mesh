@@ -36,6 +36,12 @@ public interface MeshServiceFacade {
      */
     TerrainMesh addConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException;
 
+    /**
+     * Connector at the end of a bridge (polygon type BRIDGE_CONNECTOR). Parameter like addConnector().
+     * For now the implementation is the same as for addConnector(), but this might change in the future.
+     */
+    TerrainMesh addBridgeConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException;
+
     TerrainMesh loadMesh(String meshName) throws MeshInconsistencyException;
 
     /**

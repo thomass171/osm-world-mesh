@@ -144,7 +144,7 @@ public class AerowayModuleTest {
         SceneryWayObject parkingC4 = (SceneryWayObject) objs.findObjectByOsmId(385706063);
         if (parkingC4 != null) {
             //only with OSM
-            Degree heading = OsmUtil.getHeadingAtEnd(parkingC4.mapWay.mapWay);
+            Degree heading = OsmUtil.getHeadingAtEnd(parkingC4.mapWaySegment2.mapWay);
             assertEquals(c4heading, heading.getDegree(), 0.1, "C4 heading");
             new RoadDecorator().createParking(parkingC4, Materials.GRASS);
         }

@@ -9,7 +9,9 @@ public enum MeshPolygonType {
     // Not for buildings, which cannot/shouldn't be split. But for farmland, forest, etc. which can be split by a way.
     AREA(101),
     BUILDING(102),
-    CONNECTOR(200);
+    CONNECTOR(200),
+    // connector at the end of a bridge (see SceneryWayConnector.WayConnectorType.BRIDGE_CONNECTOR)
+    BRIDGE_CONNECTOR(201);
 
     private final int type;
 

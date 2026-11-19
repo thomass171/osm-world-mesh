@@ -230,6 +230,18 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TerrainMesh addConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+        return addConnector(meshName, osmNodeId, MeshPolygonType.CONNECTOR, polygon, wayAttachPoints, landClass, areasToAdjust);
+    }
+
+    /**
+     * Connector at the end of a bridge. For now like addConnector(), just with type BRIDGE_CONNECTOR.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public TerrainMesh addBridgeConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+        return addConnector(meshName, osmNodeId, MeshPolygonType.BRIDGE_CONNECTOR, polygon, wayAttachPoints, landClass, areasToAdjust);
+    }
+
+    private TerrainMesh addConnector(String meshName, long osmNodeId, MeshPolygonType type, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
 
         log.debug("Adding connector {} with {} nodes and {} attach pairs to mesh", osmNodeId, polygon.size() - 1, wayAttachPoints.size());
 
@@ -251,7 +263,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
         }
 
         PersistedMeshPolygon meshPolygon = new PersistedMeshPolygon();
-        meshPolygon.setType(MeshPolygonType.CONNECTOR);
+        meshPolygon.setType(type);
         meshPolygon.setLandClass(landClass);
         meshPolygon.setOsmId(osmNodeId);
         meshPolygon.setMesh(mesh);
@@ -325,7 +337,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
     public int deletePolygon(long osmId) {
 
         List<PersistedMeshPolygon> polygons = meshPolygonRepository.findByOsmId(osmId);
-        polygons.removeIf(p -> p.getType() == MeshPolygonType.CONNECTOR || p.getType() == MeshPolygonType.BOUNDARY);
+        polygons.removeIf(p -> p.getType() == MeshPolygonType.CONNECTOR || p.getType() == MeshPolygonType.BRIDGE_CONNECTOR || p.getType() == MeshPolygonType.BOUNDARY);
 
         log.debug("Deleting {} polygon(s) for osmId {}", polygons.size(), osmId);
         for (PersistedMeshPolygon p : polygons) {
@@ -435,7 +447,7 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public List<MeshPolygon> findWayIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException {
-        return findIntersections(meshName, new GeoPolygon(polygon), Set.of(MeshPolygonType.WAY, MeshPolygonType.CONNECTOR));
+        return findIntersections(meshName, new GeoPolygon(polygon), Set.of(MeshPolygonType.WAY, MeshPolygonType.CONNECTOR, MeshPolygonType.BRIDGE_CONNECTOR));
     }
 
     public PersistedMeshNode buildMeshNode(GeoCoordinate coordinate, PersistedMesh mesh) {
@@ -483,6 +495,11 @@ public class MeshService /*1.4.26 implements MeshServiceFacade, see below */ {
             @Override
             public TerrainMesh addConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
                 return ms.addConnector(meshName, osmNodeId, polygon, wayAttachPoints, landClass, areasToAdjust);
+            }
+
+            @Override
+            public TerrainMesh addBridgeConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+                return ms.addBridgeConnector(meshName, osmNodeId, polygon, wayAttachPoints, landClass, areasToAdjust);
             }
 
             @Override

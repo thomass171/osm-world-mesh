@@ -921,7 +921,7 @@ public class OsmGridTest {
         assertFalse(rampnorthleft.getArea()[0].wasCut, "Ramp was cut");
         //start of north road isType at bridge. egrnorth ist am Brückenkopf.
         EleConnectorGroup egrnorth = roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(0);
-        TestUtil.assertCoordinate("egrnorth.coordinate", JtsUtil.toCoordinate(roadToBridgeFromNorth.mapWay.getMapNodes().get(0).getPos()), egrnorth.getCoordinate());
+        TestUtil.assertCoordinate("egrnorth.coordinate", JtsUtil.toCoordinate(roadToBridgeFromNorth.mapWaySegment2.getMapNodes().get(0).getPos()), egrnorth.getCoordinate());
         assertTrue(EleConnectorGroup.getGroup(rampcoors[0], false, "for test", false, tm) == roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(1), "Ramp.elegrooup[0]");
         assertTrue(EleConnectorGroup.getGroup(rampcoors[1], false, "for test", false, tm) == roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(0), "Ramp.elegrooup[1]");
         assertTrue(EleConnectorGroup.getGroup(rampcoors[2], false, "for test", false, tm) == bridge.gap.getEleConnectorGroups().eleconnectorgroups.get(0), "Ramp.elegrooup[2]");

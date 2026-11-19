@@ -81,9 +81,9 @@ public class RoadDecorator implements DecoratorComponent {
      */
     public AbstractArea createParking(SceneryWayObject parkingtaxiway,Material material) {
         // end node isType parking position
-        String parkposname = StringUtils.defaultString(parkingtaxiway.mapWay.getTags().getValue("ref"), "");
+        String parkposname = StringUtils.defaultString(parkingtaxiway.mapWaySegment2.getTags().getValue("ref"), "");
         Vector2 centerpoint = parkingtaxiway.getCenterLine().get(parkingtaxiway.getCenterLine().size()-1);
-        Degree heading = OsmUtil.getHeadingAtEnd(parkingtaxiway.mapWay.mapWay);
+        Degree heading = OsmUtil.getHeadingAtEnd(parkingtaxiway.mapWaySegment2.mapWay);
         // MathUtil2.getDegreeFromHeading() not appropriate due to texture Atlas layout
         AbstractArea marking = createRectangle(centerpoint, 8, 8,new Degree(-heading.getDegree()), material);
         marking.setName(parkposname);

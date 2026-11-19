@@ -54,7 +54,6 @@ public abstract class WayModule extends SceneryModule {
      */
     private static final boolean RIGHT_HAND_TRAFFIC_BY_DEFAULT = true;
     private boolean cutConnectors = false;
-    SceneryObjectList roadsAndBridges;
 
     public WayModule(MeshServiceFacade meshServiceFacade, SceneryProjection projection, String meshName) {
         super(meshServiceFacade, projection, meshName);
@@ -81,8 +80,8 @@ public abstract class WayModule extends SceneryModule {
 
         // Segment by segment for adding connector.
         for (MapWaySegment2 mapwaySegment : mapWay.segment2s) {
-            // Also contains Filler unter der Brücke
-            roadsAndBridges = new SceneryObjectList();
+
+            // 14.2.26: Main change. No longer collect SceneryObjects in a "roadsAndBridges" list but persist way to DB.
 
             if (mapwaySegment.getMapNodes().size() == 0) {
                 // might be some inconsistency in the OSM data. E.g. a way with only one node. Ignore it.
@@ -98,6 +97,7 @@ public abstract class WayModule extends SceneryModule {
             }
             //24.8.26 don't care about the type any more this way. if (isHighway(mapwaySegment.getTags())) {
             long osmid = mapwaySegment.getOsmId();
+            wayProjectedMeshAdapter = new ProjectedMeshAdapter(meshName, meshServiceFacade, projection);
 
             if (Bridge.isBridge(mapwaySegment.getTags())) {
                 //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
@@ -111,11 +111,14 @@ public abstract class WayModule extends SceneryModule {
                 roadsAndBridges.add(bridge);
                 sceneryContext.bridges.put(osmid, bridge);
                 bridge.addToWayMap(ROAD, sceneryContext);*/
+                // Build connectors like for ways, but expect bridge connectors to be created.
+                Pair<MeshPolygon, MeshPolygon> connectors = processConnectionCandidates(mapwaySegment, mapData);
+
             } else if (TunnelModule.isTunnel(mapwaySegment.getTags())) {
                 //erstmal wie ein Road behandeln, einfach um Lücken zu vermeioden, z.B. Luxemburger Str.
                 Highway road = new Highway(mapwaySegment, materialmap, getLandClass(), sceneryContext);
                 sceneryContext.highways.put(osmid, road);
-                roadsAndBridges.add(road);
+                //roadsAndBridges.add(road);
                 road.addToWayMap(ROAD, sceneryContext);
             } else {
                 // regular way
@@ -125,30 +128,19 @@ public abstract class WayModule extends SceneryModule {
                         //Highway.getMaterialForHighway(line.getTags(), materialmap, ASPHALT)/*;Materials.ROAD/*ASPHALT*/,
                         ROAD, getLandClass(), new FixedWidthProvider(5.0), sceneryContext, projection);//mapWay = line;
                 //sceneryContext.highways.put(osmid, road);
-                roadsAndBridges.add(way);
-
-                //road.addToWayMap(ROAD, sceneryContext);
-            }
-
-            wayProjectedMeshAdapter = new ProjectedMeshAdapter(meshName, meshServiceFacade, projection);
-
-            // 14.2.26: Main change. No longer collect elements but persist way to DB.
-            // 18.3.26: The simple incoming way might have been split into segments, so iteration is needed
-            // 19.8.26: Input meanwhile is a segment.
-            for (SceneryObject sceneryObject : roadsAndBridges.objects) {
-                SceneryWayObject sfo = (SceneryWayObject) sceneryObject;
                 // Find/Create Junctions/RoadConnector to existing highways.
-                Pair<MeshPolygon, MeshPolygon> connectors = processConnectionCandidates(sfo.mapWay, mapData);
+                Pair<MeshPolygon, MeshPolygon> connectors = processConnectionCandidates(way.mapWaySegment2, mapData);
 
                 // steps are attach connector, create polygon, then clip to connector(doesn't clip consider connector?)
                 if (connectors.getFirst() != null) {
-                    sfo.setStartConnector(connectors.getFirst());
+                    way.setStartConnector(connectors.getFirst());
                 }
                 if (connectors.getSecond() != null) {
-                    sfo.setEndConnector(connectors.getSecond());
+                    way.setEndConnector(connectors.getSecond());
                 }
-                sfo.cca(wayProjectedMeshAdapter);
+                way.cca(wayProjectedMeshAdapter);
 
+                //road.addToWayMap(ROAD, sceneryContext);
             }
 
             //Elevation and BridgeApproaches comes later
@@ -198,12 +190,13 @@ public abstract class WayModule extends SceneryModule {
      * We non assume creating all connector before the way is easier than modifying a way for adding a connector later.
      * Return start(0)/optionally mid cnnector, end connector(end of list).
      * A deadend will have no connector.
+     * Also for bridges, which have a special connector type.
      *
      * @return
      */
-    private Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> processConnectionCandidates(MapWaySegment2 mapWay, /*19.2.26SceneryObjectList roadsAndBridges,*/ MapData mapData) throws MeshInconsistencyException {
+    private Pair<MeshPolygon, MeshPolygon> processConnectionCandidates(MapWaySegment2 mapWay, MapData mapData) throws MeshInconsistencyException {
 
-        Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> newConnector = new Pair<>(
+        Pair<MeshPolygon, MeshPolygon> newConnector = new Pair<>(
                 processConnectionCandidatesForOneNode(mapWay.getStartNode(), mapData),
                 processConnectionCandidatesForOneNode(mapWay.getEndNode(), mapData));
         return newConnector;
@@ -217,13 +210,13 @@ public abstract class WayModule extends SceneryModule {
      * @param mapdata
      * @return
      */
-    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ processConnectionCandidatesForOneNode(MapNode node, MapData mapdata) throws MeshInconsistencyException {
+    private MeshPolygon processConnectionCandidatesForOneNode(MapNode node, MapData mapdata) throws MeshInconsistencyException {
 
         //10.7.19: Don't create connector for outside node
         /*17.3.26 we no longer care about if (node.location == MapNode.Location.OUTSIDEGRID) {
             return null;
         }*/
-        MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ connector = meshServiceFacade.getConnector(node.getOsmId());
+        MeshPolygon connector = meshServiceFacade.getConnector(node.getOsmId());
         if (connector != null) {
             // Connector already exists
             if (connector.getOsmId() == 255563537) {
@@ -241,13 +234,7 @@ public abstract class WayModule extends SceneryModule {
            /* if (road.getOsmIdsAsString().contains("23696494")) {
                 int h = 9;
             }*/
-        connector = createAndPersistConnector(node,/* roadsAndBridges,*/ mapdata);
-        if (connector != null) {
-            //TODO connector.add(road);
-            //TODO road.setStartConnector(connector);
-        }
-
-        //}
+        connector = createAndPersistConnector(node, mapdata);
         return connector;
     }
 

@@ -244,7 +244,7 @@ public class AerowayModule extends SceneryModule {
         double width = 30;
         AbstractArea ta = null;
         try {
-            ta = WayArea.buildOutlinePolygonFromCenterLine(taxiway.getGraphComponent().getCenterLine(), taxiway.mapWay.getMapNodes()/*mapway.getMapNodes()*/, width, this, Materials.ASPHALT, mapway.segment2s.get(0));
+            ta = WayArea.buildOutlinePolygonFromCenterLine(taxiway.getGraphComponent().getCenterLine(), taxiway.mapWaySegment2.getMapNodes()/*mapway.getMapNodes()*/, width, this, Materials.ASPHALT, mapway.segment2s.get(0));
         } catch (MeshInconsistencyException e) {
             throw new RuntimeException(e);
         }
@@ -539,7 +539,7 @@ public class AerowayModule extends SceneryModule {
                 if (so instanceof SceneryWayObject) {
                     SceneryWayObject way = (SceneryWayObject) so;
                     //13.8.19 TODO centerline < 1 sollte es gar nicht geben
-                    if (isParkingTaxiway(way.mapWay.getTags()) && way.getCenterLine().size() > 1) {
+                    if (isParkingTaxiway(way.mapWaySegment2.getTags()) && way.getCenterLine().size() > 1) {
                         RoadDecorator roadDecorator = new RoadDecorator();
                         AbstractArea marking = roadDecorator.createParking(way, material);
                         addDecoration(marking);

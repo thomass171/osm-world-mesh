@@ -295,7 +295,7 @@ public class HighwayModule extends WayModule {
             //   connector.add(road1);
             // connector.add(road2);
             try {
-                connector.add(way.mapWay);
+                connector.add(way.mapWaySegment2);
             } catch (MeshInconsistencyException e) {
                 throw new RuntimeException(e);
             }

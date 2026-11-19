@@ -60,7 +60,7 @@ public class MeshServiceMock implements MeshServiceFacade {
 
     @Override
     public List<MeshPolygon> findWayIntersectionsOfArea(String meshName, List<GeoCoordinate> polygon) throws MeshInconsistencyException {
-        return findIntersections(new GeoPolygon(polygon), List.of(MeshPolygonType.WAY, MeshPolygonType.CONNECTOR));
+        return findIntersections(new GeoPolygon(polygon), List.of(MeshPolygonType.WAY, MeshPolygonType.CONNECTOR, MeshPolygonType.BRIDGE_CONNECTOR));
     }
 
     private List<MeshPolygon> findAreaIntersectionsOfArea(GeoPolygon wayPolygon) {
@@ -81,6 +81,13 @@ public class MeshServiceMock implements MeshServiceFacade {
     public TerrainMesh addConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
 
         polygons.add(new MeshPolygonMock(osmNodeId, MeshPolygonType.CONNECTOR, landClass, polygon, wayAttachPoints));
+        return TerrainMesh.init(gridCellBounds, points, polygons);
+    }
+
+    @Override
+    public TerrainMesh addBridgeConnector(String meshName, long osmNodeId, List<GeoCoordinate> polygon, Map<MapWaySegmentAtConnector, Pair<Integer, Integer>> wayAttachPoints, LandClass landClass, List<MeshPolygon> areasToAdjust) throws MeshInconsistencyException {
+
+        polygons.add(new MeshPolygonMock(osmNodeId, MeshPolygonType.BRIDGE_CONNECTOR, landClass, polygon, wayAttachPoints));
         return TerrainMesh.init(gridCellBounds, points, polygons);
     }
 

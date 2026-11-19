@@ -8,11 +8,8 @@ import de.yard.threed.TestUtil;
 import de.yard.threed.core.Color;
 import de.yard.threed.core.Vector2;
 import de.yard.threed.core.platform.Platform;
-import de.yard.threed.core.platform.PlatformInternals;
 import de.yard.threed.core.testutil.CoreTestFactory;
 import de.yard.threed.core.testutil.PlatformFactoryTestingCore;
-import de.yard.threed.javacommon.ConfigurationByEnv;
-import de.yard.threed.javacommon.SimpleHeadlessPlatform;
 import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.GeoJson;
 import de.yard.threed.osm2graph.osm.JtsUtil;
@@ -56,12 +53,10 @@ import org.springframework.web.context.WebApplicationContext;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
 
 
 import static de.yard.threed.osm2scenery.scenery.SceneryObject.Category.ROAD;
-import static de.yard.threed.osm2world.Config.MATERIAL_FLIGHT;
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -935,7 +930,7 @@ public class OsmGridTest {
         assertFalse(rampnorthleft.getArea()[0].wasCut, "Ramp was cut");
         //start of north road isType at bridge. egrnorth ist am Brückenkopf.
         EleConnectorGroup egrnorth = roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(0);
-        TestUtil.assertCoordinate("egrnorth.coordinate", JtsUtil.toCoordinate(roadToBridgeFromNorth.mapWay.getMapNodes().get(0).getPos()), egrnorth.getCoordinate());
+        TestUtil.assertCoordinate("egrnorth.coordinate", JtsUtil.toCoordinate(roadToBridgeFromNorth.mapWaySegment2.getMapNodes().get(0).getPos()), egrnorth.getCoordinate());
         assertTrue(EleConnectorGroup.getGroup(rampcoors[0], false, "for test", false, tm) == roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(1), "Ramp.elegrooup[0]");
         assertTrue(EleConnectorGroup.getGroup(rampcoors[1], false, "for test", false, tm) == roadToBridgeFromNorth.getEleConnectorGroups().eleconnectorgroups.get(0), "Ramp.elegrooup[1]");
         assertTrue(EleConnectorGroup.getGroup(rampcoors[2], false, "for test", false, tm) == bridge.gap.getEleConnectorGroups().eleconnectorgroups.get(0), "Ramp.elegrooup[2]");

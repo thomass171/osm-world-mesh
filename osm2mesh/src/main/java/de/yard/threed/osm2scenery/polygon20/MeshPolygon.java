@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * 2.5.24: Now an interface like MeshLine and MeshNode
- * 12.2.26: Also no setter
+ * 12.2.26: No setter. Should be read only more or less.
  */
 public interface MeshPolygon {
 

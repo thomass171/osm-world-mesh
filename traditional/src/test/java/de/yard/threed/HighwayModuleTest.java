@@ -85,7 +85,7 @@ public class HighwayModuleTest {
         //Polygon gibt es noch nicht
         assertNull(k41vonunten.getArea()/*.poly*/, "K41.polygon");
         //ist n54286220->n255563538 mit 6 Nodes, 54286220 als erste im Sueden und die vierte ist DummyNode für Grid
-        MapWay mapway = k41vonunten.mapWay.mapWay;
+        MapWay mapway = k41vonunten.mapWaySegment2.mapWay;
         MapNode griddummynode = mapway.getMapNodes().get(3);
         assertTrue(MapDataHelper.isDummyNode(griddummynode), "dummy node");
 
@@ -200,7 +200,7 @@ public class HighwayModuleTest {
         gutdesdorf.clip();
 
         pair0 = gutdesdorf.getWayArea().getStartPair(tm);
-        pair1 = connectorK43GutDesdorf.getAttachCoordinates(gutdesdorf.mapWay.mapWay);
+        pair1 = connectorK43GutDesdorf.getAttachCoordinates(gutdesdorf.mapWaySegment2.mapWay);
         TestUtil.assertCoordinate("gutdesdorf.connectorattach", pair0.getFirst(), pair1.getFirst());
 
         // 33817500 und 33817501 (der north ans grid grenzende) muessen durch SIMPLE_CONNECTOR verbunden sein
@@ -383,7 +383,7 @@ public class HighwayModuleTest {
 
         //der Kreisverkehr. Der Split ist ganz am Ende
         HighwayModule.Highway circle26927466 = (HighwayModule.Highway) roads.findObjectByOsmId(26927466);
-        assertEquals(295055704, circle26927466.mapWay.getStartNode().getOsmId(), "roadP38809414.mapway.startnode");
+        assertEquals(295055704, circle26927466.mapWaySegment2.getStartNode().getOsmId(), "roadP38809414.mapway.startnode");
         //20.3.26 assertEquals(255665018, circle26927466.mapWay.getEndNode().getOsmId(), "roadP38809414.mapway.endnode");
         SceneryWayConnector c = (SceneryWayConnector) circle26927466.getEndConnector();
         /*TODO SceneryWayObject splittedWay = (c.getWay(0) == circle26927466) ? c.getWay(1) : c.getWay(0);

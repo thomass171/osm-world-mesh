@@ -5,7 +5,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineSegment;
 import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2scenery.SceneryContext;
-import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.ElevationMap;
 import de.yard.threed.osm2scenery.modules.common.BridgeOrTunnel;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -390,7 +389,7 @@ public class Bridge extends BridgeOrTunnel
                 log.error("huch");
                 return null;
             }
-            if (connectedWayAtNode.mapWay.getOsmId() == 225794249) {
+            if (connectedWayAtNode.mapWaySegment2.getOsmId() == 225794249) {
                 int h = 9;
             }
             //mal eine Konsistenzpruefung eingestreut.

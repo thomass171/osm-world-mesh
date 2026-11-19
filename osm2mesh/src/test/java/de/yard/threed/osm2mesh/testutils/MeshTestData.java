@@ -17,13 +17,11 @@ import de.yard.threed.osm2world.OSMData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import static de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon.expectedBoundary;
-import static de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon.expectedWay;
 
 @Data
 @AllArgsConstructor
@@ -44,7 +42,7 @@ public class MeshTestData {
     public MapData fullMapData;
     public GridCellBounds gridCellBounds;
     public ExpectedMeshPolygon expectedBoundary;
-    public MeshServiceFacade meshService;
+    public MeshServiceFacade meshServiceFacade;
     // all inputs by file name. Each OSM file is kept separately, they are not merged.
     public Map<String, OsmInput> inputs;
 
@@ -83,13 +81,13 @@ public class MeshTestData {
 
         SceneryContext.init(fullMapData);
 
-        meshService = meshServiceFactory.createMeshService(gridCellBounds);//new MeshServiceMock(gridCellBounds);
+        meshServiceFacade = meshServiceFactory.createMeshService(gridCellBounds);//new MeshServiceMock(gridCellBounds);
         ValidatorServiceFacade validatorService = validatorServiceFactory.createService();
 
         //15.5.26 terrainMesh = TerrainMesh.init(gridCellBounds);
-        meshService.createMesh(meshName, gridCellBounds.getBoundary());
+        meshServiceFacade.createMesh(meshName, gridCellBounds.getBoundary());
 
-        terrainMesh = meshService.loadMesh(meshName);
+        terrainMesh = meshServiceFacade.loadMesh(meshName);
         expectedBoundary = expectedBoundary(expectedBoundaryNodes);
         validatorService.validateMesh(terrainMesh, expectedBoundary);
 
