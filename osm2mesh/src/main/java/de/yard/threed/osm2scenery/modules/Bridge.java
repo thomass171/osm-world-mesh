@@ -25,6 +25,8 @@ import de.yard.threed.osm2world.*;
 import lombok.extern.slf4j.Slf4j;
 
 
+import de.yard.threed.core.Pair;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +56,40 @@ public class Bridge extends BridgeOrTunnel
     }
 
     public static final double BRIDGE_UNDERSIDE_HEIGHT = 0.2f;
+
+    /**
+     * Find the ways below a bridge segment, i.e. ways crossing it (in 2D) on a lower layer.
+     * Based on the intersections (MapIntersectionWW) of the node-to-node MapWaySegments that
+     * OSMToSceneryDataConverter calculates. A bridge without a 'layer' tag is considered to be on layer 1.
+     * Overlaps with areas (eg. water) are not considered.
+     * TODO: All crossing ways are considered, not only those on the ground. So eg. an overhead power line
+     * (power=line, usually without 'layer' tag, thus layer 0) crossing a bridge is returned as being below it.
+     * Probably needs a filter for ground ways (highway, railway, waterway).
+     */
+    public static List<MapWay> findWaysBelow(MapWaySegment2 bridgeSegment, MapData mapData) {
+        TagGroup tags = bridgeSegment.getTags();
+        int bridgeLayer = (isBridge(tags) && !tags.containsKey("layer")) ? 1 : bridgeSegment.mapWay.getLayer();
+        List<MapWay> result = new ArrayList<>();
+        for (Pair<MapNode, MapNode> line : bridgeSegment.getMapWayLines()) {
+            for (MapWaySegment segment : line.getFirst().getOutboundLines()) {
+                if (segment.getOsmId() != bridgeSegment.getOsmId() || segment.getEndNode() != line.getSecond()) {
+                    continue;
+                }
+                for (MapOverlap<?, ?> overlap : segment.getOverlaps()) {
+                    if (overlap instanceof MapIntersectionWW) {
+                        MapWaySegment other = ((MapIntersectionWW) overlap).getOther(segment);
+                        if (other.getLayer() < bridgeLayer) {
+                            MapWay way = mapData.findMapWay(other.getOsmId());
+                            if (way != null && !result.contains(way)) {
+                                result.add(way);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
 
     //public List<SceneryWayObject> ramps=new ArrayList<>();
     ScenerySupplementAreaObject groundfiller;
