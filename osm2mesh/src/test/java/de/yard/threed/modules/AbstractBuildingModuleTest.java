@@ -4,7 +4,6 @@ import de.yard.threed.MeshServiceFactory;
 import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.osm2mesh.testutils.DefaultMockingSceneryTest;
 import de.yard.threed.osm2mesh.testutils.MeshTestData;
-import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.BuildingModule;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.modules.common.WayModule;
@@ -35,7 +34,7 @@ public abstract class AbstractBuildingModuleTest extends DefaultMockingSceneryTe
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(322751224);
 
-        buildingModule.applyTo(way, SceneryContext.getInstance());
+        buildingModule.applyTo(way, desdorfTestData.fullMapData);
 
         SvgWriter.build()
                 .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())

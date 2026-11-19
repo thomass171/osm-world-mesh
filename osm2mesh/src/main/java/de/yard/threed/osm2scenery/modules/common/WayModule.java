@@ -76,7 +76,8 @@ public abstract class WayModule extends SceneryModule {
      * Generic implementation for 'real ways'
      */
     //@Override
-    public void applyToWay(MapWay mapWay, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public void applyToWay(MapWay mapWay, MapData mapData) throws MeshInconsistencyException {
+        SceneryContext sceneryContext = SceneryContext.getInstance();
 
         // Segment by segment for adding connector.
         for (MapWaySegment2 mapwaySegment : mapWay.segment2s) {
@@ -137,7 +138,7 @@ public abstract class WayModule extends SceneryModule {
             for (SceneryObject sceneryObject : roadsAndBridges.objects) {
                 SceneryWayObject sfo = (SceneryWayObject) sceneryObject;
                 // Find/Create Junctions/RoadConnector to existing highways.
-                Pair<MeshPolygon, MeshPolygon> connectors = processConnectionCandidates(sfo.mapWay, sceneryContext);
+                Pair<MeshPolygon, MeshPolygon> connectors = processConnectionCandidates(sfo.mapWay, mapData);
 
                 // steps are attach connector, create polygon, then clip to connector(doesn't clip consider connector?)
                 if (connectors.getFirst() != null) {
@@ -200,11 +201,11 @@ public abstract class WayModule extends SceneryModule {
      *
      * @return
      */
-    private Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> processConnectionCandidates(MapWaySegment2 mapWay, /*19.2.26SceneryObjectList roadsAndBridges,*/ SceneryContext sceneryContext) throws MeshInconsistencyException {
+    private Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> processConnectionCandidates(MapWaySegment2 mapWay, /*19.2.26SceneryObjectList roadsAndBridges,*/ MapData mapData) throws MeshInconsistencyException {
 
         Pair<MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/, MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/> newConnector = new Pair<>(
-                processConnectionCandidatesForOneNode(mapWay.getStartNode(), sceneryContext.getMapdata()),
-                processConnectionCandidatesForOneNode(mapWay.getEndNode(), sceneryContext.getMapdata()));
+                processConnectionCandidatesForOneNode(mapWay.getStartNode(), mapData),
+                processConnectionCandidatesForOneNode(mapWay.getEndNode(), mapData));
         return newConnector;
     }
 

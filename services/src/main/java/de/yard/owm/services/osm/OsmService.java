@@ -219,7 +219,7 @@ public class OsmService {
             for (SceneryModule module : worldModules) {
                 // main exception handling. If one way fails, just add it as failure and continue with the next way.
                 try {
-                    results.processCounter += module.applyTo(mapWay, SceneryContext.getInstance()) ? 1:0;
+                    results.processCounter += module.applyTo(mapWay, mapData) ? 1:0;
                 } catch (MeshInconsistencyException e) {
                     SvgWriter svgWriter = new SvgWriter();
                     // loading full mesh here might be too much load for big meshes. But we want the full mesh to see the context of the invalid polygon.

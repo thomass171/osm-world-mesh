@@ -100,14 +100,21 @@ public class MeshTestData {
     }
 
     /**
-     * Find a way in the input from a specific OSM file.
+     * The MapData of the input from a specific OSM file.
      */
-    public MapWay findMapWay(String osmFilename, long osmId) {
+    public MapData getMapData(String osmFilename) {
         OsmInput input = inputs.get(osmFilename);
         if (input == null) {
             throw new IllegalArgumentException("unknown input " + osmFilename);
         }
-        return input.mapData.findMapWay(osmId);
+        return input.mapData;
+    }
+
+    /**
+     * Find a way in the input from a specific OSM file.
+     */
+    public MapWay findMapWay(String osmFilename, long osmId) {
+        return getMapData(osmFilename).findMapWay(osmId);
     }
 
     @AllArgsConstructor

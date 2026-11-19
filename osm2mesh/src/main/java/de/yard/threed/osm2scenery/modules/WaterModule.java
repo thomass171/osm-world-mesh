@@ -106,7 +106,7 @@ public class WaterModule extends WayModule {
     }
 
     @Override
-    public boolean applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public boolean applyTo(MapWay mapway, MapData mapData) throws MeshInconsistencyException {
         SceneryObjectList rivers = new SceneryObjectList();
 
         // material not needed yet?
@@ -117,7 +117,7 @@ public class WaterModule extends WayModule {
         boolean applied = false;
         if (isModulesCategory(mapway.getTags()) /*&& tagfilter.isAccepted(line.getTags()*/) {
             //Waterway waterway = new Waterway(line, SceneryContext.getInstance());
-            /*rivers.objects.addAll(*/applyToWay(mapway, sceneryContext);
+            /*rivers.objects.addAll(*/applyToWay(mapway, mapData);
             applied = true;
             //line.addRepresentation(waterway);
         }

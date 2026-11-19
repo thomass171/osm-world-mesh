@@ -2,7 +2,6 @@ package de.yard.threed.osm2scenery.modules;
 
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
-import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.SceneryAreaObject;
@@ -85,7 +84,7 @@ public class SurfaceAreaModule extends SceneryModule {
     }
 
     @Override
-    public boolean applyTo(MapWay mapway, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public boolean applyTo(MapWay mapway, MapData mapData) throws MeshInconsistencyException {
         SceneryObjectList l = new SceneryObjectList();
 
         // For now temp solution for keeping existing area implementation.

@@ -4,7 +4,6 @@ import de.yard.threed.MeshServiceFactory;
 import de.yard.threed.ValidatorServiceFactory;
 import de.yard.threed.osm2mesh.testutils.DefaultMockingSceneryTest;
 import de.yard.threed.osm2mesh.testutils.MeshTestData;
-import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
@@ -37,7 +36,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(24879711);
 
-        wayModule.applyTo(way, SceneryContext.getInstance());
+        wayModule.applyTo(way, desdorfTestData.fullMapData);
 
         SvgWriter.build()
                 .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
@@ -49,7 +48,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(107468171);
 
-        wayModule.applyTo(way, SceneryContext.getInstance());
+        wayModule.applyTo(way, desdorfTestData.fullMapData);
 
         SvgWriter.build()
                 .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
@@ -61,7 +60,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         MapWay way = desdorfTestData.fullMapData.findMapWay(24927839);
 
-        wayModule.applyTo(way, SceneryContext.getInstance());
+        wayModule.applyTo(way, desdorfTestData.fullMapData);
     }
 
     @Test
@@ -70,14 +69,14 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         MapWay way = desdorfTestData.fullMapData.findMapWay(182152619);
         double width = 7.7;
 
-        wayModule.applyTo(way, SceneryContext.getInstance());
+        wayModule.applyTo(way, desdorfTestData.fullMapData);
 
         /*assertEquals(255563538, firstSegment.getStartConnector().getOsmId());
         assertEquals(SceneryWayObject.WayOuterMode.CONNECTOR, firstSegment.getStartMode());
 
         assertNotNull(firstSegment.getEndConnector());
         assertEquals(SceneryWayObject.WayOuterMode.CONNECTOR, firstSegment.getEndMode());
-        wayModule.applyTo(way, SceneryContext.getInstance());
+        wayModule.applyTo(way, desdorfTestData.fullMapData);
 */
 
        /* assertEquals(251517906/*correct??* /, lastSegment.getStartConnector().getOsmId());
@@ -101,7 +100,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         MapWay way33817500 = desdorfTestData.fullMapData.findMapWay(33817500);
         MapWay way33817501 = desdorfTestData.fullMapData.findMapWay(33817501);
 
-        wayModule.applyTo(way33817500, SceneryContext.getInstance());
+        wayModule.applyTo(way33817500, desdorfTestData.fullMapData);
 
         MeshPolygon meshWayConnector = desdorfTestData.meshService.getConnector(387409895);
         validateMeshPolygon(expectedConnector387409895, meshWayConnector);
@@ -121,7 +120,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         MapWay way107468169 = desdorfTestData.fullMapData.findMapWay(107468169);
 
-        wayModule.applyTo(way107468169, SceneryContext.getInstance());
+        wayModule.applyTo(way107468169, desdorfTestData.fullMapData);
 
         MeshPolygon meshWayConnector = desdorfTestData.meshService.getConnector(445410497);
         validateMeshPolygon(expectedConnector445410497, meshWayConnector);
@@ -140,7 +139,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         MapWay bridgeWay = desdorfTestData.findMapWay(MeshTestData.DESDORF_BRIDGE_K41_A61, 23245301);
 
-        wayModule.applyTo(bridgeWay, SceneryContext.getInstance());
+        wayModule.applyTo(bridgeWay, desdorfTestData.getMapData(MeshTestData.DESDORF_BRIDGE_K41_A61));
 
        // MeshPolygon meshWayConnector = desdorfTestData.meshService.getConnector(445410497);
         //validateMeshPolygon(expectedConnector445410497, meshWayConnector);

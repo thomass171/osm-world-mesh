@@ -4,7 +4,6 @@ import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
-import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.modules.common.WayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -48,10 +47,12 @@ public abstract class SceneryModule {
     /**
      * Default implementation.
      * 1.5.24: By 2024 design SceneryContext is still used as a container for higl level terrainmesh wrapper.
+     * 19.11.26: Gets the MapData the way belongs to instead of the SceneryContext, which is a singleton and
+     * thus cannot reflect different inputs.
      *
      * 7.9.26: Returns true when way was processed, false when not.
      */
-    public boolean applyTo(MapWay mapWay, SceneryContext sceneryContext) throws MeshInconsistencyException {
+    public boolean applyTo(MapWay mapWay, MapData mapData) throws MeshInconsistencyException {
         //return new SceneryObjectList();
         return false;
     }
