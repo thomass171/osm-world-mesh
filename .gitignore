@@ -11,3 +11,6 @@ target
 # exclude files created during tests
 /*/src/test/resources/tmp/
 
+
+# Claude Code local files
+.claude/

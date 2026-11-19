@@ -70,7 +70,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
         MapWay way = desdorfTestData.fullMapData.findMapWay(182152619);
         double width = 7.7;
 
-       wayModule.applyTo(way, SceneryContext.getInstance());
+        wayModule.applyTo(way, SceneryContext.getInstance());
 
         /*assertEquals(255563538, firstSegment.getStartConnector().getOsmId());
         assertEquals(SceneryWayObject.WayOuterMode.CONNECTOR, firstSegment.getStartMode());
@@ -103,7 +103,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         wayModule.applyTo(way33817500, SceneryContext.getInstance());
 
-        MeshPolygon meshWayConnector =  desdorfTestData.meshService.getConnector(387409895);
+        MeshPolygon meshWayConnector = desdorfTestData.meshService.getConnector(387409895);
         validateMeshPolygon(expectedConnector387409895, meshWayConnector);
 
         //SVG not possible?
@@ -123,8 +123,27 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
 
         wayModule.applyTo(way107468169, SceneryContext.getInstance());
 
-        MeshPolygon meshWayConnector =  desdorfTestData.meshService.getConnector(445410497);
+        MeshPolygon meshWayConnector = desdorfTestData.meshService.getConnector(445410497);
         validateMeshPolygon(expectedConnector445410497, meshWayConnector);
+
+        SvgWriter.build()
+                .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())
+                .writeTmpFile();
+
+    }
+
+    /**
+     * K41 bridge 23245301 over the A61 (from 'Desdorf/bridge-K41-A61.xml').
+     */
+    @Test
+    public void testBridge23245301InDesdorf() throws Exception {
+
+        MapWay bridgeWay = desdorfTestData.findMapWay(MeshTestData.DESDORF_BRIDGE_K41_A61, 23245301);
+
+        wayModule.applyTo(bridgeWay, SceneryContext.getInstance());
+
+       // MeshPolygon meshWayConnector = desdorfTestData.meshService.getConnector(445410497);
+        //validateMeshPolygon(expectedConnector445410497, meshWayConnector);
 
         SvgWriter.build()
                 .addMeshPolygons(desdorfTestData.meshService.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())

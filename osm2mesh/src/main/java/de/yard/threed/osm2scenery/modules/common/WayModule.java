@@ -216,7 +216,7 @@ public abstract class WayModule extends SceneryModule {
      * @param mapdata
      * @return
      */
-    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ processConnectionCandidatesForOneNode(MapNode node, /*19.2.26SceneryObjectList roadsAndBridges, SceneryContext sceneryContext,*/ MapData mapdata) throws MeshInconsistencyException {
+    private MeshPolygon/*MeshWayConnector*//*7.3.26SceneryWayConnector*/ processConnectionCandidatesForOneNode(MapNode node, MapData mapdata) throws MeshInconsistencyException {
 
         //10.7.19: Don't create connector for outside node
         /*17.3.26 we no longer care about if (node.location == MapNode.Location.OUTSIDEGRID) {

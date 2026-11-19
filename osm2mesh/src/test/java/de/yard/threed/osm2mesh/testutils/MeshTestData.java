@@ -12,6 +12,7 @@ import de.yard.threed.osm2scenery.OSMToSceneryDataConverter;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2world.MapData;
+import de.yard.threed.osm2world.MapWay;
 import de.yard.threed.osm2world.OSMData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,7 +38,7 @@ public class MeshTestData {
     public static final String DESDORF = "Desdorf/Desdorf.osm.xml";
     public static final String DESDORF_BRIDGE_K41_A61 = "Desdorf/bridge-K41-A61.xml";
 
-    // the selected input, initially the first input file
+    // the primary input (first input file). Others are available via findMapWay().
     public OSMData osmData;
     public TerrainMesh terrainMesh;
     public MapData fullMapData;
@@ -48,7 +49,7 @@ public class MeshTestData {
     public Map<String, OsmInput> inputs;
 
     /**
-     * The classic 'Desdorf' triangle. Selected by default is DESDORF.
+     * The classic 'Desdorf' triangle. Primary input is DESDORF.
      * The OSM files are test resources of module 'services'.
      */
     public static MeshTestData desdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
@@ -63,7 +64,7 @@ public class MeshTestData {
     }
 
     /**
-     * @param osmFilenames classpath resources, each converted to its own OSMData/MapData. The first one is selected.
+     * @param osmFilenames classpath resources, each converted to its own OSMData/MapData. The first one is the primary input.
      * @param expectedBoundaryNodes number of nodes of the grid boundary (3 for the Desdorf triangle, 4 for a rectangle)
      */
     public MeshTestData(String meshName, List<String> osmFilenames, GridCellBounds gridCellBounds, int expectedBoundaryNodes,
@@ -76,7 +77,11 @@ public class MeshTestData {
             OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
             inputs.put(osmFilename, new OsmInput(data, converter.createMapData(data)));
         }
-        select(osmFilenames.get(0));
+        OsmInput primary = inputs.get(osmFilenames.get(0));
+        osmData = primary.osmData;
+        fullMapData = primary.mapData;
+
+        SceneryContext.init(fullMapData);
 
         meshService = meshServiceFactory.createMeshService(gridCellBounds);//new MeshServiceMock(gridCellBounds);
         ValidatorServiceFacade validatorService = validatorServiceFactory.createService();
@@ -95,17 +100,14 @@ public class MeshTestData {
     }
 
     /**
-     * Make the input from one OSM file the current 'osmData'/'fullMapData' (and SceneryContext).
+     * Find a way in the input from a specific OSM file.
      */
-    public MeshTestData select(String osmFilename) {
+    public MapWay findMapWay(String osmFilename, long osmId) {
         OsmInput input = inputs.get(osmFilename);
         if (input == null) {
             throw new IllegalArgumentException("unknown input " + osmFilename);
         }
-        osmData = input.osmData;
-        fullMapData = input.mapData;
-        SceneryContext.init(fullMapData);
-        return this;
+        return input.mapData.findMapWay(osmId);
     }
 
     @AllArgsConstructor

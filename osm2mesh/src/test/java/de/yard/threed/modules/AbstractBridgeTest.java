@@ -29,9 +29,7 @@ public abstract class AbstractBridgeTest extends DefaultMockingSceneryTest {
     @Test
     public void testBridge23245301() throws Exception {
 
-        desdorfTestData.select(MeshTestData.DESDORF_BRIDGE_K41_A61);
-
-        MapWay way = desdorfTestData.fullMapData.findMapWay(23245301);
+        MapWay way = desdorfTestData.findMapWay(MeshTestData.DESDORF_BRIDGE_K41_A61, 23245301);
         assertNotNull(way);
         assertTrue(Bridge.isBridge(way.getTags()));
     }
