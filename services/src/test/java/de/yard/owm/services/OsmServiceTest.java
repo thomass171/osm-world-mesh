@@ -319,7 +319,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
     /*17.5.26 public static MeshTestData setupForDesdorf(MeshService meshService, TestServices testServices, TerrainMeshManager terrainMeshManager) throws Exception {
         // The 'lower' segment. Full data will provide one connector
         //OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("K41-segment.osm.xml");
-        OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("Desdorf.osm.xml");
+        OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("Desdorf/Desdorf.osm.xml");
 
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider");
@@ -353,7 +353,7 @@ public class OsmServiceTest extends AbstractSceneryTest {
     /*17.5.26 public static MeshTestData setupForDesdorf(MeshService meshService, TestServices testServices, TerrainMeshManager terrainMeshManager) throws Exception {
         // The 'lower' segment. Full data will provide one connector
         //OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("K41-segment.osm.xml");
-        OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("Desdorf.osm.xml");
+        OSMData osmData = TestUtil.loadOsmDataFromXmlClasspath("Desdorf/Desdorf.osm.xml");
 
         Configuration customconfig = new BaseConfiguration();
         customconfig.setProperty("ElevationProvider", "de.yard.threed.osm2scenery.elevation.FixedElevationProvider");

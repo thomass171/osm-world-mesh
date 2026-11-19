@@ -1,7 +1,7 @@
 package de.yard.threed.osm2scenery;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.modules.Bridge;
 import de.yard.threed.osm2scenery.modules.BuildingModule;
 import de.yard.threed.osm2scenery.scenery.*;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
@@ -101,7 +101,7 @@ public class SceneryObjectList {
      * @return
      */
     /*18.11.26public List<SceneryObject> findBridges() {
-        List<SceneryObject> result = objects.stream().filter(o -> o instanceof BridgeModule.Bridge).collect(Collectors.toList());
+        List<SceneryObject> result = objects.stream().filter(o -> o instanceof Bridge).collect(Collectors.toList());
         return result;
     }*/
 

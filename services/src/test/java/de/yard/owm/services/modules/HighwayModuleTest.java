@@ -68,7 +68,7 @@ public class HighwayModuleTest {
     /*10.2.26 @Test
     public void testDesdorf() throws Exception {
         //SceneryTestUtil.prepareTest(SceneryBuilder.osmdatadir + "/Desdorf.osm.xml", "Desdorf", "superdetailed");
-        ServicesTestUtil stu = new ServicesTestUtil("Desdorf.osm.xml", terrainMeshManager);
+        ServicesTestUtil stu = new ServicesTestUtil("Desdorf/Desdorf.osm.xml", terrainMeshManager);
 
         HighwayModule roadModule = new HighwayModule();
 

@@ -581,7 +581,7 @@ public class SceneryMesh {
      */
     public void completeBridgeRelations() {
 
-        /*13.7.19 for (BridgeModule.Bridge bridge : SceneryContext.getInstance().bridges.values()) {
+        /*13.7.19 for (Bridge bridge : SceneryContext.getInstance().bridges.values()) {
             SmartPolygon above = bridge./*.roadorrailway* /getArea().poly;
             // unter einer Bridge koennen ja auch areas liegen, also alles durchgehen (aber keine Volumes und sich selbst).
             for (SceneryObject obj : sceneryObjects.objects) {
@@ -933,7 +933,7 @@ public class SceneryMesh {
      * Eigentlich nicht. Denn er braucht Polygon und läuft daher später.
      */
     /*public void closeBridgeGaps(){
-        for (BridgeModule.Bridge bridge : SceneryContext.getInstance().bridges.values()) {
+        for (Bridge bridge : SceneryContext.getInstance().bridges.values()) {
             
             sceneryObjects.objects.add(bridge.closeBridgeGap(/*sroads.get(0), eroads.get(0))* /));
 

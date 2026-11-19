@@ -18,7 +18,7 @@ import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryMesh;
 import de.yard.threed.osm2scenery.SceneryObjectList;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
-import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.modules.Bridge;
 import de.yard.threed.osm2scenery.modules.BuildingModule;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
@@ -433,7 +433,7 @@ public class OsmGridTest {
         validateBridgeApproach(roadToBridgeFromNorth, false, sceneryMesh.terrainMesh);
 
         //Die Bruecke selber, aber auch das Roadsegment da drin muss hoeher liegen
-        BridgeModule.Bridge bridge = (BridgeModule.Bridge) sceneryMesh.sceneryObjects.findObjectsByCreatorTag("Bridge").get(0);
+        Bridge bridge = (Bridge) sceneryMesh.sceneryObjects.findObjectsByCreatorTag("Bridge").get(0);
         validateBridge(bridge, bridgegroundfiller, roadToBridgeFromNorth, sceneryMesh.terrainMesh);
 
         //Background
@@ -895,7 +895,7 @@ public class OsmGridTest {
     /**
      * Ist das generisch für alle Bridges? Eher nicht.
      */
-    private void validateBridge(BridgeModule.Bridge bridge, ScenerySupplementAreaObject bridgegroundfillerfromobjectlist, HighwayModule.Highway roadToBridgeFromNorth, TerrainMesh tm) throws MeshInconsistencyException {
+    private void validateBridge(Bridge bridge, ScenerySupplementAreaObject bridgegroundfillerfromobjectlist, HighwayModule.Highway roadToBridgeFromNorth, TerrainMesh tm) throws MeshInconsistencyException {
         /*18.11.26assertFalse(bridge.isTerrainProvider(), "isTerrainProvider");
         assertTrue(bridge.isClipped(), "bridge.clipped");
         assertEquals("Bridge", bridge.getCreatorTag(), "creatortag");*/

@@ -199,6 +199,21 @@
     </dependencies>
 
     <build>
+        <!-- OSM test data is shared with module 'services' and lives there. Only the OSM data directories
+        are included, to keep eg. 'application.properties' out of the classpath (and the tests.jar). -->
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>../services/src/test/resources</directory>
+                <includes>
+                    <include>Desdorf/**</include>
+                    <include>K41/**</include>
+                    <include>Kenten/**</include>
+                </includes>
+            </testResource>
+        </testResources>
         <!-- "surefire", "source" and "jar"(for tests.jar) come from parent-->
         <plugins>
             <plugin>

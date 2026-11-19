@@ -4,7 +4,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import de.yard.threed.graph.Graph;
 import de.yard.threed.graph.GraphOrientation;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
-import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.modules.Bridge;
 import de.yard.threed.osm2scenery.modules.HighwayModule;
 import de.yard.threed.osm2scenery.polygon20.OsmWay;
 import de.yard.threed.osm2scenery.scenery.SceneryObject;
@@ -86,7 +86,7 @@ public class SceneryContext {
     //taxiwaygraph enthaelt auch runway
     private Graph roadgraph, taxiwaygraph, railwaygraph, rivergraph;
     //osmWay->Bridge
-    public Map<Long, BridgeModule.Bridge> bridges = new HashMap<>();
+    public Map<Long, Bridge> bridges = new HashMap<>();
     //Enthaelt auch die Road Bestandteile einer Bridge
     //umbenannt roads->highways. Key is osm way id
     //7.5.24: Should we really use HighwayModule.Highway? Give SceneryWayObject a chance

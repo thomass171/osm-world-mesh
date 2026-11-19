@@ -100,15 +100,15 @@ public class HighwayModule extends WayModule {
 
                 //Ein Way ohne Segmente? Das ist doch bestimmt was inkonsistentes.
                 if (mapway.getMapWaySegments().size() > 0) {
-                    if (BridgeModule.isBridge(mapway.getTags())) {
+                    if (Bridge.isBridge(mapway.getTags())) {
                         //return GroundState.ABOVE;
                         //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
-                        BridgeModule.Bridge bridge/*Highway roadoverbridge*/ = new BridgeModule.Bridge /*Highway*/(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, getLandClass(), SceneryContext.getInstance());
+                        Bridge bridge/*Highway roadoverbridge*/ = new Bridge /*Highway*/(mapway.segment2s.get(0), materialmap/*, mapway.getTags(), mapway.getOsmId()*/, getLandClass(), SceneryContext.getInstance());
                         //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
                         //18.11.26SceneryContext.getInstance().highways.put(osmid, bridge/*roadoverbridge*/);
                         //roadsAndBridges.add(bridge.roadoverbridge);
 
-                        //BridgeModule.Bridge bridge = new BridgeModule.Bridge(roadoverbridge/*mapway/*, mapway.getTags(), mapway.getOsmId()*/);
+                        //Bridge bridge = new Bridge(roadoverbridge/*mapway/*, mapway.getTags(), mapway.getOsmId()*/);
                     /*Polygon p = bridge.getPolygon().polygon;
                     if (p == null) {
                         log.warn("no/broken polygon for osm way " + mapway.getOsmId());
@@ -229,7 +229,7 @@ public class HighwayModule extends WayModule {
     @Override
     public List<ScenerySupplementAreaObject> createSupplements(List<SceneryObject> objects) {
         List<ScenerySupplementAreaObject> supplements = new ArrayList<>();
-        for (BridgeModule.Bridge bridge : SceneryContext.getInstance().bridges.values()) {
+        for (Bridge bridge : SceneryContext.getInstance().bridges.values()) {
             bridge.createSupplements();
             supplements.add(bridge.gap);
             if (bridge.startHead.ramp0 != null) {
@@ -325,7 +325,7 @@ public class HighwayModule extends WayModule {
      * Nicht mehr hier wegen Coupling.
      */
     public static void buildBridgeApproaches(/*SceneryObjectList*/List<SceneryObject> roadsAndBridges, SceneryContext sceneryContext) {
-        for (BridgeModule.Bridge bridge : sceneryContext.bridges.values()) {
+        for (Bridge bridge : sceneryContext.bridges.values()) {
             /*18.11.26List<SceneryWayObject> sroads = getConnectedWays(bridge./*roadorrailway.* /mapWay.getStartNode(), true, sceneryContext);
             sroads.remove(bridge/*.roadorrailway* /);
             if (checkRoadsAtBridge(sroads)) {
@@ -1757,7 +1757,7 @@ public class HighwayModule extends WayModule {
 
         @Override
         public GroundState getGroundState() {
-            if (BridgeModule.isBridge(area.getTags())) {
+            if (Bridge.isBridge(area.getTags())) {
                 return GroundState.ABOVE;
             } else if (TunnelModule.isTunnel(area.getTags())) {
                 return GroundState.BELOW;

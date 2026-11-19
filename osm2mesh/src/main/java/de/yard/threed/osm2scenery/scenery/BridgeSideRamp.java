@@ -7,7 +7,7 @@ import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
-import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.modules.Bridge;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.scenery.components.ProjectedMeshAdapter;
@@ -21,7 +21,7 @@ import java.util.List;
  */
 @Slf4j
 public class BridgeSideRamp extends ScenerySupplementAreaObject {
-    BridgeModule.BridgeHead bridgeHead;
+    Bridge.BridgeHead bridgeHead;
     MapNode rampNode = null;
     boolean onLeft;
     //Die additional outside Coordinate der Ramp.
@@ -31,7 +31,7 @@ public class BridgeSideRamp extends ScenerySupplementAreaObject {
     /**
      * BridgeSideRamp
      */
-    public BridgeSideRamp(String creatortag, BridgeModule.BridgeHead bridgeHead, Material material, MapNode rampNode, boolean onLeft) {
+    public BridgeSideRamp(String creatortag, Bridge.BridgeHead bridgeHead, Material material, MapNode rampNode, boolean onLeft) {
         super(creatortag, material, null, null);
         this.bridgeHead = bridgeHead;
         this.rampNode = rampNode;

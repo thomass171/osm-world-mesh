@@ -9,7 +9,7 @@ import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
-import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.modules.Bridge;
 import de.yard.threed.osm2scenery.modules.SceneryModule;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshPolygon;
@@ -98,12 +98,12 @@ public abstract class WayModule extends SceneryModule {
             //24.8.26 don't care about the type any more this way. if (isHighway(mapwaySegment.getTags())) {
             long osmid = mapwaySegment.getOsmId();
 
-            if (BridgeModule.isBridge(mapwaySegment.getTags())) {
+            if (Bridge.isBridge(mapwaySegment.getTags())) {
                 //3.6.19: Bridge IST jetzt Highway, statt ihn zu enthalten.
                 //18.11.26: Bridge is now a volume object, not a way anymore. It doesn't contribute to terrain mesh.
                 //But a way needs to contribute to the traffic graph.
                 //However the ramps could be vertical mesh parts, depending on the bridge type.
-                BridgeModule.Bridge bridge = new BridgeModule.Bridge /*Highway*/(mapwaySegment, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, getLandClass(), sceneryContext);
+                Bridge bridge = new Bridge /*Highway*/(mapwaySegment, materialmap/*, mapway.getTags(), mapway.getOsmId()*/, getLandClass(), sceneryContext);
                 //Nur konsequent, dass auch als Road zu registrieren. 17.8.18: Und auch in die globale Liste aufnehmen.
                 //TODO add ramps to mesh and way to graph
                 /*sceneryContext.highways.put(osmid, bridge);
@@ -178,7 +178,7 @@ public abstract class WayModule extends SceneryModule {
     @Override
     public List<ScenerySupplementAreaObject> createSupplements(List<SceneryObject> objects) {
         List<ScenerySupplementAreaObject> supplements = new ArrayList<>();
-        for (BridgeModule.Bridge bridge : SceneryContext.getInstance().bridges.values()) {
+        for (Bridge bridge : SceneryContext.getInstance().bridges.values()) {
             bridge.createSupplements();
             supplements.add(bridge.gap);
             if (bridge.startHead.ramp0 != null) {
@@ -330,7 +330,7 @@ public abstract class WayModule extends SceneryModule {
      * Nicht mehr hier wegen Coupling.
      */
     public static void buildBridgeApproaches(/*SceneryObjectList*/List<SceneryObject> roadsAndBridges, SceneryContext sceneryContext) {
-        for (BridgeModule.Bridge bridge : sceneryContext.bridges.values()) {
+        for (Bridge bridge : sceneryContext.bridges.values()) {
           /*18.11.26   List<SceneryWayObject> sroads = getConnectedWays(bridge./*roadorrailway.* /mapWay.getStartNode(), true, sceneryContext);
             sroads.remove(bridge/*.roadorrailway* /);
             if (checkRoadsAtBridge(sroads)) {
@@ -1761,7 +1761,7 @@ public abstract class WayModule extends SceneryModule {
 
         @Override
         public GroundState getGroundState() {
-            if (BridgeModule.isBridge(area.getTags())) {
+            if (Bridge.isBridge(area.getTags())) {
                 return GroundState.ABOVE;
             } else if (TunnelModule.isTunnel(area.getTags())) {
                 return GroundState.BELOW;

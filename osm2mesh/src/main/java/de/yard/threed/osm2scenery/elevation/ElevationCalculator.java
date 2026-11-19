@@ -7,7 +7,7 @@ import de.yard.threed.osm2graph.SceneryBuilder;
 import de.yard.threed.osm2graph.osm.VertexData;
 import de.yard.threed.osm2scenery.SceneryContext;
 import de.yard.threed.osm2scenery.SceneryObjectList;
-import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.modules.Bridge;
 import de.yard.threed.osm2scenery.scenery.Background;
 import de.yard.threed.osm2scenery.scenery.BackgroundElement;
 import de.yard.threed.osm2scenery.scenery.SceneryFlatObject;
@@ -390,7 +390,7 @@ public class ElevationCalculator {
      */
 
     private static void completeBridges() {
-        for (BridgeModule.Bridge bridge : SceneryContext.getInstance().bridges.values()) {
+        for (Bridge bridge : SceneryContext.getInstance().bridges.values()) {
             bridge.fixElevation();
         }
     }

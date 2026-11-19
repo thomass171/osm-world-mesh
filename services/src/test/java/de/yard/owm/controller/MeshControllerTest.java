@@ -78,7 +78,7 @@ public class MeshControllerTest {
         String response = validateResponse(result, HttpStatus.OK);
 
         result = TestUtils.doPutXml(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf",
-                TestUtil.loadFileFromClasspath("Desdorf.osm.xml"));
+                TestUtil.loadFileFromClasspath("Desdorf/Desdorf.osm.xml"));
         response = validateResponse(result, HttpStatus.OK);
         MeshResponse meshBuildResponse = jsonService.jsonToModel(response, MeshResponse.class);
         // currently we have 5 failures, but that might change over time. Now 3. Now 17. Now 14.
@@ -101,13 +101,13 @@ public class MeshControllerTest {
 
         // lower K41
         result = TestUtils.doPutXml(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf&osmwayid=24927839",
-                TestUtil.loadFileFromClasspath("Desdorf.osm.xml"));
+                TestUtil.loadFileFromClasspath("Desdorf/Desdorf.osm.xml"));
         response = validateResponse(result, HttpStatus.OK);
         validateFailures(0, jsonService.jsonToModel(response, MeshResponse.class).getFailures());
 
         // again
         result = TestUtils.doPutXml(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf&osmwayid=24927839",
-                TestUtil.loadFileFromClasspath("Desdorf.osm.xml"));
+                TestUtil.loadFileFromClasspath("Desdorf/Desdorf.osm.xml"));
         response = validateResponse(result, HttpStatus.OK);
         MeshResponse meshBuildResponse = jsonService.jsonToModel(response, MeshResponse.class);
         validateFailures(1, meshBuildResponse.getFailures());
@@ -126,7 +126,7 @@ public class MeshControllerTest {
         String osmwayid = failedSourceRef.substring(failedSourceRef.lastIndexOf('/') + 1);
         assertEquals("24927839", osmwayid);
         result = TestUtils.doPutXml(mockMvc, ENDPOINT_MESH + "?meshName=Desdorf&osmwayid=" + osmwayid,
-                TestUtil.loadFileFromClasspath("Desdorf.osm.xml"));
+                TestUtil.loadFileFromClasspath("Desdorf/Desdorf.osm.xml"));
         response = validateResponse(result, HttpStatus.OK);
         validateFailures(1, jsonService.jsonToModel(response, MeshResponse.class).getFailures());
 

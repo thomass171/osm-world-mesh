@@ -17,6 +17,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon.expectedBoundary;
 import static de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon.expectedWay;
@@ -30,40 +33,50 @@ public class MeshTestData {
     public static GeoCoordinate NE = GeoCoordinate.fromLatLon(LatLon.fromDegrees(50.95, 6.61), 0);
     public static GeoCoordinate SE = GeoCoordinate.fromLatLon(LatLon.fromDegrees(50.94, 6.61), 0);
 
+    // OSM input files of 'Desdorf'
+    public static final String DESDORF = "Desdorf/Desdorf.osm.xml";
+    public static final String DESDORF_BRIDGE_K41_A61 = "Desdorf/bridge-K41-A61.xml";
+
+    // the selected input, initially the first input file
     public OSMData osmData;
     public TerrainMesh terrainMesh;
     public MapData fullMapData;
     public GridCellBounds gridCellBounds;
     public ExpectedMeshPolygon expectedBoundary;
     public MeshServiceFacade meshService;
+    // all inputs by file name. Each OSM file is kept separately, they are not merged.
+    public Map<String, OsmInput> inputs;
 
     /**
-     * The classic 'Desdorf' triangle.
+     * The classic 'Desdorf' triangle. Selected by default is DESDORF.
+     * The OSM files are test resources of module 'services'.
      */
     public static MeshTestData desdorf(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
-        return new MeshTestData("Desdorf", "Desdorf.osm.xml", MainGrid.buildDesdorf(), 3, meshServiceFactory, validatorServiceFactory);
+        return new MeshTestData("Desdorf", List.of(DESDORF, DESDORF_BRIDGE_K41_A61), MainGrid.buildDesdorf(), 3, meshServiceFactory, validatorServiceFactory);
     }
 
     /**
-     * Rectangle of 'Kenten-South'. The OSM file only exists in module 'services'.
+     * Rectangle of 'Kenten-South'. The OSM file is a test resource of module 'services'.
      */
     public static MeshTestData kenten(MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
-        return new MeshTestData("Kenten", "Kenten/Kenten-South.osm.xml", MainGrid.buildKenten(), 4, meshServiceFactory, validatorServiceFactory);
+        return new MeshTestData("Kenten", List.of("Kenten/Kenten-South.osm.xml"), MainGrid.buildKenten(), 4, meshServiceFactory, validatorServiceFactory);
     }
 
     /**
+     * @param osmFilenames classpath resources, each converted to its own OSMData/MapData. The first one is selected.
      * @param expectedBoundaryNodes number of nodes of the grid boundary (3 for the Desdorf triangle, 4 for a rectangle)
      */
-    public MeshTestData(String meshName, String osmFilename, GridCellBounds gridCellBounds, int expectedBoundaryNodes,
+    public MeshTestData(String meshName, List<String> osmFilenames, GridCellBounds gridCellBounds, int expectedBoundaryNodes,
                            MeshServiceFactory meshServiceFactory, ValidatorServiceFactory validatorServiceFactory) throws Exception {
-        osmData = TestUtil.loadOsmDataFromXmlClasspath(osmFilename);
-
         this.gridCellBounds = gridCellBounds;
 
-        OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
-        fullMapData = converter.createMapData(osmData);
-
-        SceneryContext.init(fullMapData);
+        inputs = new LinkedHashMap<>();
+        for (String osmFilename : osmFilenames) {
+            OSMData data = TestUtil.loadOsmDataFromXmlClasspath(osmFilename);
+            OSMToSceneryDataConverter converter = new OSMToSceneryDataConverter(gridCellBounds.getProjection(), gridCellBounds);
+            inputs.put(osmFilename, new OsmInput(data, converter.createMapData(data)));
+        }
+        select(osmFilenames.get(0));
 
         meshService = meshServiceFactory.createMeshService(gridCellBounds);//new MeshServiceMock(gridCellBounds);
         ValidatorServiceFacade validatorService = validatorServiceFactory.createService();
@@ -79,5 +92,25 @@ public class MeshTestData {
         //terrainMesh.meshService = meshService;
 
 
+    }
+
+    /**
+     * Make the input from one OSM file the current 'osmData'/'fullMapData' (and SceneryContext).
+     */
+    public MeshTestData select(String osmFilename) {
+        OsmInput input = inputs.get(osmFilename);
+        if (input == null) {
+            throw new IllegalArgumentException("unknown input " + osmFilename);
+        }
+        osmData = input.osmData;
+        fullMapData = input.mapData;
+        SceneryContext.init(fullMapData);
+        return this;
+    }
+
+    @AllArgsConstructor
+    public static class OsmInput {
+        public OSMData osmData;
+        public MapData mapData;
     }
 }

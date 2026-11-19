@@ -131,6 +131,25 @@ The geotools are not in maven central.
 * SRTM?
 ...
 
+# Known Problems
+## Connector setback exceeds a short way segment
+A junction connector cuts back each attached way by a fixed setback of 5.5m
+(`SceneryWayConnector.createConnectorRectangle()` -> `WayArea.shiftStartOrEnd(node, 5.5)`).
+`WayArea.shift()` only moves the end pair towards its neighbour pair, without checking whether
+that neighbour is closer than the setback. When the last segment of a way is shorter than 5.5m,
+the shifted pair ends up behind the previous node. `WayArea.replaceEnd()`/`replaceStart()` then replaces
+only the outer pair but keeps the inner one, so the way outline runs forward and back again. The resulting
+self intersecting polygon fails with `MeshInconsistencyException: invalid polygon for way`.
+
+Example: In 'Desdorf' track 477263056 (from 'bridge-K41-A61.xml') starts at node 4706442016 on the
+'Karenhof' track 24879711. This makes node 4706442016 a junction, which is only 2.8m away from node 270353279
+(and 3.3m from 270353280 on the other side). Processing both ways in one mesh leads to the error.
+
+Since junctions close to another node are quite common in OSM data, a fix is needed. Options:
+* `shift()` walks along the outline over several segments and `replaceStart()`/`replaceEnd()` drops pairs within the setback (most robust).
+* Limit the setback to the segment length (simple, but the connector might become tiny or invalid).
+* Merge nodes that are only a few meters apart in the data (a workaround rather than a fix).
+
 # Helper
 ## DB queries
 ```

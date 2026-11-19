@@ -2,7 +2,7 @@ package de.yard.threed.osm2world;
 
 
 
-import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.modules.Bridge;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -316,7 +316,7 @@ public abstract class AbstractNetworkWaySegmentWorldObject
 	 */
 	@Override
 	public GroundState getGroundState() {
-		if (BridgeModule.isBridge(segment.getTags())) {
+		if (Bridge.isBridge(segment.getTags())) {
 			return ABOVE;
 		} else if (TunnelModule.isTunnel(segment.getTags())) {
 			return GroundState.BELOW;

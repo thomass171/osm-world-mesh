@@ -7,7 +7,7 @@ import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroup;
 import de.yard.threed.osm2scenery.elevation.EleConnectorGroupSet;
 import de.yard.threed.osm2scenery.elevation.EleCoordinate;
-import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.modules.Bridge;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.util.SmartPolygon;
 import de.yard.threed.osm2world.MapNode;
@@ -28,7 +28,7 @@ public class BridgeGap extends ScenerySupplementAreaObject {
     Polygon basepolygon;
     //SceneryWayObject roadorrailway;
     //MapWay shadowway = null;
-    public BridgeModule.Bridge bridge;
+    public Bridge bridge;
     MapNode rampNode = null;
     boolean onLeft;
 
@@ -37,7 +37,7 @@ public class BridgeGap extends ScenerySupplementAreaObject {
      * die an selben Stellen liegen aber mit eigenen Elegroups.
      * NeeNeeNee, den Spuk lass ich mal.
      */
-    public BridgeGap(String creatortag, BridgeModule.Bridge bridge, Material material/*,SceneryWayObject roadorrailway*/) {
+    public BridgeGap(String creatortag, Bridge bridge, Material material/*,SceneryWayObject roadorrailway*/) {
         super(creatortag, material, null,null);
         this.bridge = bridge;
         //basepolygon=polygon;

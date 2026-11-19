@@ -394,7 +394,7 @@ public class SurfaceAreaModule extends SceneryModule {
 
        /* @Override
         public GroundState getGroundState() {
-            if (BridgeModule.isBridge(area.getTags())) {
+            if (Bridge.isBridge(area.getTags())) {
                 return GroundState.ABOVE;
             } else if (TunnelModule.isTunnel(area.getTags())) {
                 return GroundState.BELOW;

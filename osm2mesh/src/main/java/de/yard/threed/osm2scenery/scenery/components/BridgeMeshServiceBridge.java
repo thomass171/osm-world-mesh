@@ -6,7 +6,7 @@ import de.yard.threed.osm2graph.osm.JtsUtil;
 import de.yard.threed.osm2graph.osm.SceneryProjection;
 import de.yard.threed.osm2scenery.MeshServiceFacade;
 import de.yard.threed.osm2scenery.SceneryContext;
-import de.yard.threed.osm2scenery.modules.BridgeModule;
+import de.yard.threed.osm2scenery.modules.Bridge;
 import de.yard.threed.osm2scenery.polygon20.MeshInconsistencyException;
 import de.yard.threed.osm2scenery.polygon20.MeshLine;
 import de.yard.threed.osm2scenery.polygon20.MeshNode;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
- * 4.11.26 deprecated after refactoring of parent class. Code should move somewhere else, but where? Maybe to BridgeGap or BridgeModule.
+ * 4.11.26 deprecated after refactoring of parent class. Code should move somewhere else, but where? Maybe to BridgeGap or Bridge.
  */
 @Slf4j
 @Deprecated
@@ -62,7 +62,7 @@ public class BridgeMeshServiceBridge extends ProjectedMeshAdapter {
             for (int i = 0; i < 2; i++) {
                 AbstractArea gapArea = bridgeGap.getArea()[i];
                 LineString gapLine = gapArea.getPolygon(tm).getExteriorRing();
-                BridgeModule.BridgeHead head = bridgeGap.bridge.startHead;
+                Bridge.BridgeHead head = bridgeGap.bridge.startHead;
                 int[] fromto = JtsUtil.findCommon(gapLine, JtsUtil.createLine(head.bridgebaseline.p0, head.bridgebaseline.p1));
                 if (fromto == null) {
                     head = bridgeGap.bridge.endHead;
@@ -82,7 +82,7 @@ public class BridgeMeshServiceBridge extends ProjectedMeshAdapter {
         }
     }
 
-    private void addRamps(BridgeModule.BridgeHead head, TerrainMesh tm) {
+    private void addRamps(Bridge.BridgeHead head, TerrainMesh tm) {
         head.sharesForGap = new ArrayList<>();
         // die left und right line des Ways an diesem Head.
         MeshLine[] lines = new MeshLine[0];

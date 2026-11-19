@@ -37,7 +37,7 @@ public class DesdorfTestUtil {
     OsmElementService osmElementService;
 
     public DesdorfTestUtil(TerrainMeshManager terrainMeshManager, OsmElementService osmElementService) throws Exception {
-        stu = new ServicesTestUtil("Desdorf.osm.xml", terrainMeshManager);
+        stu = new ServicesTestUtil("Desdorf/Desdorf.osm.xml", terrainMeshManager);
         this.osmElementService=osmElementService;
         k41Low = stu.mapData.findMapWays(24927839).get(0);
         k41Upper = stu.mapData.findMapWays(182152619).get(0);
