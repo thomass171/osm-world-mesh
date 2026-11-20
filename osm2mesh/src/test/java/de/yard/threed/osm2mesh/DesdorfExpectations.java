@@ -3,6 +3,7 @@ package de.yard.threed.osm2mesh;
 import de.yard.threed.core.Degree;
 import de.yard.threed.osm2mesh.testutils.ExpectedMeshNodePair;
 import de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon;
+import de.yard.threed.osm2scenery.polygon20.MeshPolygonType;
 
 import static de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon.expectedConnector;
 import static de.yard.threed.osm2mesh.testutils.ExpectedMeshPolygon.expectedWay;
@@ -55,6 +56,10 @@ public class DesdorfExpectations {
             new ExpectedMeshNodePair(107468171, new Degree(239), 1, 0),
             new ExpectedMeshNodePair(107468171, new Degree(60), 3, 2),
             new ExpectedMeshNodePair(33817499, new Degree(2), 5, 4));
+
+    public static ExpectedMeshPolygon expectedConnector251517908 = expectedConnector(251517908, 4, MeshPolygonType.BRIDGE_CONNECTOR,
+            new ExpectedMeshNodePair(182152619, new Degree(165), 3, 2),
+            new ExpectedMeshNodePair(23245301, new Degree(348), 1, 0));
 
     // osmway has 5 nodes
     public static ExpectedMeshPolygon expected24927839LowerK41 = expectedWay(24927839L, 0, 10);

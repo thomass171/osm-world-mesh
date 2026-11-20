@@ -138,6 +138,7 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
     public void testBridge23245301InDesdorf() throws Exception {
 
         MapWay bridgeWay = desdorfTestData.findMapWay(MeshTestData.DESDORF_BRIDGE_K41_A61, 23245301);
+        MapWay southK41Way = desdorfTestData.findMapWay(MeshTestData.DESDORF_BRIDGE_K41_A61, 182152619);
 
         wayModule.applyTo(bridgeWay, desdorfTestData.getMapData(MeshTestData.DESDORF_BRIDGE_K41_A61));
 
@@ -147,6 +148,10 @@ public abstract class AbstractWayModuleTest extends DefaultMockingSceneryTest {
             assertNotNull(connector, "connector " + nodeOsmId);
             assertEquals(MeshPolygonType.BRIDGE_CONNECTOR, connector.getType(), "connector type " + nodeOsmId);
         }
+
+        wayModule.applyTo(southK41Way, desdorfTestData.getMapData(MeshTestData.DESDORF_BRIDGE_K41_A61));
+        MeshPolygon southConnector = desdorfTestData.meshServiceFacade.getConnector(251517908);
+        validateMeshPolygon(expectedConnector251517908, southConnector);
 
         SvgWriter.build()
                 .addMeshPolygons(desdorfTestData.meshServiceFacade.loadMesh("Desdorf").polygons, desdorfTestData.getGridCellBounds().getProjection())

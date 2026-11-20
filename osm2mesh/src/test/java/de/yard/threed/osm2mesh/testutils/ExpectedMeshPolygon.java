@@ -32,7 +32,11 @@ public class ExpectedMeshPolygon {
     }
 
     public static ExpectedMeshPolygon expectedConnector(long osmId, int nodes, ExpectedMeshNodePair... expectedMeshNodePairs) {
-        ExpectedMeshPolygon emp = new ExpectedMeshPolygon(osmId, -1, MeshPolygonType.CONNECTOR, nodes);
+        return expectedConnector(osmId, nodes, MeshPolygonType.CONNECTOR, expectedMeshNodePairs);
+    }
+
+    public static ExpectedMeshPolygon expectedConnector(long osmId, int nodes, MeshPolygonType meshPolygonType, ExpectedMeshNodePair... expectedMeshNodePairs) {
+        ExpectedMeshPolygon emp = new ExpectedMeshPolygon(osmId, -1, meshPolygonType, nodes);
         emp.expectedMeshNodePairs = expectedMeshNodePairs;
         return emp;
     }

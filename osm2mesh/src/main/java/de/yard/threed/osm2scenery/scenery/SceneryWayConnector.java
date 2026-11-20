@@ -525,11 +525,11 @@ public class SceneryWayConnector extends SceneryNodeObject {
                 createPolygonSTANDARD_JUNCTION(projection);
                 break;
             case SIMPLE_CONNECTOR:
-                buildSimpleMainConnection(projection);
+                buildSimpleMainConnection();
                 break;
             case BRIDGE_CONNECTOR:
                 // 19.11.26: For now like SIMPLE_CONNECTOR. Should be a almost vertical gray plane once.
-                buildSimpleMainConnection(projection);
+                buildBridgeConnection();
                 break;
             /*case CROSSING:
                 //erstmal einfach so. Bei inner node erstmal nichts. Na, das koennen auch vier Ways sein (388796251).
@@ -561,18 +561,16 @@ public class SceneryWayConnector extends SceneryNodeObject {
     }
 
     /**
-     * Die beiden mains(s) quasi verbinden. Der Connector selber bekommt damit keine Area.
-     * Returns connectionPair in "main0 perspective".
+     * Connect the two main ways. The connector itself also results in an area (polygon).
+     * In the past we had attempts to have no polygon for such a simple connection.
+     * But it is just easier to have a real connector. And nobody knows whether one more way will be added later.
+     * So we have a polygon like in createPolygonSTANDARD_TRI_JUNCTION().
      * major0 might equal major1 for closed ways.
-     * 21.3.26: Will lead to a connector without polygon? Why at all should this be a connector.
-     * 21.3.26 We no longer consider this a real connector. So no polygon is created only an attach par?
-     * On the other hand, it is just easier to have a real connector. And nobody knows whether one more way will be added later.
-     * So make a polygon like in createPolygonSTANDARD_TRI_JUNCTION()
      */
-    private void /*21.2.26 CoordinatePair*/ buildSimpleMainConnection(SceneryProjection projection) throws MeshInconsistencyException {
+    private void buildSimpleMainConnection() throws MeshInconsistencyException {
         double width = 8;//TODO ways.get(0).getWidth();
-        MapWaySegment2/*SceneryWayObject*/ main0 = ways.get(majorway0);
-        MapWaySegment2/*SceneryWayObject*/ main1 = ways.get(majorway1);
+        MapWaySegment2 main0 = ways.get(majorway0);
+        MapWaySegment2 main1 = ways.get(majorway1);
         /*21.3.26 Vector2 dir0 = OsmUtil.getDirectionToNode(main0, node);
         //negate geht zumindest nicht bei closed.
         //Vector2 dir1 = OsmUtil.getDirectionToNode(main1.mapWay, node).negate();
@@ -583,54 +581,44 @@ public class SceneryWayConnector extends SceneryNodeObject {
 
         polygonLine = createConnectorRectangle(node,
                 wayAreaCandidates.get(ways.get(majorway0)),
-                wayAreaCandidates.get(ways.get(majorway1)),
-                projection);
+                wayAreaCandidates.get(ways.get(majorway1)));
         attachpair.put(main0.getKey(isStartNode(node, main0)), new Pair(0, 1)/*isStartNode(node, main0) ? new Pair(0, 1) : new Pair(1, 0)*/);
         attachpair.put(main1.getKey(isStartNode(node, main1)), new Pair(2, 3)/*isStartNode(node, main1) ? new Pair(2, 3) : new Pair(3, 2)*/);
+    }
 
-        /*9.3.26 if (main0.isStartNode(node)) {
-            attachpair.put(main0, new CoordinatePair(pleft, pright));
-        } else {
-            attachpair.put(main0, new CoordinatePair(pright, pleft));
-        }
-        if (main1.isStartNode(node)) {
-            attachpair.put(main1, new CoordinatePair(pright, pleft));
-        } else {
-            attachpair.put(main1, new CoordinatePair(pleft, pright));
-        }
-        return attachpair.get(main0);//new CoordinatePair(pright, pleft);*/
+    private void buildBridgeConnection() throws MeshInconsistencyException {
+        // for now like SIMPLE_CONNECTOR. Should be a almost vertical gray plane once.
+        buildSimpleMainConnection();
     }
 
     /**
      * Create a CCW rectangle connector polygon between the two mains.
      * Points 0 and 1 will be at main0 while 2 and 3 are at main1.
+     * Also used for bridge connector.
      */
-    private static List<Pair<Coordinate, Long>> createConnectorRectangle(MapNode node, WayArea mainWayArea0, WayArea mainWayArea1, SceneryProjection projection) throws MeshInconsistencyException {
+    private static List<Pair<Coordinate, Long>> createConnectorRectangle(MapNode node, WayArea mainWayArea0, WayArea mainWayArea1) throws MeshInconsistencyException {
 
         CoordinatePair major0line = mainWayArea0.shiftStartOrEnd(node, 5.5);
         CoordinatePair major1line = mainWayArea1.shiftStartOrEnd(node, 5.5);
         if (major0line == null || major1line == null) {
             throw new MeshInconsistencyException("no major lines?");
         }
-        List<Pair<Coordinate, Long>> polygonLine = new ArrayList<Pair<Coordinate, Long>>();
+        List<Pair<Coordinate, Long>> polygonLine = new ArrayList<>();
 
         // Polygon will be CCW. Vertices 0 and 1 are always on main0.
         if (mainWayArea0.mapWay.isEndNode(node)) {
             polygonLine.add(new Pair<>((major0line.left()), mainWayArea0.mapWay.getOsmId()));
             polygonLine.add(new Pair<>((major0line.right()), mainWayArea0.mapWay.getOsmId()));
-            //       attachpair.put(main0.getOsmId(), new Pair(1, 0));
         } else {
             if (mainWayArea0.mapWay.isStartNode(node)) {
                 polygonLine.add(new Pair<>((major0line.right()), mainWayArea0.mapWay.getOsmId()));
                 polygonLine.add(new Pair<>((major0line.left()), mainWayArea0.mapWay.getOsmId()));
-                ////    attachpair.put(main0.getOsmId(), new Pair(0, 1));
             }
         }
 
         if (mainWayArea1.isEndNode(node)) {
             polygonLine.add(new Pair<>((major1line.left()), mainWayArea0.mapWay.getOsmId()));
             polygonLine.add(new Pair<>((major1line.right()), mainWayArea1.mapWay.getOsmId()));
-            //attachpair.put(main1.getOsmId(), new Pair(3, 2));
         } else {
             if (mainWayArea1.isStartNode(node)) {
                 polygonLine.add(new Pair<>((major1line.right()), mainWayArea0.mapWay.getOsmId()));
@@ -874,8 +862,7 @@ public class SceneryWayConnector extends SceneryNodeObject {
 
         polygonLine = createConnectorRectangle(node,
                 wayAreaCandidates.get(ways.get(majorway0)),
-                wayAreaCandidates.get(ways.get(majorway1)),
-                projection);
+                wayAreaCandidates.get(ways.get(majorway1)));
         // in Pair: first=right, second=left. 9.6.26: Now always from connector node
         attachpair.put(main0.getKey(isStartNode(node, main0)), new Pair(0, 1)/* isStartNode(node, main0) ? new Pair(0, 1) : new Pair(1, 0)*/);
         attachpair.put(main1.getKey(isStartNode(node, main1)), new Pair(2, 3)/* isStartNode(node, main1) ? new Pair(2, 3) : new Pair(3, 2)*/);

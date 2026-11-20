@@ -23,6 +23,7 @@ import de.yard.threed.osm2scenery.scenery.SceneryWayConnector;
 import de.yard.threed.osm2scenery.scenery.TerrainMesh;
 import de.yard.threed.osm2scenery.scenery.components.AbstractArea;
 import de.yard.threed.osm2scenery.util.OsmXmlParser;
+import de.yard.threed.osm2scenery.util.SvgWriter;
 import de.yard.threed.osm2world.OSMData;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +31,6 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -251,7 +251,7 @@ public class TestUtil {
 
         // string -> bytes
         try {
-            Files.write(Paths.get("/Users/thomas/tmp/tmp.svg"), svg.getBytes(StandardCharsets.UTF_8));
+            Files.write(SvgWriter.getTmpDir().resolve("tmp.svg"), svg.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

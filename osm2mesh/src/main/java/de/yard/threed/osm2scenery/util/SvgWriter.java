@@ -134,12 +134,25 @@ public class SvgWriter {
     public void writeTmpFile(String basefilename) {
         // string -> bytes
         try {
-            Path userDir = Paths.get(System.getProperty("user.home"));
-            Path tmpDir = userDir.resolve("tmp");
-            Files.write(tmpDir.resolve(basefilename + ".svg"), buildSvg().getBytes(StandardCharsets.UTF_8));
+            Files.write(getTmpDir().resolve(basefilename + ".svg"), buildSvg().getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * The 'tmp' directory of the project home. Tests run in the module directory, so the project home is
+     * the first parent directory (starting at the working directory) containing a 'pom.xml' and a 'tmp' directory.
+     * Falls back to 'tmp' in the working directory (eg. when not running inside the project).
+     */
+    public static Path getTmpDir() throws IOException {
+        Path workingDir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
+        for (Path dir = workingDir; dir != null; dir = dir.getParent()) {
+            if (Files.isRegularFile(dir.resolve("pom.xml")) && Files.isDirectory(dir.resolve("tmp"))) {
+                return dir.resolve("tmp");
+            }
+        }
+        throw new RuntimeException("project home tmp dir not found");
     }
 
     private void buildContent() {
